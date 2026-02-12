@@ -1,27 +1,95 @@
 {
-  "name": "ɳApp",
-  "short_name": "ɳApp",
-  "description": "A modern web application built with ɳApp boilerplate",
+  "name": "ɳDemo - Collaborative Todo Lists",
+  "short_name": "ɳDemo",
+  "description": "Production-ready todo app with real-time collaboration, offline support, and cross-platform capabilities",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f17",
-  "theme_color": "#1a1a2e",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/apple-touch-icon.svg",
-      "sizes": "180x180",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "src": "/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Todo lists view"
+    },
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile todo list"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "shortcuts": [
+    {
+      "name": "New Todo",
+      "short_name": "New",
+      "description": "Create a new todo",
+      "url": "/lists?action=new",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "App settings",
+      "url": "/settings",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "prefer_related_applications": false
 }

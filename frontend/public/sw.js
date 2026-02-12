@@ -1,81 +1,102 @@
-const CACHE_NAME = 'app-cache-v1';
-const STATIC_ASSETS = ['/', '/manifest.json'];
-const API_CACHE_NAME = 'api-cache-v1';
-const API_CACHE_TTL = 1000 * 60 * 5;
+// Service Worker for ɳDemo - Offline-first PWA
+const CACHE_NAME = 'nself-demo-v1';
+const RUNTIME_CACHE = 'nself-demo-runtime';
 
+// Assets to cache on install
+const PRECACHE_URLS = [
+  '/',
+  '/offline',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+];
+
+// Install event - cache core assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Precaching app shell');
+      return cache.addAll(PRECACHE_URLS);
+    })
   );
   self.skipWaiting();
 });
 
+// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((names) =>
-      Promise.all(
-        names
-          .filter((name) => name !== CACHE_NAME && name !== API_CACHE_NAME)
-          .map((name) => caches.delete(name))
-      )
-    )
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
   self.clients.claim();
 });
 
+// Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
+  if (!event.request.url.startsWith(self.location.origin)) return;
+  if (event.request.method !== 'GET') return;
 
-  if (request.method !== 'GET') return;
-
-  if (url.pathname.startsWith('/api/') || url.pathname.includes('/functions/') || url.pathname.includes('/graphql')) {
-    event.respondWith(networkFirstWithCache(request, API_CACHE_NAME, API_CACHE_TTL));
+  // API requests: network first
+  if (event.request.url.includes('/v1/graphql') || event.request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseToCache = response.clone();
+          caches.open(RUNTIME_CACHE).then((cache) => cache.put(event.request, responseToCache));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/offline')))
+    );
     return;
   }
 
-  if (request.destination === 'document' || request.destination === 'script' || request.destination === 'style' || request.destination === 'image') {
-    event.respondWith(staleWhileRevalidate(request));
-    return;
-  }
+  // Static assets: cache first
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (!response || response.status !== 200) return response;
+        const responseToCache = response.clone();
+        caches.open(RUNTIME_CACHE).then((cache) => cache.put(event.request, responseToCache));
+        return response;
+      });
+    })
+  );
 });
 
-async function networkFirstWithCache(request, cacheName, ttl) {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(cacheName);
-      const clone = response.clone();
-      const headers = new Headers(clone.headers);
-      headers.set('x-cache-time', Date.now().toString());
-      const body = await clone.blob();
-      cache.put(request, new Response(body, { status: clone.status, statusText: clone.statusText, headers }));
-    }
-    return response;
-  } catch {
-    const cache = await caches.open(cacheName);
-    const cached = await cache.match(request);
-    if (cached) {
-      const cacheTime = parseInt(cached.headers.get('x-cache-time') || '0');
-      if (Date.now() - cacheTime < ttl) return cached;
-    }
-    return new Response(JSON.stringify({ error: 'offline' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-}
+// Push notification
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  const data = event.data.json();
+  const options = {
+    body: data.body || 'New notification',
+    icon: '/icon-192.png',
+    badge: '/badge-72.png',
+    data: { url: data.url || '/', ...data.data },
+  };
+  event.waitUntil(self.registration.showNotification(data.title || 'ɳDemo', options));
+});
 
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-
-  const fetchPromise = fetch(request)
-    .then((response) => {
-      if (response.ok) cache.put(request, response.clone());
-      return response;
+// Notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === url && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
-    .catch(() => cached);
+  );
+});
 
-  return cached || fetchPromise;
-}
+console.log('[SW] Service Worker loaded');
