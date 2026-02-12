@@ -248,12 +248,12 @@ export class NotificationService {
     await this.createNotification({
       type: 'evening_reminder',
       title: 'Plan Tomorrow',
-      body: 'Anything you'd like to add to your todo list for tomorrow?',
+      body: "Anything you'd like to add to your todo list for tomorrow?",
       action_url: '/lists',
     });
 
     await this.sendPushNotification('Plan Tomorrow', {
-      body: 'Anything you'd like to add to your todo list for tomorrow?',
+      body: "Anything you'd like to add to your todo list for tomorrow?",
       icon: '/icon-192.png',
       badge: '/badge-72.png',
       tag: 'evening-reminder',
