@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     apple: appConfig.branding.appleTouchIcon,
   },
   themeColor: appConfig.theme.primaryColor,
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: appConfig.name,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
