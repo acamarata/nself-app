@@ -5,9 +5,12 @@ import { Tables } from '@/lib/utils/tables';
 
 /** Table-specific default field sets so queries return full objects, not just { id } */
 const TABLE_FIELDS: Record<string, string> = {
-  [Tables.TODOS]: 'id user_id title completed is_public created_at updated_at',
+  [Tables.TODOS]: 'id user_id list_id title description completed is_public position created_at updated_at',
   [Tables.PROFILES]: 'id email display_name avatar_url bio created_at updated_at',
   [Tables.TODO_SHARES]: 'id todo_id shared_with_email permission created_at',
+  [Tables.LISTS]: 'id user_id title description color icon is_default position created_at updated_at',
+  [Tables.LIST_SHARES]: 'id list_id shared_with_user_id shared_with_email permission invited_by accepted_at created_at updated_at',
+  [Tables.LIST_PRESENCE]: 'id list_id user_id status editing_todo_id last_seen_at created_at',
 };
 
 function getFieldsForTable(table: string, select?: string): string {

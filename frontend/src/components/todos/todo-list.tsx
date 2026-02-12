@@ -9,7 +9,11 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { CreateTodoInput, UpdateTodoInput } from '@/lib/services/todos';
 
-export function TodoList() {
+interface TodoListProps {
+  listId: string;
+}
+
+export function TodoList({ listId }: TodoListProps) {
   const {
     todos,
     loading,
@@ -22,10 +26,10 @@ export function TodoList() {
     shareTodo,
     removeShare,
     getShares,
-  } = useTodos();
+  } = useTodos(listId);
 
   const handleCreateTodo = async (input: CreateTodoInput) => {
-    await createTodo(input);
+    await createTodo({ ...input, list_id: listId });
   };
 
   const handleToggleTodo = async (id: string) => {

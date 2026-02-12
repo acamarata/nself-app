@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { todoService, type Todo, type TodoShare, type CreateTodoInput, type UpdateTodoInput, type ShareTodoInput } from '@/lib/services/todos';
 
-export function useTodos() {
+export function useTodos(listId: string) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -11,7 +11,7 @@ export function useTodos() {
     try {
       setLoading(true);
       setError(null);
-      const data = await todoService.getTodos();
+      const data = await todoService.getTodos(listId);
       setTodos(data);
     } catch (err) {
       const error = err as Error;
@@ -20,19 +20,19 @@ export function useTodos() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [listId]);
 
   useEffect(() => {
     fetchTodos();
 
-    const unsubscribe = todoService.subscribeToTodos((updatedTodos) => {
+    const unsubscribe = todoService.subscribeToTodos(listId, (updatedTodos) => {
       setTodos(updatedTodos);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [fetchTodos]);
+  }, [fetchTodos, listId]);
 
   const createTodo = useCallback(async (input: CreateTodoInput) => {
     try {

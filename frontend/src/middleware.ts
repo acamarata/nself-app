@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/dashboard', '/account', '/todos'];
+const PROTECTED_ROUTES = ['/dashboard', '/account', '/todos', '/lists'];
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 
 function hasAuthToken(request: NextRequest): boolean {
@@ -56,5 +56,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/account/:path*', '/todos/:path*', '/login', '/register', '/forgot-password'],
+  matcher: ['/dashboard/:path*', '/account/:path*', '/todos/:path*', '/lists/:path*', '/login', '/register', '/forgot-password'],
 };

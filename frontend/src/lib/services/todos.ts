@@ -5,9 +5,12 @@ import { Tables } from '../utils/tables';
 export interface Todo {
   id: string;
   user_id: string;
+  list_id: string;
   title: string;
+  description: string;
   completed: boolean;
   is_public: boolean;
+  position: number;
   created_at: string;
   updated_at: string;
 }
@@ -21,7 +24,9 @@ export interface TodoShare {
 }
 
 export interface CreateTodoInput {
+  list_id: string;
   title: string;
+  description?: string;
   completed?: boolean;
 }
 
@@ -44,9 +49,15 @@ export class TodoService {
     this.backend = backendAdapter;
   }
 
-  async getTodos(): Promise<Todo[]> {
+  async getTodos(listId?: string): Promise<Todo[]> {
+    const where = listId ? { list_id: listId } : undefined;
+
     const { data, error } = await this.backend.db.query<Todo>(Tables.TODOS, {
-      orderBy: [{ column: 'created_at', ascending: false }],
+      where,
+      orderBy: [
+        { column: 'position', ascending: true },
+        { column: 'created_at', ascending: false },
+      ],
     });
 
     if (error) throw new Error(error);
@@ -66,9 +77,12 @@ export class TodoService {
 
     const { data, error } = await this.backend.db.insert<Todo>(Tables.TODOS, {
       user_id: user.id,
+      list_id: input.list_id,
       title: input.title,
+      description: input.description || '',
       completed: input.completed ?? false,
       is_public: false,
+      position: Date.now(),
     });
 
     if (error) throw new Error(error);
@@ -142,18 +156,19 @@ export class TodoService {
     return data;
   }
 
-  subscribeToTodos(callback: (todos: Todo[]) => void): () => void {
-    const channel = this.backend.realtime.channel(Tables.TODOS);
+  subscribeToTodos(listId: string, callback: (todos: Todo[]) => void): () => void {
+    const channelName = `${Tables.TODOS}:${listId}`;
+    const channel = this.backend.realtime.channel(channelName);
 
     channel
       .on('*', async () => {
-        const todos = await this.getTodos();
+        const todos = await this.getTodos(listId);
         callback(todos);
       })
       .subscribe();
 
     return () => {
-      this.backend.realtime.removeChannel(Tables.TODOS);
+      this.backend.realtime.removeChannel(channelName);
     };
   }
 }
