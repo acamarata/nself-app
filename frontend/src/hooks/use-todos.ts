@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { todoService, type Todo, type TodoShare, type CreateTodoInput, type UpdateTodoInput, type ShareTodoInput } from '@/lib/services/todos';
+import { todoService, type TodoShare, type ShareTodoInput } from '@/lib/services/todos';
+import type { Todo, CreateTodoInput, UpdateTodoInput, TodoFilters, TodoPriority } from '@/lib/types/todos';
 
 export function useTodos(listId: string) {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -135,6 +136,93 @@ export function useTodos(listId: string) {
     }
   }, []);
 
+  // --- New Methods for Advanced Features ---
+
+  const uploadAttachment = useCallback(async (todoId: string, file: File) => {
+    try {
+      const attachment = await todoService.uploadAttachment(todoId, file);
+      toast.success('Attachment uploaded');
+      await fetchTodos(); // Refresh to get updated attachments
+      return attachment;
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Error uploading attachment', { description: error.message });
+      throw error;
+    }
+  }, [fetchTodos]);
+
+  const deleteAttachment = useCallback(async (todoId: string, attachmentId: string) => {
+    try {
+      await todoService.deleteAttachment(todoId, attachmentId);
+      toast.success('Attachment deleted');
+      await fetchTodos(); // Refresh to get updated attachments
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Error deleting attachment', { description: error.message });
+      throw error;
+    }
+  }, [fetchTodos]);
+
+  const bulkComplete = useCallback(async (todoIds: string[]) => {
+    try {
+      await todoService.bulkComplete(todoIds);
+      toast.success(`${todoIds.length} todos completed`);
+      await fetchTodos();
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Error completing todos', { description: error.message });
+      throw error;
+    }
+  }, [fetchTodos]);
+
+  const bulkDelete = useCallback(async (todoIds: string[]) => {
+    try {
+      await todoService.bulkDelete(todoIds);
+      toast.success(`${todoIds.length} todos deleted`);
+      await fetchTodos();
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Error deleting todos', { description: error.message });
+      throw error;
+    }
+  }, [fetchTodos]);
+
+  const bulkSetPriority = useCallback(async (todoIds: string[], priority: TodoPriority) => {
+    try {
+      await todoService.bulkSetPriority(todoIds, priority);
+      toast.success('Priority updated');
+      await fetchTodos();
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Error updating priority', { description: error.message });
+      throw error;
+    }
+  }, [fetchTodos]);
+
+  const bulkAddTag = useCallback(async (todoIds: string[], tag: string) => {
+    try {
+      await todoService.bulkAddTag(todoIds, tag);
+      toast.success('Tag added');
+      await fetchTodos();
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Error adding tag', { description: error.message });
+      throw error;
+    }
+  }, [fetchTodos]);
+
+  const completeRecurringInstance = useCallback(async (parentTodoId: string, date: string) => {
+    try {
+      await todoService.completeRecurringInstance(parentTodoId, date);
+      toast.success('Recurring todo completed for today');
+      await fetchTodos();
+    } catch (err) {
+      const error = err as Error;
+      toast.error('Error completing recurring todo', { description: error.message });
+      throw error;
+    }
+  }, [fetchTodos]);
+
   return {
     todos,
     loading,
@@ -147,6 +235,13 @@ export function useTodos(listId: string) {
     shareTodo,
     removeShare,
     getShares,
+    uploadAttachment,
+    deleteAttachment,
+    bulkComplete,
+    bulkDelete,
+    bulkSetPriority,
+    bulkAddTag,
+    completeRecurringInstance,
     refetch: fetchTodos,
   };
 }

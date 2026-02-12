@@ -1,16 +1,17 @@
 {
-  "name": "nself-app",
+  "name": "nself-demo",
   "version": "0.1.0",
-  "description": "ɳApp - Universal Next.js boilerplate with multi-backend support (ɳSelf, Supabase, Nhost)",
+  "description": "ɳDemo - Universal Next.js boilerplate with multi-backend support (ɳSelf, Supabase, Nhost)",
   "author": "acamarata",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/acamarata/nself-app"
+    "url": "https://github.com/acamarata/nself-demo"
   },
   "keywords": [
     "ɳself",
-    "ɳapp",
+    "ɳdemo",
+    "demo",
     "nextjs",
     "react",
     "hasura",

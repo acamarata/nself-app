@@ -405,3 +405,193 @@ CREATE POLICY presence_upsert_policy ON public.app_list_presence
   FOR ALL USING (user_id = auth.uid());
 
 -- Note: RLS is already enabled on app_todos and app_profiles from original setup
+-- Enhanced schema additions for complete todo app
+
+-- Add columns to app_todos for advanced features
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ;
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'none' CHECK (priority IN ('none', 'low', 'medium', 'high'));
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS reminder_time TIMESTAMPTZ;
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS location_name TEXT;
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS location_lat DECIMAL(10, 8);
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS location_lng DECIMAL(11, 8);
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS location_radius INTEGER DEFAULT 100;
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS recurrence_rule TEXT; -- 'daily', 'weekly', 'monthly', 'custom:0 3 * * *'
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS recurrence_parent_id UUID REFERENCES public.app_todos(id) ON DELETE CASCADE;
+ALTER TABLE public.app_todos ADD COLUMN IF NOT EXISTS attachments JSONB DEFAULT '[]';
+
+-- Add columns to app_profiles for user preferences
+ALTER TABLE public.app_profiles ADD COLUMN IF NOT EXISTS time_format TEXT DEFAULT '12h' CHECK (time_format IN ('12h', '24h'));
+ALTER TABLE public.app_profiles ADD COLUMN IF NOT EXISTS auto_hide_completed BOOLEAN DEFAULT false;
+ALTER TABLE public.app_profiles ADD COLUMN IF NOT EXISTS default_list_id UUID REFERENCES public.app_lists(id) ON DELETE SET NULL;
+ALTER TABLE public.app_profiles ADD COLUMN IF NOT EXISTS notification_settings JSONB DEFAULT '{"push": true, "email": true, "new_todo": true, "due_reminders": true, "shared_lists": true, "evening_reminder": true, "evening_reminder_time": "20:00"}';
+ALTER TABLE public.app_profiles ADD COLUMN IF NOT EXISTS theme_preference TEXT DEFAULT 'system' CHECK (theme_preference IN ('light', 'dark', 'system'));
+
+-- Add columns to app_lists for location-based lists
+ALTER TABLE public.app_lists ADD COLUMN IF NOT EXISTS location_name TEXT;
+ALTER TABLE public.app_lists ADD COLUMN IF NOT EXISTS location_lat DECIMAL(10, 8);
+ALTER TABLE public.app_lists ADD COLUMN IF NOT EXISTS location_lng DECIMAL(11, 8);
+ALTER TABLE public.app_lists ADD COLUMN IF NOT EXISTS location_radius INTEGER DEFAULT 100;
+ALTER TABLE public.app_lists ADD COLUMN IF NOT EXISTS reminder_on_arrival BOOLEAN DEFAULT false;
+
+-- Create notifications table
+CREATE TABLE IF NOT EXISTS public.app_notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('new_todo', 'due_reminder', 'shared_list', 'evening_reminder', 'location_reminder', 'list_update')),
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  data JSONB DEFAULT '{}',
+  read BOOLEAN DEFAULT false,
+  action_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Create recurring task instances table
+CREATE TABLE IF NOT EXISTS public.app_recurring_instances (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_todo_id UUID NOT NULL REFERENCES public.app_todos(id) ON DELETE CASCADE,
+  instance_date DATE NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  completed_at TIMESTAMPTZ,
+  skipped BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(parent_todo_id, instance_date)
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_todos_due_date ON public.app_todos(due_date) WHERE due_date IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_todos_recurrence ON public.app_todos(recurrence_rule) WHERE recurrence_rule IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.app_notifications(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON public.app_notifications(user_id) WHERE read = false;
+CREATE INDEX IF NOT EXISTS idx_recurring_instances ON public.app_recurring_instances(parent_todo_id, instance_date);
+
+-- RLS policies for notifications
+ALTER TABLE public.app_notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own notifications"
+  ON public.app_notifications FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own notifications"
+  ON public.app_notifications FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "System can create notifications"
+  ON public.app_notifications FOR INSERT
+  WITH CHECK (true);
+
+-- RLS policies for recurring instances
+ALTER TABLE public.app_recurring_instances ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view instances of their todos"
+  ON public.app_recurring_instances FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.app_todos
+      WHERE app_todos.id = parent_todo_id
+      AND app_todos.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert instances of their todos"
+  ON public.app_recurring_instances FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.app_todos
+      WHERE app_todos.id = parent_todo_id
+      AND app_todos.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update instances of their todos"
+  ON public.app_recurring_instances FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.app_todos
+      WHERE app_todos.id = parent_todo_id
+      AND app_todos.user_id = auth.uid()
+    )
+  );
+
+-- Function to reset daily recurring todos at 3am
+CREATE OR REPLACE FUNCTION public.reset_daily_recurring_todos()
+RETURNS void AS $$
+BEGIN
+  -- Mark all daily recurring todos as not completed at 3am
+  -- This creates a new instance for today if it doesn't exist
+  INSERT INTO public.app_recurring_instances (parent_todo_id, instance_date, completed)
+  SELECT 
+    id,
+    CURRENT_DATE,
+    false
+  FROM public.app_todos
+  WHERE recurrence_rule LIKE 'daily%'
+    AND NOT EXISTS (
+      SELECT 1 FROM public.app_recurring_instances
+      WHERE parent_todo_id = app_todos.id
+      AND instance_date = CURRENT_DATE
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to create notification
+CREATE OR REPLACE FUNCTION public.create_notification(
+  p_user_id UUID,
+  p_type TEXT,
+  p_title TEXT,
+  p_body TEXT,
+  p_data JSONB DEFAULT '{}',
+  p_action_url TEXT DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+  notification_id UUID;
+BEGIN
+  INSERT INTO public.app_notifications (user_id, type, title, body, data, action_url)
+  VALUES (p_user_id, p_type, p_title, p_body, p_data, p_action_url)
+  RETURNING id INTO notification_id;
+  
+  RETURN notification_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to notify on new shared list
+CREATE OR REPLACE FUNCTION public.notify_list_shared()
+RETURNS TRIGGER AS $$
+DECLARE
+  list_title TEXT;
+  inviter_email TEXT;
+BEGIN
+  -- Get list title
+  SELECT title INTO list_title
+  FROM public.app_lists
+  WHERE id = NEW.list_id;
+  
+  -- Get inviter email
+  SELECT email INTO inviter_email
+  FROM auth.users
+  WHERE id = NEW.invited_by;
+  
+  -- Create notification if user has accepted (has user_id)
+  IF NEW.shared_with_user_id IS NOT NULL THEN
+    PERFORM public.create_notification(
+      NEW.shared_with_user_id,
+      'shared_list',
+      'New list shared with you',
+      inviter_email || ' shared "' || list_title || '" with you',
+      jsonb_build_object('list_id', NEW.list_id, 'share_id', NEW.id),
+      '/lists/' || NEW.list_id::text
+    );
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_notify_list_shared
+  AFTER INSERT OR UPDATE ON public.app_list_shares
+  FOR EACH ROW
+  EXECUTE FUNCTION public.notify_list_shared();
+

@@ -235,5 +235,5 @@ Edit `config/components.json` for component installation paths
 ## 🆘 Need Help?
 
 - 📖 [Main Documentation](../.wiki/Home.md)
-- 🐛 [Issues](https://github.com/acamarata/nself-app/issues)
-- 💬 [Discussions](https://github.com/acamarata/nself-app/discussions)
+- 🐛 [Issues](https://github.com/acamarata/nself-demo/issues)
+- 💬 [Discussions](https://github.com/acamarata/nself-demo/discussions)

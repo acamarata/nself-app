@@ -14,6 +14,13 @@ export interface List {
   created_at: string;
   updated_at: string;
 
+  // Geolocation for list-based reminders
+  location_name: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  location_radius: number | null;
+  reminder_on_arrival: boolean;
+
   // Computed fields (from joins)
   todo_count?: number;
   completed_count?: number;
@@ -63,6 +70,11 @@ export interface CreateListInput {
   description?: string;
   color?: string;
   icon?: string;
+  location_name?: string | null;
+  location_lat?: number | null;
+  location_lng?: number | null;
+  location_radius?: number | null;
+  reminder_on_arrival?: boolean;
 }
 
 export interface UpdateListInput {
@@ -71,6 +83,11 @@ export interface UpdateListInput {
   color?: string;
   icon?: string;
   position?: number;
+  location_name?: string | null;
+  location_lat?: number | null;
+  location_lng?: number | null;
+  location_radius?: number | null;
+  reminder_on_arrival?: boolean;
 }
 
 export interface ShareListInput {

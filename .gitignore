@@ -130,3 +130,8 @@ bin/
 *.tfstate.*
 .terraform/
 .claude/
+
+# Environment files (sensitive)
+.env.secrets
+_backup*
+.volumes/

@@ -44,7 +44,7 @@ const priorityConfig: Record<TodoPriority, { color: string; label: string; icon:
   high: { color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', label: 'High', icon: '⬆️' },
 };
 
-export function TodoItem({
+export function TodoItemEnhanced({
   todo,
   onToggle,
   onUpdate,
