@@ -27,12 +27,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout plugins-pro (for nself_auth_sdk)
+        uses: actions/checkout@v4
+        with:
+          repository: nself-org/plugins-pro
+          token: ${{ secrets.GH_PAT_PLUGINS_PRO }}
+          path: plugins-pro
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ inputs.flutter_version }}
           channel: 'stable'
           cache: true
+
+      - name: Rewrite nself_auth_sdk path for CI layout
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Local dev: ../../../../plugins-pro/paid/auth/flutter
+          # CI: plugins-pro/ is checked out at workspace root, so from app/ it's ../plugins-pro/paid/auth/flutter
+          python3 - <<'PY'
+          import re, pathlib
+          p = pathlib.Path("app/pubspec.yaml")
+          src = p.read_text()
+          new = re.sub(
+              r"(\s+nself_auth_sdk:\s*\n\s+path:\s*).+",
+              r"\1../plugins-pro/paid/auth/flutter",
+              src,
+          )
+          if new == src:
+              raise SystemExit("Failed to rewrite nself_auth_sdk path in app/pubspec.yaml")
+          p.write_text(new)
+          print("Rewrote nself_auth_sdk path -> ../plugins-pro/paid/auth/flutter")
+          PY
 
       - name: Scaffold platforms
         run: |
@@ -57,12 +84,25 @@ jobs:
       - name: Run analysis
         run: flutter analyze || true
 
+      - name: Restore pubspec.yaml (revert CI path rewrite)
+        working-directory: ${{ github.workspace }}
+        run: |
+          # The "Rewrite nself_auth_sdk path for CI layout" step modified app/pubspec.yaml
+          # for CI use. Revert it so we don't commit the CI-only path back to the repo.
+          git checkout -- app/pubspec.yaml || true
+
       - name: Commit scaffolded platforms
         run: |
           cd ..
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/
+          # Only add platform directories, never pubspec.yaml or other source files,
+          # to avoid committing the CI path rewrite of nself_auth_sdk.
+          for platform in $(echo "${{ inputs.platforms }}" | tr ',' ' '); do
+            if [ -d "app/$platform" ]; then
+              git add "app/$platform"
+            fi
+          done
           git diff --cached --quiet && echo "No changes to commit" && exit 0
           git commit -m "feat(app): scaffold platform directories (${{ inputs.platforms }})"
           git push

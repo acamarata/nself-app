@@ -24,11 +24,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout plugins-pro (for nself_auth_sdk)
+        uses: actions/checkout@v4
+        with:
+          repository: nself-org/plugins-pro
+          token: ${{ secrets.GH_PAT_PLUGINS_PRO }}
+          path: plugins-pro
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.29.x'
           channel: 'stable'
           cache: true
+
+      - name: Rewrite nself_auth_sdk path for CI layout
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Local dev: ../../../../plugins-pro/paid/auth/flutter
+          # CI: plugins-pro/ is checked out at workspace root, so from app/ it's ../plugins-pro/paid/auth/flutter
+          python3 - <<'PY'
+          import re, pathlib
+          p = pathlib.Path("app/pubspec.yaml")
+          src = p.read_text()
+          new = re.sub(
+              r"(\s+nself_auth_sdk:\s*\n\s+path:\s*).+",
+              r"\1../plugins-pro/paid/auth/flutter",
+              src,
+          )
+          if new == src:
+              raise SystemExit("Failed to rewrite nself_auth_sdk path in app/pubspec.yaml")
+          p.write_text(new)
+          print("Rewrote nself_auth_sdk path -> ../plugins-pro/paid/auth/flutter")
+          PY
 
       - name: Install dependencies
         run: flutter pub get

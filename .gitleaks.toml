@@ -67,10 +67,22 @@ paths = [
   '''testdata/.*''',
   '''test/.*fixtures.*''',
   '''\.github/workflows/gitleaks\.yml''',
+  # P99 S1.8 T01 triage 2026-05-04: documented placeholders in env templates.
+  # These files are .env.example / .env.template and contain the literal string
+  # "replace-me-with-..." which gitleaks generic-api-key flags by entropy.
+  # Real secrets live in untracked .env.local / .env.secrets per env cascade convention.
+  '''backend/\.env\.example''',
+  '''backend/\.env\.template''',
+  '''\.env\.example''',
+  '''\.env\.template''',
 ]
 regexes = [
   '''sk_live_FAKE_TEST_FOR_CI_GATE''',
   '''AKIA_FAKE_TEST_KEY_DO_NOT_USE''',
   '''AIza_FAKE_GOOGLE_KEY_DO_NOT_USE''',
   '''nself_pro_FAKE_TEST_KEY_DO_NOT_USE''',
+  # Documented placeholder strings in env templates (literal "replace-me-..." text).
+  '''replace-me-with-[a-z0-9-]+''',
+  '''devsecret(-[a-z0-9-]+)?''',
+  '''CHANGE_ME_IN_PRODUCTION''',
 ]

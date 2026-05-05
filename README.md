@@ -151,7 +151,7 @@ MIT, see [LICENSE](LICENSE).
 
 - [cli](https://github.com/nself-org/cli): the nSelf CLI (not required for this repo, but the wider ecosystem entry point)
 - [admin](https://github.com/nself-org/admin): local GUI companion for the CLI
-- [chat](https://github.com/nself-org/chat): open-source chat reference app (uses nSelf CLI)
-- [claw](https://github.com/nself-org/claw): open-source AI assistant reference app (uses nSelf CLI + pro plugins)
-- [ntv](https://github.com/nself-org/ntv): open-source media player reference app (uses nSelf CLI + nMedia bundle)
+- [nchat](https://github.com/nself-org/nchat): open-source chat reference app (uses nSelf CLI)
+- [nclaw](https://github.com/nself-org/nclaw): open-source AI assistant reference app (uses nSelf CLI + pro plugins)
+- [ntv](https://github.com/nself-org/ntv): open-source media player reference app (uses nSelf CLI + nTV bundle)
 - [web](https://github.com/nself-org/web): `nself.org` marketing + docs + cloud (private; hosts the free demo at `task.nself.org`)
