@@ -25,4 +25,6 @@ paths = [
   '''\.github/docs/''',
   '''\.github/workflows/''',
   '''\.claude/''',
+  # Generated Docker Compose files — contain test/dev placeholder secrets only
+  '''backend/docker-compose.*\.yml$''',
 ]
