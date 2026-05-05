@@ -20,7 +20,7 @@ jobs:
 
       - name: Install nself CLI
         run: |
-          curl -fsSL https://install.nself.org | bash
+          curl -fsSL https://raw.githubusercontent.com/nself-org/cli/main/.github/install.sh | bash
           echo "$HOME/.nself/bin" >> $GITHUB_PATH
 
       - name: Verify nself CLI
