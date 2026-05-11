@@ -5,6 +5,24 @@ All notable changes to ɳApp will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — PENDING (v1.1.0 ecosystem release)
+
+Minor release. nSelf-First migration complete. task.nself.org hosted demo updated. Flutter app store builds prep.
+
+### Added
+
+- **App store binary prep**: build configurations and signing scripts for iOS App Store, Google Play, and macOS App Store submissions.
+- **task.nself.org hosted demo**: web/ntask SaaS version updated to v1.1.0 backend stack.
+- **nSelf-First backend**: `make up` now delegates to `nself start` (P98 02.T14 migration finalized). `nself build` generates `docker-compose.yml` from CLI templates.
+
+### Changed
+
+- Minimum nSelf CLI version: v1.1.0.
+- `make up` / `make down` confirmed as thin aliases for `nself start` / `nself stop` (D6 exception fully superseded).
+- Backend stack: PostgreSQL + Hasura + Auth + Storage aligned with CLI v1.1.0 service contracts.
+
+---
+
 ## [Unreleased]
 
 ### Fixed
