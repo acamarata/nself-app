@@ -80,7 +80,7 @@ For nSelf CLI commands across the wider ecosystem, see the [cli wiki](https://gi
 
 `task/` is free-plugins-only by design (per F03, F12). It does not install nSelf pro plugins (ai, claw, mux, livekit, etc.). The free capabilities used here are auth and storage, both delivered as standard Hasura services.
 
-For the full ecosystem inventory of 87 plugins (25 free + 62 pro), see the [cli wiki](https://github.com/nself-org/cli/wiki).
+For the full ecosystem inventory of 138 plugins (29 free + 109 pro), see the [cli wiki](https://github.com/nself-org/cli/wiki).
 
 ## Guides
 
