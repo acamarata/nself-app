@@ -175,3 +175,14 @@ local.properties
 .gemini/
 .codeium/
 .claude/
+.vscode/*
+.idea/
+.claude/
+.codex/
+.cursor/
+.aider/
+.aider.chat.history.md
+.continue/
+.windsurf/
+.gemini/
+.codeium/
