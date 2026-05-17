@@ -1,0 +1,45 @@
+name: Desktop Windows Build
+
+# Note: ntask Tauri desktop was removed in commit a3ed9c4 (Flutter is now canonical).
+# This workflow is present for EV code-signing infrastructure parity with other nSelf apps.
+# The signing step is a no-op until (a) SSL_COM_USERNAME is set AND (b) a Windows MSI
+# build target is re-introduced. Flutter desktop does not produce an MSI installer.
+# See: ntask/.github/workflows/flutter-ci.yml for the active build pipeline.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.NSELF_PAT }}
+
+      # SSL.com eSigner EV code-signing.
+      # Skipped: no MSI artifact (Tauri desktop removed; Flutter canonical; no MSI produced).
+      # When a Windows MSI build is re-introduced, update file_path below and remove this comment.
+      # Note: the 'secrets' context is valid here; VS Code linter false-positive on step-level if:.
+      - name: Sign Windows MSI (EV, SSL.com eSigner)
+        if: ${{ secrets.SSL_COM_USERNAME != '' && false }}
+        uses: SSLcom/esigner-codesign@v1.3.2
+        with:
+          command: sign
+          username: ${{ secrets.SSL_COM_USERNAME }}
+          password: ${{ secrets.SSL_COM_PASSWORD }}
+          credential_id: ${{ secrets.SSL_COM_CREDENTIAL_ID }}
+          totp_secret: ${{ secrets.SSL_COM_TOTP_SECRET }}
+          # file_path: ntask/build/windows/runner/Release/*.msix  # update when MSI build target is re-introduced
+          file_path: ''
+          override: true
+
+      - name: Report
+        run: echo "ntask Windows MSI signing deferred — no MSI build target. See workflow header."

@@ -56,8 +56,6 @@ jobs:
       - run: flutter test
 
   build-android:
-    # TODO: Enable when platform dirs are scaffolded (flutter create --platforms=...)
-    if: false
     name: Build Android
     runs-on: ubuntu-latest
     needs: analyze
@@ -104,8 +102,6 @@ jobs:
       - run: flutter build appbundle --debug
 
   build-ios:
-    # TODO: Enable when platform dirs are scaffolded (flutter create --platforms=...)
-    if: false
     name: Build iOS
     runs-on: macos-15
     needs: analyze
@@ -147,8 +143,6 @@ jobs:
       - run: flutter build ios --debug --no-codesign
 
   build-macos:
-    # TODO: Enable when platform dirs are scaffolded (flutter create --platforms=...)
-    if: false
     name: Build macOS
     runs-on: macos-15
     needs: analyze
@@ -190,8 +184,6 @@ jobs:
       - run: flutter build macos --debug
 
   build-linux:
-    # TODO: Enable when platform dirs are scaffolded (flutter create --platforms=...)
-    if: false
     name: Build Linux
     runs-on: ubuntu-latest
     needs: analyze
@@ -242,8 +234,6 @@ jobs:
           path: app/build/linux/x64/release/bundle/
 
   build-windows:
-    # TODO: Enable when platform dirs are scaffolded (flutter create --platforms=...)
-    if: false
     name: Build Windows (MSIX)
     runs-on: windows-latest
     needs: analyze
@@ -286,6 +276,11 @@ jobs:
         working-directory: app
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
+      - name: Scaffold Windows platform dir (if missing)
+        run: |
+          if [ ! -d app/windows ]; then
+            flutter create --platforms=windows app
+          fi
       - name: Build Windows release
         run: flutter build windows --release
         working-directory: app

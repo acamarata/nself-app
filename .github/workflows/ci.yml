@@ -27,3 +27,9 @@ jobs:
         run: |
           nself version
           nself help
+
+  clean-root:
+    name: Clean Root Check
+    uses: nself-org/.github/.github/workflows/clean-root.yml@v1
+    with:
+      allowed-markdown: "README.md"
