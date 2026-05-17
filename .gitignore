@@ -187,3 +187,9 @@ local.properties
 .gemini/
 .codeium/
 .claude/
+
+# =============================================================================
+# DOCKER LOCAL OVERRIDES (never commit — machine-specific)
+# =============================================================================
+docker-compose.dev.yml
+docker-compose.override.yml
