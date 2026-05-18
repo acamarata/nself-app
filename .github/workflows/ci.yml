@@ -30,6 +30,24 @@ jobs:
 
   clean-root:
     name: Clean Root Check
-    uses: nself-org/.github/.github/workflows/clean-root.yml@v1
-    with:
-      allowed-markdown: "README.md"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Forbid markdown at repo root other than README.md
+        run: |
+          OFFENDERS=$(find . -maxdepth 1 -name '*.md' ! -name 'README.md' -type f | sort)
+          if [ -n "$OFFENDERS" ]; then
+            echo "::error::Disallowed markdown files at repo root: $OFFENDERS"
+            exit 1
+          fi
+          echo "Repo root markdown is clean."
+
+      - name: Forbid tracked OS junk / secret .env files
+        run: |
+          JUNK=$(git ls-files | grep -E '(^|/)(\.DS_Store|Thumbs\.db|desktop\.ini)$|\.swp$|\.swo$' || true)
+          if [ -n "$JUNK" ]; then echo "::error::Tracked OS junk: $JUNK"; exit 1; fi
+          ENV=$(git ls-files | grep -E '(^|/)(\.env|\.env\.local|\.env\.secrets|\.env\.computed)$' \
+            | grep -vE '(^|/)(\.environments|environments)/[^/]+/\.env$' || true)
+          if [ -n "$ENV" ]; then echo "::error::Tracked secret-bearing .env: $ENV"; exit 1; fi
+          echo "Working tree clean."
