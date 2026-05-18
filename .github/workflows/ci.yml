@@ -20,9 +20,8 @@ jobs:
 
       - name: Install nself CLI
         env:
-          # Pin to last release that has linux/amd64 binary; remove pin when cli v1.1.3 binaries ship.
-          # v1.1.3 release tag exists but has no linux/amd64 asset (incomplete release build).
-          NSELF_VERSION: "1.1.2"
+          # Track cli v1.1.3 (release has full platform binaries).
+          NSELF_VERSION: "1.1.3"
         run: |
           curl -fsSL https://raw.githubusercontent.com/nself-org/cli/main/.github/install.sh | bash
           echo "$HOME/.nself/bin" >> $GITHUB_PATH
