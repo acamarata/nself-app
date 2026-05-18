@@ -21,15 +21,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.NSELF_PAT }}
 
       # SSL.com eSigner EV code-signing.
       # Skipped: no MSI artifact (Tauri desktop removed; Flutter canonical; no MSI produced).
       # When a Windows MSI build is re-introduced, update file_path below and remove this comment.
       # Note: the 'secrets' context is valid here; VS Code linter false-positive on step-level if:.
       - name: Sign Windows MSI (EV, SSL.com eSigner)
-        if: ${{ secrets.SSL_COM_USERNAME != '' && false }}
+        if: false
         uses: SSLcom/esigner-codesign@v1.3.2
         with:
           command: sign
