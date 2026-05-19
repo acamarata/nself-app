@@ -1,13 +1,21 @@
 name: Android TV CI
 
 # Disabled: Capacitor Android TV build removed with frontend/ in commit a3ed9c4.
-# Flutter Android TV support TBD.
+# Flutter Android TV support TBD — will be re-implemented under flutter-ci.yml
+# when Android TV flavors are introduced. Keeping this workflow to preserve CI
+# slot and history.
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/android-tv-ci.yml']
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/android-tv-ci.yml']
   workflow_dispatch:
 
 jobs:
-  placeholder:
+  android-tv-ci:
     name: Android TV CI (disabled)
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Android TV support not yet implemented in Flutter."
+      - run: echo "Android TV support not yet implemented in Flutter. Tracking issue for v1.2.0."

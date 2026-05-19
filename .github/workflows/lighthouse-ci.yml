@@ -1,13 +1,20 @@
 name: Lighthouse CI
 
 # Disabled: Next.js web target removed in commit a3ed9c4 (Flutter is now canonical).
-# Re-enable when Flutter web is set up with a hosted preview URL.
+# Re-enable and replace with flutter_driver or integration_test web perf audit
+# when Flutter web build with a hosted preview URL is introduced.
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/lighthouse-ci.yml']
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/lighthouse-ci.yml']
   workflow_dispatch:
 
 jobs:
-  placeholder:
+  lighthouse-ci:
     name: Lighthouse CI (disabled)
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Lighthouse CI not applicable to Flutter app."
+      - run: echo "Lighthouse CI not applicable to Flutter app. Re-enable when Flutter web preview is set up."

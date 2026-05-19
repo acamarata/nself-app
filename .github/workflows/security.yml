@@ -1,13 +1,41 @@
 name: Security Scan
 
-# Disabled: CodeQL JS/TS scanning removed — repo is now Flutter (Dart).
-# CodeQL does not support Dart. Re-enable if native platform code is added.
+# Replaces the pnpm audit that targeted frontend/ (removed a3ed9c4).
+# Scans app/pubspec.lock for known CVEs using OSV Scanner (supports Dart/pub).
+# dart analyze requires PLUGINS_PRO_READ_TOKEN; OSV runs lockfile-only — no path dep needed.
+
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/pubspec.lock'
+      - 'app/pubspec.yaml'
+      - '.github/workflows/security.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/pubspec.lock'
+      - 'app/pubspec.yaml'
+      - '.github/workflows/security.yml'
+  schedule:
+    - cron: '0 0 * * 0'
   workflow_dispatch:
 
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  placeholder:
-    name: Security Scan (disabled)
+  osv-scan:
+    name: Dependency Audit
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
-      - run: echo "CodeQL not applicable to Dart/Flutter. Re-enable when native code is added."
+      - uses: actions/checkout@v4
+
+      - name: OSV Scanner — Dart/pub lockfile
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
+        with:
+          scan-args: |-
+            --lockfile=app/pubspec.lock
