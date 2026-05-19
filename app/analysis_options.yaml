@@ -1,5 +1,10 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  errors:
+    # AppLocalizations.of(context) returns nullable in generated code; ! is intentional.
+    unnecessary_non_null_assertion: ignore
+
 linter:
   rules:
     - avoid_print
