@@ -23,6 +23,14 @@ Minor release. nSelf-First migration complete. task.nself.org hosted demo update
 
 ---
 
+## [1.1.4] — 2026-05-21
+
+Patch release. App version bumped to 1.1.4+1.
+
+### Fixed
+
+- ci: doc-sync version-file matrix now recognizes `.github/wiki/Changelog.md` as a valid version-doc surface for Type C app repos.
+
 ## [Unreleased]
 
 ### Fixed
