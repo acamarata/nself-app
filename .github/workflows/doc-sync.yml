@@ -50,8 +50,18 @@ jobs:
             fi
           fi
 
-          # Env vars
-          if matches '(^|/)\.env\.example$|^cli/internal/env/'; then
+          # Env vars — only fire when actual variable names (not comments) changed.
+          env_var_changed=0
+          if matches '^cli/internal/env/'; then
+            env_var_changed=1
+          fi
+          if matches '(^|/)\.env\.example$'; then
+            # Check if actual VAR= lines changed (not comment-only changes)
+            if git diff "origin/${{ github.base_ref }}"...HEAD -- '*/.env.example' '.env.example' 2>/dev/null | grep -qE '^\+[A-Z_]+='; then
+              env_var_changed=1
+            fi
+          fi
+          if [ "$env_var_changed" -eq 1 ]; then
             if ! matches '(\.claude/docs/sport/F09-ENV-VAR-INVENTORY\.md|cli/\.wiki/reference/env-vars\.md|web/docs/content/reference/env-vars)'; then
               rows="${rows}- env vars changed without F09-ENV-VAR-INVENTORY.md or env-vars reference update\n"
               missing=1
@@ -98,9 +108,28 @@ jobs:
             fi
           fi
 
-          # Versions
-          if matches '(^cli/VERSION$|pubspec\.yaml$|homebrew-nself/.*\.rb$|plugins-pro/VERSION$|^Cargo\.toml$)'; then
-            if ! matches '(\.claude/docs/MASTER-VERSIONS\.md|\.claude/docs/sport/F01-MASTER-VERSIONS\.md|web/org/content/changelog|homebrew-nself/Formula/|\.github/wiki/Changelog\.md)'; then
+          # Versions — only fire when the actual version string changed.
+          # pubspec.yaml changes that only add/remove dependencies (not the version: line)
+          # should not require a MASTER-VERSIONS.md update.
+          version_bump=0
+          if matches '^cli/VERSION$|plugins-pro/VERSION$'; then
+            version_bump=1
+          fi
+          if matches 'homebrew-nself/.*\.rb$'; then
+            version_bump=1
+          fi
+          if matches '^Cargo\.toml$'; then
+            if git diff "origin/${{ github.base_ref }}"...HEAD -- Cargo.toml | grep -qE '^\+\s*version\s*='; then
+              version_bump=1
+            fi
+          fi
+          if matches 'pubspec\.yaml$'; then
+            if git diff "origin/${{ github.base_ref }}"...HEAD -- pubspec.yaml | grep -qE '^\+version:'; then
+              version_bump=1
+            fi
+          fi
+          if [ "$version_bump" -eq 1 ]; then
+            if ! matches '(\.claude/docs/MASTER-VERSIONS\.md|\.claude/docs/sport/F01-MASTER-VERSIONS\.md|web/org/content/changelog|homebrew-nself/Formula/)'; then
               rows="${rows}- version files changed without MASTER-VERSIONS.md or F01 update\n"
               missing=1
             fi
