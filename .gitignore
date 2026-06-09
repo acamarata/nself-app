@@ -1,6 +1,10 @@
 # =============================================================================
-# FLUTTER / DART BUILD ARTIFACTS
+# FLUTTER / DART BUILD ARTIFACTS (legacy — app/ removed in RN migration)
 # =============================================================================
+# app/ directory: leftover Flutter build artifacts from pre-RN-migration Flutter
+# client. The Flutter app/ was deleted in feat(mobile): migrate Flutter to React
+# Native Expo (7c594b5). These disk remnants are not tracked; suppress via gitignore.
+app/
 **/.dart_tool/
 **/build/
 **/*.g.dart
