@@ -1,21 +1,20 @@
 name: Security Scan
 
-# Replaces the pnpm audit that targeted frontend/ (removed a3ed9c4).
-# Scans app/pubspec.lock for known CVEs using OSV Scanner (supports Dart/pub).
-# dart analyze requires PLUGINS_PRO_READ_TOKEN; OSV runs lockfile-only — no path dep needed.
+# Retargeted from app/pubspec.lock (Flutter) to apps/mobile/pnpm-lock.yaml (React Native Expo)
+# after mega-p1/rn-migration. OSV Scanner supports pnpm lockfiles natively.
 
 on:
   push:
     branches: [main]
     paths:
-      - 'app/pubspec.lock'
-      - 'app/pubspec.yaml'
+      - 'apps/mobile/pnpm-lock.yaml'
+      - 'apps/mobile/package.json'
       - '.github/workflows/security.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'app/pubspec.lock'
-      - 'app/pubspec.yaml'
+      - 'apps/mobile/pnpm-lock.yaml'
+      - 'apps/mobile/package.json'
       - '.github/workflows/security.yml'
   schedule:
     - cron: '0 0 * * 0'
@@ -34,8 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: OSV Scanner — Dart/pub lockfile
+      - name: OSV Scanner — pnpm lockfile
         uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
         with:
           scan-args: |-
-            --lockfile=app/pubspec.lock
+            --lockfile=apps/mobile/pnpm-lock.yaml
