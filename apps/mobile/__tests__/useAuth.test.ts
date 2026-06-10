@@ -35,9 +35,11 @@ describe('useAuth', () => {
   });
 
   it('loads stored token and serverUrl on mount', async () => {
+    // getServerUrl() calls getItemAsync(SERVER_URL_KEY) first in Promise.all,
+    // then getItemAsync(TOKEN_KEY) — mock order must match.
     (SecureStore.getItemAsync as jest.Mock)
-      .mockResolvedValueOnce('test-token')
-      .mockResolvedValueOnce('https://api.example.com');
+      .mockResolvedValueOnce('https://api.example.com') // 1st: SERVER_URL_KEY via getServerUrl()
+      .mockResolvedValueOnce('test-token');              // 2nd: TOKEN_KEY direct call
 
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.accessToken).toBe('test-token'));
@@ -68,9 +70,10 @@ describe('useAuth', () => {
   });
 
   it('signOut clears tokens', async () => {
+    // Same call order as above: SERVER_URL_KEY first, TOKEN_KEY second.
     (SecureStore.getItemAsync as jest.Mock)
-      .mockResolvedValueOnce('stored-token')
-      .mockResolvedValueOnce('https://api.example.com');
+      .mockResolvedValueOnce('https://api.example.com') // 1st: SERVER_URL_KEY via getServerUrl()
+      .mockResolvedValueOnce('stored-token');            // 2nd: TOKEN_KEY direct call
 
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.accessToken).toBe('stored-token'));
