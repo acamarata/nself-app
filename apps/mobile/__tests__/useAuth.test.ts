@@ -6,7 +6,7 @@
  * SPORT: T-E1-05
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 
 // Mock expo-secure-store before importing the hook
 jest.mock('expo-secure-store', () => ({
@@ -28,10 +28,9 @@ describe('useAuth', () => {
   });
 
   it('starts with loading true then resolves with no token', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useAuth());
+    const { result } = renderHook(() => useAuth());
     expect(result.current.loading).toBe(true);
-    await waitForNextUpdate();
-    expect(result.current.loading).toBe(false);
+    await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.accessToken).toBeNull();
   });
 
@@ -40,9 +39,8 @@ describe('useAuth', () => {
       .mockResolvedValueOnce('test-token')
       .mockResolvedValueOnce('https://api.example.com');
 
-    const { result, waitForNextUpdate } = renderHook(() => useAuth());
-    await waitForNextUpdate();
-    expect(result.current.accessToken).toBe('test-token');
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.accessToken).toBe('test-token'));
     expect(result.current.serverUrl).toBe('https://api.example.com');
   });
 
@@ -57,8 +55,8 @@ describe('useAuth', () => {
       }),
     });
 
-    const { result, waitForNextUpdate } = renderHook(() => useAuth());
-    await waitForNextUpdate(); // initial load
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.loading).toBe(false)); // initial load
 
     await act(async () => {
       await result.current.signIn('https://api.example.com', 'user@example.com', 'pass');
@@ -74,8 +72,8 @@ describe('useAuth', () => {
       .mockResolvedValueOnce('stored-token')
       .mockResolvedValueOnce('https://api.example.com');
 
-    const { result, waitForNextUpdate } = renderHook(() => useAuth());
-    await waitForNextUpdate();
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.accessToken).toBe('stored-token'));
 
     await act(async () => {
       await result.current.signOut();
