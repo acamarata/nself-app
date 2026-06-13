@@ -77,7 +77,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Expo prebuild (Android)
-        run: pnpm exec expo prebuild --platform android --non-interactive
+        env:
+          CI: "1"
+        run: pnpm exec expo prebuild --platform android
 
       - name: Build Android (debug)
         working-directory: apps/mobile/android
@@ -107,7 +109,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Expo prebuild (iOS)
-        run: pnpm exec expo prebuild --platform ios --non-interactive
+        env:
+          CI: "1"
+        run: pnpm exec expo prebuild --platform ios
 
       - name: Build iOS (no codesign)
         run: |
