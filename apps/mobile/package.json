@@ -45,6 +45,7 @@
     "overrides": {
       "@xmldom/xmldom": "^0.9.10",
       "fast-xml-parser": "^5.7.0",
+      "joi": "^17.13.4",
       "postcss": "^8.5.10",
       "send": "^0.19.0",
       "tar": "^7.5.11",

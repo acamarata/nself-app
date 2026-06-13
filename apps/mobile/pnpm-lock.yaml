@@ -7,6 +7,7 @@ settings:
 overrides:
   '@xmldom/xmldom': ^0.9.10
   fast-xml-parser: ^5.7.0
+  joi: ^17.13.4
   postcss: ^8.5.10
   send: ^0.19.0
   tar: ^7.5.11
@@ -3202,8 +3203,8 @@ packages:
   jimp-compact@0.16.1:
     resolution: {integrity: sha512-dZ6Ra7u1G8c4Letq/B5EzAxj4tLFHL+cGtdpR+PVm4yzPDj+lCk+AbivWt1eOM+ikzkowtyV7qSqX6qr3t71Ww==}
 
-  joi@17.13.3:
-    resolution: {integrity: sha512-otDA4ldcIx+ZXsKHWmp0YizCweVRZG96J10b0FevjfuncLO1oX59THoAmHkNubYJ+9gWsYsp5k8v4ib6oDv1fA==}
+  joi@17.13.4:
+    resolution: {integrity: sha512-1RuuER6kmt8K8I3nIWvPZKi5RQCb568ZPyY4Pwjlua+yo+63ZTmIwxLZH0heBmiKN4uxjvCiarDrjaeH84xicQ==}
 
   join-component@1.1.0:
     resolution: {integrity: sha512-bF7vcQxbODoGK1imE2P9GS9aw4zD0Sd+Hni68IMZLj7zRnquH7dXUmMw9hDI5S/Jzt7q+IyTXN0rSg2GI0IKhQ==}
@@ -6623,7 +6624,7 @@ snapshots:
       cosmiconfig: 5.2.1
       deepmerge: 4.3.1
       fast-glob: 3.3.3
-      joi: 17.13.3
+      joi: 17.13.4
     transitivePeerDependencies:
       - encoding
 
@@ -6727,7 +6728,7 @@ snapshots:
 
   '@react-native-community/cli-types@13.6.4':
     dependencies:
-      joi: 17.13.3
+      joi: 17.13.4
 
   '@react-native-community/cli@13.6.4':
     dependencies:
@@ -9384,7 +9385,7 @@ snapshots:
 
   jimp-compact@0.16.1: {}
 
-  joi@17.13.3:
+  joi@17.13.4:
     dependencies:
       '@hapi/hoek': 9.3.0
       '@hapi/topo': 5.1.0
