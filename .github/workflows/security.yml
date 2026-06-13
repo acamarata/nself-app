@@ -38,3 +38,4 @@ jobs:
         with:
           scan-args: |-
             --lockfile=apps/mobile/pnpm-lock.yaml
+            --config=apps/mobile/osv-scanner.toml
