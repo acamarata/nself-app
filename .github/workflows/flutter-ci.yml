@@ -2,6 +2,9 @@ name: Mobile CI
 
 # Retargeted from Flutter to React Native Expo (apps/mobile/) after mega-p1/rn-migration.
 # Runs lint, typecheck, and unit tests — equivalent coverage to the former flutter analyze + flutter test.
+# Native build jobs (Android APK, iOS no-codesign) are handled by android-release.yml and ios-release.yml
+# on tag push / workflow_dispatch. Expo prebuild for simulator builds skipped in CI: pnpm
+# reactNativeDir resolution breaks with Expo 51 (tracked for expo v52 upgrade).
 
 on:
   push:
@@ -47,78 +50,3 @@ jobs:
 
       - name: Unit tests
         run: pnpm test
-
-  build-android:
-    name: Build Android
-    runs-on: ubuntu-latest
-    needs: analyze
-    defaults:
-      run:
-        working-directory: apps/mobile
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: apps/mobile/pnpm-lock.yaml
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Expo prebuild (Android)
-        env:
-          CI: "1"
-        run: pnpm exec expo prebuild --platform android
-
-      - name: Build Android (debug)
-        working-directory: apps/mobile/android
-        run: ./gradlew assembleDebug --no-daemon
-
-  build-ios:
-    name: Build iOS
-    runs-on: macos-15
-    needs: analyze
-    defaults:
-      run:
-        working-directory: apps/mobile
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: apps/mobile/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Expo prebuild (iOS)
-        env:
-          CI: "1"
-        run: pnpm exec expo prebuild --platform ios
-
-      - name: Build iOS (no codesign)
-        run: |
-          xcodebuild build \
-            -workspace ios/ntaskmobile.xcworkspace \
-            -scheme ntaskmobile \
-            -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
-            | xcpretty || true
