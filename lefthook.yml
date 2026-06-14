@@ -1,0 +1,27 @@
+# lefthook.yml — nself/ntask (Flutter app + nSelf backend)
+# Install: brew install lefthook && lefthook install (at repo root)
+
+pre-commit:
+  parallel: true
+  commands:
+    flutter-format:
+      glob: "app/**/*.dart"
+      run: dart format --set-exit-if-changed {staged_files}
+    flutter-analyze:
+      glob: "app/**/*.dart"
+      run: cd app && flutter analyze --no-pub
+    secrets-scan:
+      run: |
+        if [ -f .github/gitleaks.toml ]; then
+          gitleaks protect --staged --config .github/gitleaks.toml
+        else
+          gitleaks protect --staged
+        fi
+
+pre-push:
+  parallel: false
+  commands:
+    test-app:
+      run: make test-app
+    analyze:
+      run: make analyze
