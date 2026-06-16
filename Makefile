@@ -65,6 +65,14 @@ build-web: ## Build the Flutter web bundle
 clean: ## Remove Flutter build artifacts (safe; not backend data)
 	cd $(APP) && flutter clean
 
+.PHONY: ci-local
+ci-local: ## Run the same gate suite CI runs remotely (analyze + flutter test)
+	@echo "==> [ci-local] flutter analyze"
+	cd $(APP) && flutter analyze --no-pub
+	@echo "==> [ci-local] flutter test"
+	cd $(APP) && flutter test
+	@echo "==> [ci-local] DONE"
+
 .PHONY: help
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
