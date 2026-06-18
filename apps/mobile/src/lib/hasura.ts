@@ -1,11 +1,12 @@
 /**
  * Purpose: GraphQL query/mutation strings for Hasura app_lists and app_tasks tables
  * Outputs: gql-tagged query/mutation constants mirroring Flutter BackendService
- * Constraints: Table names match nSelf schema: app_lists, app_tasks
+ * Constraints: Table names match nSelf schema: app_lists, app_tasks.
+ *   Uses urql gql tag (via graphql-tag) per E2 package wiring (D-P3-REACT19).
  * SPORT: Direct port of BackendService list/task queries from backend_service.dart
  */
 
-import { gql } from '@apollo/client';
+import { gql } from '@urql/core';
 
 export const GET_LISTS = gql`
   query GetLists {

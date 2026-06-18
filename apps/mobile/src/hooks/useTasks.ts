@@ -1,12 +1,13 @@
 /**
  * Purpose: Task data fetching and cache management for a given list
- * Inputs: listId string, Apollo client in context
+ * Inputs: listId string, urql Client in context (via Provider)
  * Outputs: { tasks, loading, error, refetch }
- * Constraints: Uses Apollo cache-and-network; mirrors Flutter tasksProvider
+ * Constraints: Uses urql useQuery with network-only request policy.
+ *   Replaces @apollo/client useQuery per D-P3-REACT19 / E2 @nself/graphql-client wiring.
  * SPORT: Port of app/lib/providers/tasks_provider.dart
  */
 
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_TASKS } from '../lib/hasura';
 import type { Task } from '../types';
 
@@ -15,15 +16,21 @@ interface TasksData {
 }
 
 export function useTasks(listId: string) {
-  const { data, loading, error, refetch } = useQuery<TasksData>(GET_TASKS, {
+  const [result, reexecuteQuery] = useQuery<TasksData>({
+    query: GET_TASKS,
     variables: { listId },
-    fetchPolicy: 'cache-and-network',
+    requestPolicy: 'cache-and-network',
   });
 
+  const refetch = () => reexecuteQuery({ requestPolicy: 'network-only' });
+
   return {
-    tasks: data?.app_tasks ?? [],
-    loading,
-    error: error?.message ?? null,
+    tasks: result.data?.app_tasks ?? [],
+    loading: result.fetching,
+    /** Raw urql CombinedError — pass to classifyUrqlError() for typed TaskError */
+    error: result.error ?? null,
+    /** Short message string for simple display cases */
+    errorMessage: result.error?.message ?? null,
     refetch,
   };
 }
