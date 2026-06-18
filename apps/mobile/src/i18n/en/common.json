@@ -1,0 +1,13 @@
+{
+  "loading": "Loading...",
+  "error": "Something went wrong",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "save": "Save",
+  "done": "Done",
+  "delete": "Delete",
+  "back": "Back",
+  "dismiss": "Dismiss",
+  "areYouSure": "Are you sure?",
+  "invalidInput": "Invalid input"
+}
