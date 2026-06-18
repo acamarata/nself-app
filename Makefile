@@ -2,13 +2,15 @@
 # ɳTasks repo-level Makefile
 #
 # Thin wrapper over backend/Makefile + app (Flutter) commands.
+# Also covers apps/mobile (React Native/Expo) unit + integration CI gate.
 #
 # nSelf-First: `make up` delegates to `nself start` via backend/Makefile.
 # Run `make build` once before first `make up` (generates docker-compose.yml).
 # =============================================================================
 
-BACKEND := backend
-APP     := app
+BACKEND    := backend
+APP        := app
+APP_MOBILE := apps/mobile
 
 .PHONY: build
 build: ## Build the nSelf backend stack (run once before first `make up`)
@@ -66,12 +68,20 @@ clean: ## Remove Flutter build artifacts (safe; not backend data)
 	cd $(APP) && flutter clean
 
 .PHONY: ci-local
-ci-local: ## Run the same gate suite CI runs remotely (analyze + flutter test)
+ci-local: ## Run all CI gates: Flutter analyze + test, RN mobile lint + typecheck + jest
 	@echo "==> [ci-local] flutter analyze"
 	cd $(APP) && flutter analyze --no-pub
 	@echo "==> [ci-local] flutter test"
 	cd $(APP) && flutter test
+	@echo "==> [ci-local] RN mobile lint + typecheck + jest"
+	cd $(APP_MOBILE) && pnpm lint && pnpm typecheck && pnpm test
 	@echo "==> [ci-local] DONE"
+
+.PHONY: ci-local-rn
+ci-local-rn: ## Run only RN mobile (apps/mobile) unit + integration CI gate
+	@echo "==> [ci-local-rn] lint + typecheck + jest"
+	cd $(APP_MOBILE) && pnpm lint && pnpm typecheck && pnpm test
+	@echo "==> [ci-local-rn] DONE"
 
 .PHONY: help
 help: ## Show this help

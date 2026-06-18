@@ -1,0 +1,46 @@
+{
+  "login": {
+    "title": "Sign In",
+    "serverUrl": "Server URL",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "missingFields": "Missing fields",
+    "pleaseFillAll": "Please fill in all fields."
+  },
+  "home": {
+    "newList": "New list",
+    "noLists": "No lists yet",
+    "createList": "Create list",
+    "renameList": "Rename list",
+    "deleteList": "Delete list",
+    "listName": "List name",
+    "nameRequired": "Name is required.",
+    "saveListName": "Save list name",
+    "rename": "Rename",
+    "signOut": "Sign out"
+  },
+  "list": {
+    "addTask": "Add task",
+    "noTasks": "No tasks yet",
+    "taskTitle": "Task title",
+    "saveTask": "Save task",
+    "taskNotSaved": "Task not saved"
+  },
+  "taskDetail": {
+    "title": "Task title",
+    "notes": "Notes",
+    "dueDate": "Due date",
+    "priority": {
+      "label": "Priority",
+      "none": "None",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "markCompleted": "Mark completed",
+    "saveChanges": "Save changes",
+    "deleteTask": "Delete task",
+    "deleteConfirm": "This task will be permanently deleted."
+  }
+}

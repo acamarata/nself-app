@@ -1,68 +1,119 @@
 /**
  * Purpose: Auth state management — server URL, access token, sign-in/out
  * Inputs: serverUrl, email, password via sign-in form
- * Outputs: { serverUrl, accessToken, user, signIn, signOut, loading, error }
- * Constraints: Token stored in SecureStore; server URL persisted across sessions
- * SPORT: Port of Flutter AuthNotifier + BackendService auth helpers
+ * Outputs: { serverUrl, accessToken, loading, error, signIn, signOut }
+ * Constraints: Uses @nself/auth-core NativeAuthStrategy (SecureStore + JWT refresh loop).
+ *   - AuthState shape: loading | unauthenticated | authenticated{jwt} | error{error}
+ *   - The server URL is persisted separately (not part of auth-core) for self-hosted installs.
+ *   - NativeAuthStrategy API: init(), login(email, pw), logout(), subscribe(listener), getAccessToken()
+ *   - createNativeAuthStrategy(store, config, fetchFn) — positional args (not object)
+ * SPORT: Replaces hand-rolled auth; wraps @nself/auth-core (D-P3-REACT19 / E2 wiring)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import {
+  createNativeAuthStrategy,
+  type AuthStrategy,
+  type AuthState as CoreAuthState,
+  type SecureStoreInterface,
+} from '@nself/auth-core';
 import { getServerUrl, setServerUrl } from '../lib/api';
 
-const TOKEN_KEY = 'ntask_access_token';
-const REFRESH_KEY = 'ntask_refresh_token';
+/** SecureStore adapter satisfying @nself/auth-core SecureStoreInterface (get/set/delete) */
+const secureStoreAdapter: SecureStoreInterface = {
+  get: (key: string) => SecureStore.getItemAsync(key),
+  set: (key: string, value: string) => SecureStore.setItemAsync(key, value),
+  delete: (key: string) => SecureStore.deleteItemAsync(key),
+};
 
-interface AuthState {
+interface UseAuthResult {
   serverUrl: string | null;
   accessToken: string | null;
   loading: boolean;
   error: string | null;
+  signIn: (url: string, email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
-export function useAuth() {
-  const [state, setState] = useState<AuthState>({
-    serverUrl: null,
-    accessToken: null,
-    loading: true,
-    error: null,
-  });
+export function useAuth(): UseAuthResult {
+  const [serverUrl, setServerUrlState] = useState<string | null>(null);
+  const [coreState, setCoreState] = useState<CoreAuthState>({ status: 'loading' });
+  const strategyRef = useRef<AuthStrategy | null>(null);
+  const unsubRef = useRef<(() => void) | null>(null);
 
+  // Derive accessToken from CoreAuthState — only 'authenticated' status has jwt
+  const accessToken = coreState.status === 'authenticated' ? coreState.jwt : null;
+  const loading = coreState.status === 'loading';
+  const error = coreState.status === 'error' ? coreState.error.message : null;
+
+  // On mount: load persisted server URL + initialise auth-core strategy
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const [url, token] = await Promise.all([
-        getServerUrl(),
-        SecureStore.getItemAsync(TOKEN_KEY),
-      ]);
-      setState({ serverUrl: url, accessToken: token, loading: false, error: null });
+      const url = await getServerUrl();
+      if (cancelled) return;
+      setServerUrlState(url);
+
+      if (url) {
+        const strategy = createNativeAuthStrategy(
+          secureStoreAdapter,
+          { authBaseUrl: `${url}/v1/auth` },
+        );
+        strategyRef.current = strategy;
+        unsubRef.current = strategy.subscribe((state) => {
+          if (!cancelled) setCoreState(state);
+        });
+        const initialState = await strategy.init();
+        if (!cancelled) setCoreState(initialState);
+      } else {
+        setCoreState({ status: 'unauthenticated' });
+      }
     })();
+    return () => {
+      cancelled = true;
+      unsubRef.current?.();
+    };
   }, []);
 
   const signIn = useCallback(async (url: string, email: string, password: string) => {
-    setState((s) => ({ ...s, loading: true, error: null }));
+    setCoreState({ status: 'loading' });
     try {
       const cleanUrl = url.trim().replace(/\/$/, '');
-      const res = await fetch(`${cleanUrl}/v1/auth/email/sign-in`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) throw new Error('Invalid credentials');
-      const json = await res.json() as { session: { accessToken: string; refreshToken: string } };
       await setServerUrl(cleanUrl);
-      await SecureStore.setItemAsync(TOKEN_KEY, json.session.accessToken);
-      await SecureStore.setItemAsync(REFRESH_KEY, json.session.refreshToken);
-      setState({ serverUrl: cleanUrl, accessToken: json.session.accessToken, loading: false, error: null });
+      setServerUrlState(cleanUrl);
+
+      // Unsubscribe from previous strategy if any
+      unsubRef.current?.();
+
+      const strategy = createNativeAuthStrategy(
+        secureStoreAdapter,
+        { authBaseUrl: `${cleanUrl}/v1/auth` },
+      );
+      strategyRef.current = strategy;
+      unsubRef.current = strategy.subscribe(setCoreState);
+
+      const result = await strategy.login(email, password);
+      setCoreState(result);
     } catch (e) {
-      setState((s) => ({ ...s, loading: false, error: (e as Error).message }));
+      setCoreState({ status: 'unauthenticated' });
     }
   }, []);
 
   const signOut = useCallback(async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_KEY);
-    setState({ serverUrl: state.serverUrl, accessToken: null, loading: false, error: null });
-  }, [state.serverUrl]);
+    const strategy = strategyRef.current;
+    if (strategy) {
+      const result = await strategy.logout();
+      setCoreState(result);
+    }
+  }, []);
 
-  return { ...state, signIn, signOut };
+  return {
+    serverUrl,
+    accessToken,
+    loading,
+    error,
+    signIn,
+    signOut,
+  };
 }
