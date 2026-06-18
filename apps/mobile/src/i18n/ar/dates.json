@@ -1,0 +1,17 @@
+{
+  "hijri_month_muharram": "محرم",
+  "hijri_month_safar": "صفر",
+  "hijri_month_rabi_al_awwal": "ربيع الأول",
+  "hijri_month_rabi_al_thani": "ربيع الثاني",
+  "hijri_month_jumada_al_awwal": "جمادى الأولى",
+  "hijri_month_jumada_al_thani": "جمادى الثانية",
+  "hijri_month_rajab": "رجب",
+  "hijri_month_shaban": "شعبان",
+  "hijri_month_ramadan": "رمضان",
+  "hijri_month_shawwal": "شوال",
+  "hijri_month_dhu_al_qadah": "ذو القعدة",
+  "hijri_month_dhu_al_hijjah": "ذو الحجة",
+  "hijri_year_suffix": "هـ",
+  "hijri_today": "اليوم (هجري)",
+  "hijri_date_label": "التاريخ الهجري"
+}

@@ -1,0 +1,46 @@
+{
+  "login": {
+    "title": "تسجيل الدخول",
+    "serverUrl": "عنوان URL للخادم",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "missingFields": "حقول مفقودة",
+    "pleaseFillAll": "يرجى ملء جميع الحقول."
+  },
+  "home": {
+    "newList": "قائمة جديدة",
+    "noLists": "لا توجد قوائم بعد",
+    "createList": "إنشاء قائمة",
+    "renameList": "إعادة تسمية القائمة",
+    "deleteList": "حذف القائمة",
+    "listName": "اسم القائمة",
+    "nameRequired": "الاسم مطلوب.",
+    "saveListName": "حفظ اسم القائمة",
+    "rename": "إعادة تسمية",
+    "signOut": "تسجيل الخروج"
+  },
+  "list": {
+    "addTask": "إضافة مهمة",
+    "noTasks": "لا توجد مهام بعد",
+    "taskTitle": "عنوان المهمة",
+    "saveTask": "حفظ المهمة",
+    "taskNotSaved": "لم يتم حفظ المهمة"
+  },
+  "taskDetail": {
+    "title": "عنوان المهمة",
+    "notes": "ملاحظات",
+    "dueDate": "تاريخ الاستحقاق",
+    "priority": {
+      "label": "الأولوية",
+      "none": "لا شيء",
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية"
+    },
+    "markCompleted": "تحديد كمكتمل",
+    "saveChanges": "حفظ التغييرات",
+    "deleteTask": "حذف المهمة",
+    "deleteConfirm": "ستُحذف هذه المهمة نهائياً."
+  }
+}
