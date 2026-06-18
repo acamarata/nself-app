@@ -2,13 +2,15 @@
 # ɳTasks repo-level Makefile
 #
 # Thin wrapper over backend/Makefile + app (Flutter) commands.
+# Also covers apps/mobile (React Native/Expo) unit + integration CI gate.
 #
 # nSelf-First: `make up` delegates to `nself start` via backend/Makefile.
 # Run `make build` once before first `make up` (generates docker-compose.yml).
 # =============================================================================
 
-BACKEND := backend
-APP     := app
+BACKEND    := backend
+APP        := app
+APP_MOBILE := apps/mobile
 
 .PHONY: build
 build: ## Build the nSelf backend stack (run once before first `make up`)
