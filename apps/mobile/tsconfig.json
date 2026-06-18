@@ -1,10 +1,18 @@
 {
   "extends": "expo/tsconfig.base",
+  "exclude": ["e2e"],
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@nself/graphql-client": ["../../../packages/@nself/graphql-client/src/index.ts"],
+      "@nself/auth-core": ["../../../packages/@nself/auth-core/src/index.ts"],
+      "@nself/i18n": ["../../../packages/@nself/i18n/src/index.ts"],
+      "@nself/observability": ["../../../packages/@nself/observability/src/index.ts"],
+      "@nself/errors": ["../../../packages/@nself/errors/src/index.ts"],
+      "@nself/sdk-core": ["../../../packages/@nself/sdk-core/src/index.ts"],
+      "@nself/types": ["../../../packages/@nself/types/src/index.ts"]
     }
   }
 }
