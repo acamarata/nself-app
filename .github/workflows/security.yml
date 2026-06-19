@@ -7,15 +7,17 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/mobile/pnpm-lock.yaml'
+      - 'pnpm-lock.yaml'
       - 'apps/mobile/package.json'
       - '.github/workflows/security.yml'
+      - 'apps/mobile/osv-scanner.toml'
   pull_request:
     branches: [main]
     paths:
-      - 'apps/mobile/pnpm-lock.yaml'
+      - 'pnpm-lock.yaml'
       - 'apps/mobile/package.json'
       - '.github/workflows/security.yml'
+      - 'apps/mobile/osv-scanner.toml'
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
@@ -33,9 +35,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: OSV Scanner — pnpm lockfile
+      - name: OSV Scanner — root workspace lockfile
+        # Scan the root pnpm-lock.yaml (apps/mobile is a workspace package).
+        # The root lockfile applies overrides for form-data, js-yaml, tar (see pnpm.overrides
+        # in package.json). apps/mobile/pnpm-lock.yaml is a stale standalone lockfile and
+        # does not benefit from workspace-level overrides.
         uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
         with:
           scan-args: |-
-            --lockfile=apps/mobile/pnpm-lock.yaml
+            --lockfile=pnpm-lock.yaml
             --config=apps/mobile/osv-scanner.toml
