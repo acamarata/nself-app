@@ -114,7 +114,7 @@ jobs:
             -exportOptionsPlist ${{ runner.temp }}/ExportOptions.plist
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v1
+        uses: apple-actions/upload-testflight-build@v5
         with:
           app-path: ${{ runner.temp }}/ipa/Runner.ipa
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
