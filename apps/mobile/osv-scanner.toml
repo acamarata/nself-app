@@ -24,3 +24,7 @@ reason = "tar@6.x path-traversal CVEs: same as GHSA-34x7-hfp2-rc4v."
 [[IgnoredVulns]]
 id = "GHSA-r6q2-hw4h-h46w"
 reason = "tar@6.x path-traversal CVEs: same as GHSA-34x7-hfp2-rc4v."
+
+[[IgnoredVulns]]
+id = "GHSA-vmf3-w455-68vh"
+reason = "tar@6.x CVE: same root cause as GHSA-34x7-hfp2-rc4v. expo-cli@0.18.31 pins tar@^6.0.5; tar@7 breaks expo prebuild CJS API. Runtime app bundle does not include tar. Tracking: upgrade to expo 52+ which adopts tar@7."
