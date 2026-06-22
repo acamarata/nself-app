@@ -15,7 +15,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Sync to Wiki
         # ACCEPTED: wiki repo is only created by GitHub after the first page is saved via the web UI.

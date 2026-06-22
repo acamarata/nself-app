@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install nself CLI
         env:
@@ -35,7 +35,7 @@ jobs:
     name: Clean Root Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Forbid markdown at repo root other than README.md
         run: |

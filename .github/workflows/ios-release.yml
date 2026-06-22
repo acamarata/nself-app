@@ -22,10 +22,10 @@ jobs:
         working-directory: app
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Checkout plugins-pro (for nself_auth_sdk)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: nself-org/plugins-pro
           token: ${{ secrets.GH_PAT_PLUGINS_PRO }}

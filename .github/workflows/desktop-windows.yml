@@ -24,7 +24,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # SSL.com eSigner EV code-signing.
       # Skipped: no MSI artifact (Tauri desktop removed; Flutter canonical; no MSI produced).
