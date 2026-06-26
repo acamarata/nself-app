@@ -13,13 +13,14 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Alert, Modal, RefreshControl, StyleSheet,
-  Text, TextInput, TouchableOpacity, View,
+  Alert, RefreshControl, StyleSheet,
+  Text, TouchableOpacity, View,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList, Task } from '../types';
 import { TaskCard } from '../components/TaskCard';
+import { AddTaskModal } from '../components/AddTaskModal';
 import {
   EmptyState, ErrorCard, OfflineBanner,
   PermissionDenied, RateLimitedCard, SkeletonList,
@@ -29,7 +30,6 @@ import { useTaskMutations } from '../hooks/useTaskMutations';
 import { useNetworkState } from '../hooks/useNetworkState';
 import { enqueue, queueLength } from '../lib/offline-queue';
 import { generateIdempotencyKey } from '../lib/idempotency';
-import { taskCreateSchema } from '../lib/validation';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'List'>;
@@ -44,8 +44,6 @@ export function ListScreen({ route, navigation }: Props) {
   const { tasks, loading, error, refetch } = useTasks(listId);
   const { createTask, toggleTask, deleteTask } = useTaskMutations(listId);
   const [modalVisible, setModalVisible] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
   const [optimisticTasks, setOptimisticTasks] = useState<DisplayTask[]>([]);
 
   // Network state — triggers queue flush on reconnect
@@ -59,17 +57,9 @@ export function ListScreen({ route, navigation }: Props) {
     return [...tasks, ...pending];
   }, [tasks, optimisticTasks]);
 
-  const handleCreate = useCallback(async () => {
-    const validation = taskCreateSchema({ title: newTitle, listId });
-    if (!validation.success) {
-      setValidationError(validation.errors?.[0]?.message ?? 'Invalid input');
-      return;
-    }
-    const title = validation.data!.title;
+  const handleCreate = useCallback(async (title: string) => {
     const idempotencyKey = generateIdempotencyKey('create_task', `${listId}:${title}`);
     setModalVisible(false);
-    setNewTitle('');
-    setValidationError(null);
 
     if (isOffline) {
       // Offline path — enqueue and add to optimistic list
@@ -119,7 +109,7 @@ export function ListScreen({ route, navigation }: Props) {
         const taskErr = classifyUrqlError(result.error);
         Alert.alert('Task not saved', `${taskUserMessage(taskErr)}\n\nTap Retry to try again.`, [
           { text: 'Dismiss', style: 'cancel' },
-          { text: 'Retry', onPress: () => { setNewTitle(title); setModalVisible(true); } },
+          { text: 'Retry', onPress: () => setModalVisible(true) },
         ]);
       } else {
         setOptimisticTasks((prev) => prev.filter((t) => t.id !== tempId));
@@ -129,10 +119,10 @@ export function ListScreen({ route, navigation }: Props) {
       setOptimisticTasks((prev) => prev.filter((t) => t.id !== tempId));
       Alert.alert('Task not saved', 'An unexpected error occurred. Tap Retry to try again.', [
         { text: 'Dismiss', style: 'cancel' },
-        { text: 'Retry', onPress: () => { setNewTitle(title); setModalVisible(true); } },
+        { text: 'Retry', onPress: () => setModalVisible(true) },
       ]);
     }
-  }, [newTitle, listId, isOffline, displayTasks.length, createTask, refetch]);
+  }, [listId, isOffline, displayTasks.length, createTask, refetch]);
 
   const renderTask = useCallback(
     ({ item }: { item: DisplayTask }) => (
@@ -233,32 +223,13 @@ export function ListScreen({ route, navigation }: Props) {
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
 
-      <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.overlay}>
-          <View style={styles.modal} accessibilityViewIsModal={true}>
-            <Text style={styles.modalTitle}>New task</Text>
-            <TextInput
-              style={[styles.modalInput, !!validationError && styles.modalInputError]}
-              value={newTitle}
-              onChangeText={(t) => { setNewTitle(t); setValidationError(null); }}
-              placeholder="Task title"
-              autoFocus
-              maxLength={200}
-              onSubmitEditing={handleCreate}
-              accessibilityLabel="Task title"
-            />
-            {!!validationError && <Text style={styles.validationError}>{validationError}</Text>}
-            <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => { setModalVisible(false); setNewTitle(''); setValidationError(null); }} accessibilityRole="button" accessibilityLabel="Cancel">
-                <Text style={styles.modalCancel}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleCreate} accessibilityRole="button" accessibilityLabel={isOffline ? 'Save task (queued for offline sync)' : 'Save task'}>
-                <Text style={styles.modalSave}>{isOffline ? 'Save (offline)' : 'Save'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <AddTaskModal
+        visible={modalVisible}
+        listId={listId}
+        isOffline={isOffline}
+        onSave={handleCreate}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 }
@@ -289,13 +260,4 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   fab: { position: 'absolute', bottom: 32, right: 20, backgroundColor: '#6366f1', width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#6366f1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
   fabText: { color: '#fff', fontSize: 28, lineHeight: 32 },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 32 },
-  modal: { backgroundColor: '#fff', borderRadius: 16, padding: 24 },
-  modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 16 },
-  modalInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 8 },
-  modalInputError: { borderColor: '#dc2626' },
-  validationError: { fontSize: 12, color: '#dc2626', marginBottom: 12 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 20, marginTop: 12 },
-  modalCancel: { fontSize: 15, color: '#6b7280' },
-  modalSave: { fontSize: 15, color: '#6366f1', fontWeight: '700' },
 });
