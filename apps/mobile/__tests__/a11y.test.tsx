@@ -15,7 +15,7 @@ import { render, screen } from '@testing-library/react-native';
 import { TaskCard } from '../src/components/TaskCard';
 import { EmptyState } from '../src/components/seven-states/EmptyState';
 import { ErrorCard } from '../src/components/seven-states/ErrorCard';
-import type { Task } from '../src/types';
+import type { NpTask as Task } from '../src/types';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
@@ -33,17 +33,30 @@ jest.mock('../src/lib/api', () => ({
 
 // ── Fixtures ───────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const baseTask: Task = {
   id: 'task-1',
   title: 'Write accessibility tests',
   completed: false,
   list_id: 'list-1',
   position: 0,
-  tags: [],
   priority: 'medium',
+  user_id: '',
+  description: '',
+  is_public: false,
+  notes: '',
+  due_date: null,
+  source_account_id: 'primary',
+  requires_approval: false,
+  requires_photo: false,
+  approved_by: null,
+  approved_at: null,
+  rejected_by: null,
+  rejected_at: null,
+  rejection_reason: null,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
-};
+} as any;
 
 const noop = () => undefined;
 
