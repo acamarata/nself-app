@@ -1,27 +1,23 @@
-# lefthook.yml — nself/ntask (Flutter app + nSelf backend)
+# lefthook.yml — nself/ntask (React Native Expo + nSelf backend)
 # Install: brew install lefthook && lefthook install (at repo root)
 
 pre-commit:
   parallel: true
   commands:
-    flutter-format:
-      glob: "app/**/*.dart"
-      run: dart format --set-exit-if-changed {staged_files}
-    flutter-analyze:
-      glob: "app/**/*.dart"
-      run: cd app && flutter analyze --no-pub
+    mobile-typecheck:
+      glob: "apps/mobile/**/*.{ts,tsx}"
+      run: cd apps/mobile && pnpm typecheck
+    mobile-lint:
+      glob: "apps/mobile/**/*.{ts,tsx}"
+      run: cd apps/mobile && pnpm lint
     secrets-scan:
       run: |
-        if [ -f .github/gitleaks.toml ]; then
-          gitleaks protect --staged --config .github/gitleaks.toml
-        else
-          gitleaks protect --staged
-        fi
+        gitleaks protect --staged --config .gitleaks.toml
 
 pre-push:
   parallel: false
   commands:
-    test-app:
-      run: make test-app
-    analyze:
-      run: make analyze
+    mobile-test:
+      run: cd apps/mobile && pnpm test
+    mobile-typecheck-full:
+      run: cd apps/mobile && pnpm typecheck
