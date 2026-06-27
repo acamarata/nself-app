@@ -9,6 +9,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "scheme": "ntask",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -17,17 +18,65 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "dev.nself.ntask"
+      "bundleIdentifier": "dev.nself.ntask",
+      "associatedDomains": ["applinks:task.nself.org"],
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "infoPlist": {
+        "NSUserNotificationUsageDescription": "ɳTask sends reminders for task due dates and team activity.",
+        "NSCameraUsageDescription": "ɳTask uses the camera to attach photos to tasks.",
+        "UIBackgroundModes": ["fetch", "remote-notification"]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#030712"
       },
-      "package": "dev.nself.ntask"
+      "package": "dev.nself.ntask",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "ntask"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "task.nself.org",
+              "pathPrefix": "/task"
+            },
+            {
+              "scheme": "https",
+              "host": "task.nself.org",
+              "pathPrefix": "/list"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
+      "permissions": ["NOTIFICATIONS", "USE_FINGERPRINT", "CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#6366F1",
+          "sounds": [],
+          "mode": "production"
+        }
+      ]
     ],
     "extra": {
       "eas": {

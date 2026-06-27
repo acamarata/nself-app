@@ -1,5 +1,8 @@
 {
   "home": "الرئيسية",
   "list": "القائمة",
-  "taskDetail": "تفاصيل المهمة"
+  "taskDetail": "تفاصيل المهمة",
+  "settings": "الإعدادات",
+  "profile": "الملف الشخصي",
+  "notifications": "الإشعارات"
 }

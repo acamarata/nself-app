@@ -12,7 +12,7 @@ The other reference apps cover the `nself start` flow. `task/` covers the manual
 
 ```
 +------------------------------------------------------------+
-|              ɳTasks Flutter App (app/)                     |
+|    ɳTasks Client Apps (apps/mobile · apps/web · apps/desktop · apps/tv)    |
 |         GraphQL over HTTP/WS to Hasura endpoint            |
 +----------------------------+-------------------------------+
                              |
@@ -30,7 +30,7 @@ The other reference apps cover the `nself start` flow. `task/` covers the manual
 |       |     +---------------------+                        |
 |       |     |  PostgreSQL 16      |                        |
 |       +---->|  schemas: auth,     |                        |
-|             |  storage, public    |                        |
+|             |  storage, np_*      |                        |
 |             +---------------------+                        |
 |                                                            |
 |       +-----------------+                                  |
@@ -75,7 +75,7 @@ cd backend && make prod-up      # production
 
 ## Data Flow (Typical Request)
 
-1. The Flutter app reads its JWT from secure storage.
+1. Client apps (mobile/web/desktop/TV) read JWT from platform-appropriate secure storage (SecureStore for RN, localStorage+httpOnly cookie for web, OS keychain for desktop).
 2. The app sends a GraphQL query, mutation, or subscription to `http://localhost:8080/v1/graphql` (dev) or the equivalent staging/prod URL.
 3. Hasura validates the JWT against `HASURA_GRAPHQL_JWT_SECRET`, applies row-level permissions, and queries Postgres.
 4. For file uploads, the app calls `storage` (port 8484), which writes to MinIO.
@@ -88,7 +88,7 @@ Three application schemas plus Hasura/Auth/Storage system schemas:
 
 - `auth` schema: managed by `hasura-auth` (users, refresh tokens, providers)
 - `storage` schema: managed by `hasura-storage` (files, virus scan state)
-- `public` schema: ɳTasks application tables (lists, todos, shares, presence, attachments)
+- `np_*` schema: ɳTasks application tables (np_lists, np_todos, np_shares, np_presence, np_attachments, np_comments, np_subtasks)
 
 See [Database Schema](Database-Schema) for table-level detail.
 
@@ -113,15 +113,16 @@ For the full free plugin inventory, see [F03-PLUGIN-INVENTORY-FREE](https://gith
 
 ## App ↔ Backend Connection
 
-The Flutter app picks its endpoint at build time:
+Each surface connects to the same Hasura endpoint, read from environment config:
 
-| Build target | Default endpoint |
-|--------------|------------------|
-| Web | `http://localhost:8080/v1/graphql` |
-| macOS / Linux / Windows desktop | `http://localhost:8080/v1/graphql` |
-| iOS / Android (simulator/emulator) | host machine IP at `:8080` (configurable) |
+| Surface | Default endpoint | Config file |
+|---|---|---|
+| Mobile (RN) | `http://localhost:8080/v1/graphql` (dev) / host IP for simulators | `apps/mobile/.env.local` |
+| Web SaaS | `http://localhost:8080/v1/graphql` (dev) / production Hasura URL | `apps/web/.env.local` |
+| Desktop (Tauri) | Same as web SaaS | `apps/desktop/.env.local` |
+| TV (rn-tvos) | Same as mobile | `apps/tv/.env.local` |
 
-Override via the app's environment configuration. See [Backend Setup](Backend-Setup) for the full env var reference.
+Override via the surface's `.env.local` file. See [Backend Setup](Backend-Setup) for the full env var reference.
 
 ## Related
 

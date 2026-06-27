@@ -139,9 +139,9 @@ The console gives you:
 
 ## App Connection
 
-The Flutter app under `app/` reads its backend endpoint from environment configuration. For local dev, the defaults match the Docker Compose ports above. Override via the app's environment file when running against staging or production.
+Client apps (`apps/mobile/`, `apps/web/`, `apps/desktop/`, `apps/tv/`) read their backend endpoint from environment configuration. For local dev, the defaults match the Docker Compose ports above. Override via the surface's `.env.local` file when running against staging or production.
 
-For full app setup, see the root README under "App Setup".
+See [RN-Setup](RN-Setup) (mobile), [Web-SPA](Web-SPA) (web), [Desktop](Desktop) (desktop), [TV](TV) (TV) for per-surface setup guides.
 
 ## Alternative for nSelf CLI Users
 

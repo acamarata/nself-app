@@ -1,0 +1,13 @@
+{
+  "loading": "Cargando...",
+  "error": "Algo salió mal",
+  "retry": "Reintentar",
+  "cancel": "Cancelar",
+  "save": "Guardar",
+  "done": "Listo",
+  "delete": "Eliminar",
+  "back": "Atrás",
+  "dismiss": "Descartar",
+  "areYouSure": "¿Estás seguro?",
+  "invalidInput": "Entrada inválida"
+}

@@ -14,6 +14,7 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
   low: 'Low',
   medium: 'Medium',
   high: 'High',
+  urgent: 'Urgent',
 };
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
@@ -21,6 +22,7 @@ const PRIORITY_COLORS: Record<TaskPriority, string> = {
   low: '#d1d5db',
   medium: '#fef3c7',
   high: '#fee2e2',
+  urgent: '#fecaca',
 };
 
 interface Props {

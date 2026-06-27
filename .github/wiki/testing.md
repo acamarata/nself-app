@@ -2,7 +2,7 @@
 
 ## Overview
 
-ɳTasks uses a three-layer test pyramid: unit, integration, and e2e. The Flutter legacy app (`app/`) uses `flutter test`; the React Native mobile app (`apps/mobile/`) uses jest-expo.
+ɳTasks uses a three-layer test pyramid: unit, integration, and e2e. The React Native mobile app (`apps/mobile/`) uses jest-expo; the web SaaS (`apps/web/`) uses Vitest.
 
 ---
 
@@ -24,8 +24,7 @@ pnpm test -- --coverage # coverage report (>= 80% line required)
 **CI gate:**
 
 ```bash
-make ci-local   # runs flutter analyze + flutter test + RN lint + typecheck + jest
-make ci-local-rn  # RN mobile only
+make ci-local-rn  # RN mobile only: lint + typecheck + jest
 ```
 
 **Config:** `apps/mobile/jest.config.js` (preset: jest-expo, pnpm-aware transformIgnorePatterns).
@@ -33,7 +32,7 @@ make ci-local-rn  # RN mobile only
 **Test locations:**
 
 | Directory | What's tested |
-|-----------|--------------|
+|---|---|
 | `apps/mobile/__tests__/` | hooks, utilities, auth, validation, offline queue |
 
 **Coverage:** `pnpm test -- --coverage` must report `>= 80% line` on TS source files.
@@ -58,14 +57,17 @@ pnpm e2e:android  # Android emulator
 
 ---
 
-## Flutter App (`app/`)
+## Web SaaS (`apps/web/`)
 
-**Run tests:**
+### Unit tests — Vitest
+
+**Run locally:**
 
 ```bash
-cd app
-flutter test
-flutter analyze --no-pub
+cd apps/web
+pnpm test               # run once
+pnpm test -- --watch    # watch mode
+pnpm test -- --coverage # coverage report
 ```
 
 ---
@@ -73,9 +75,9 @@ flutter analyze --no-pub
 ## CI Gate Summary
 
 | App | Gate command | What runs |
-|-----|-------------|-----------|
+|---|---|---|
 | `apps/mobile/` | `make ci-local-rn` | lint + typecheck + jest (no simulator) |
-| `app/` | `make ci-local` | flutter analyze + flutter test |
-| Both | `make ci-local` | all of the above |
+| `apps/web/` | `cd apps/web && pnpm test` | Vitest unit tests |
+| All | `make ci-local` | RN lint + typecheck + jest |
 
 E2E (Detox) is NOT part of `make ci-local` — requires a separate simulator session.

@@ -123,8 +123,8 @@ jobs:
               version_bump=1
             fi
           fi
-          if matches 'pubspec\.yaml$'; then
-            if git diff "origin/${{ github.base_ref }}"...HEAD -- pubspec.yaml | grep -qE '^\+version:'; then
+          if matches 'apps/mobile/package\.json$'; then
+            if git diff "origin/${{ github.base_ref }}"...HEAD -- apps/mobile/package.json | grep -qE '^\+"version":'; then
               version_bump=1
             fi
           fi

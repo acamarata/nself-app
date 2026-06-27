@@ -54,5 +54,43 @@
     "createTag": "Create tag",
     "search": "Search tasks…",
     "noResults": "No results"
+  },
+  "settings": {
+    "title": "Settings",
+    "connection": "Connection",
+    "serverUrl": "Server URL",
+    "testConnection": "Test connection",
+    "connected": "Connected",
+    "connectionFailed": "Connection failed",
+    "language": "Language",
+    "appearance": "Appearance",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "notifications": "Notifications",
+    "notifComments": "Comments on my tasks",
+    "notifAssigned": "Tasks assigned to me",
+    "notifReminders": "Task due reminders",
+    "notifMasterOff": "All notifications",
+    "restartRequired": "Restart required",
+    "restartMessage": "A restart is required to apply RTL changes.",
+    "restart": "Restart"
+  },
+  "profile": {
+    "title": "Profile",
+    "displayName": "Display name",
+    "email": "Email",
+    "serverUrl": "Server URL",
+    "version": "Version",
+    "signOut": "Sign out",
+    "signOutConfirm": "Are you sure you want to sign out?"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read",
+    "commentAdded": "New comment",
+    "taskAssigned": "Task assigned",
+    "taskDue": "Task due"
   }
 }

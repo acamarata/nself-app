@@ -39,6 +39,23 @@ interface DisplayTask extends NpTask {
   pending?: boolean;
 }
 
+/** Stub fields for an optimistic task before server round-trip. */
+const OPTIMISTIC_DEFAULTS = {
+  user_id: '',
+  description: '',
+  is_public: false,
+  notes: '',
+  due_date: null,
+  source_account_id: 'primary',
+  requires_approval: false,
+  requires_photo: false,
+  approved_by: null,
+  approved_at: null,
+  rejected_by: null,
+  rejected_at: null,
+  rejection_reason: null,
+} as const;
+
 export function ListScreen({ route, navigation }: Props) {
   const { listId, listTitle } = route.params;
   const { tasks, loading, error, refetch } = useTasks(listId);
@@ -65,6 +82,7 @@ export function ListScreen({ route, navigation }: Props) {
       // Offline path — enqueue and add to optimistic list
       const tempId = `pending-${Date.now()}`;
       const optimistic: DisplayTask = {
+        ...OPTIMISTIC_DEFAULTS,
         id: tempId,
         title,
         completed: false,
@@ -83,6 +101,7 @@ export function ListScreen({ route, navigation }: Props) {
     // Online path — optimistic create
     const tempId = `optimistic-${Date.now()}`;
     const optimistic: DisplayTask = {
+      ...OPTIMISTIC_DEFAULTS,
       id: tempId,
       title,
       completed: false,

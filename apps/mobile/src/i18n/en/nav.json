@@ -1,5 +1,8 @@
 {
   "home": "Home",
   "list": "List",
-  "taskDetail": "Task Detail"
+  "taskDetail": "Task Detail",
+  "settings": "Settings",
+  "profile": "Profile",
+  "notifications": "Notifications"
 }

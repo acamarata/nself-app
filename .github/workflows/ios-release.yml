@@ -1,120 +1,50 @@
-name: iOS Release
-# PENDING: Epic C will retarget this to EAS build. Tag-push trigger removed (built app/ Flutter dir that no longer exists).
+# ɳTask iOS Release — EAS Build + Submit
+# Trigger: tag push matching ntask/v*
+# EXTERNAL GATES: Apple Developer account, ASC API Key, EAS_TOKEN GitHub secret
+# See C-S8-T1 for credential provisioning steps.
+name: iOS Release (EAS)
 
 on:
+  push:
+    tags:
+      - 'ntask/v*'
   workflow_dispatch:
-    inputs:
-      track:
-        description: 'Release track'
-        required: true
-        default: 'testflight'
-        type: choice
-        options: [testflight, app-store]
 
 jobs:
-  build-ios:
-    name: Build + Upload iOS
-    runs-on: macos-15
+  ios-build:
+    name: EAS iOS Production Build
+    runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app
-
+        working-directory: apps/mobile
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Checkout plugins-pro (for nself_auth_sdk)
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          repository: nself-org/plugins-pro
-          token: ${{ secrets.GH_PAT_PLUGINS_PRO }}
-          path: plugins-pro
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
         with:
-          flutter-version: '3.29.x'
-          channel: 'stable'
-          cache: true
+          node-version: '22'
 
-      - name: Rewrite nself_auth_sdk path for CI layout
-        working-directory: ${{ github.workspace }}
-        run: |
-          # Local dev: ../../../../plugins-pro/paid/auth/flutter
-          # CI: plugins-pro/ is checked out at workspace root, so from app/ it's ../plugins-pro/paid/auth/flutter
-          python3 - <<'PY'
-          import re, pathlib
-          p = pathlib.Path("app/pubspec.yaml")
-          src = p.read_text()
-          new = re.sub(
-              r"(\s+nself_auth_sdk:\s*\n\s+path:\s*).+",
-              r"\1../plugins-pro/paid/auth/flutter",
-              src,
-          )
-          if new == src:
-              raise SystemExit("Failed to rewrite nself_auth_sdk path in app/pubspec.yaml")
-          p.write_text(new)
-          print("Rewrote nself_auth_sdk path -> ../plugins-pro/paid/auth/flutter")
-          PY
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.30.1'
 
       - name: Install dependencies
-        run: flutter pub get
+        run: pnpm install --frozen-lockfile
 
-      - name: Generate l10n
-        run: flutter gen-l10n
-
-      - name: Setup code signing
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
-        run: |
-          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-
-          echo "$APPLE_PROVISIONING_PROFILE" | base64 --decode > profile.mobileprovision
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-
-      - name: Build iOS archive
-        run: |
-          xcodebuild \
-            -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -archivePath ${{ runner.temp }}/ntasks.xcarchive \
-            archive \
-            CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE_SPECIFIER="ɳTask AppStore" \
-            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
-
-      - name: Export IPA
-        run: |
-          cat > ${{ runner.temp }}/ExportOptions.plist << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>teamID</key>
-            <string>${{ secrets.APPLE_TEAM_ID }}</string>
-          </dict>
-          </plist>
-          EOF
-          xcodebuild \
-            -exportArchive \
-            -archivePath ${{ runner.temp }}/ntasks.xcarchive \
-            -exportPath ${{ runner.temp }}/ipa/ \
-            -exportOptionsPlist ${{ runner.temp }}/ExportOptions.plist
-
-      - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v5
+      - name: Setup Expo + EAS
+        uses: expo/expo-github-action@v8
         with:
-          app-path: ${{ runner.temp }}/ipa/Runner.ipa
-          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          eas-version: latest
+          token: ${{ secrets.EAS_TOKEN }}
+
+      - name: EAS Build (iOS production)
+        run: eas build --platform ios --profile production --non-interactive
+
+      - name: EAS Submit (iOS)
+        if: success()
+        run: eas submit --platform ios --profile production --non-interactive
+        env:
+          EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.EXPO_APPLE_APP_SPECIFIC_PASSWORD }}

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "dev.nself.ntask",
+      "sha256_cert_fingerprints": [
+        "FILL_AFTER_EAS_ANDROID_SIGNING_C-S8-T2"
+      ]
+    }
+  }
+]
