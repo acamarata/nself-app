@@ -8,7 +8,9 @@
 # =============================================================================
 
 BACKEND    := backend
-APP_MOBILE := apps/mobile
+APP_MOBILE   := apps/mobile
+APP_DESKTOP  := apps/desktop
+WEB_NTASK    := web/ntask
 
 # ---------------------------------------------------------------------------
 # Backend — nSelf-First
@@ -125,6 +127,46 @@ ci-local: mobile-ci-local test ## Run full CI gate: mobile lint/typecheck/test +
 .PHONY: test-all
 test-all: ## Run all lint + test suites (RN + backend)
 	$(MAKE) mobile-ci-local && $(MAKE) test
+
+# ---------------------------------------------------------------------------
+# Desktop — Tauri 2 (apps/desktop wrapping web/ntask)
+# ---------------------------------------------------------------------------
+
+.PHONY: desktop-dev
+desktop-dev: ## Start Tauri desktop in dev mode (requires web/ntask dev server on :3017)
+	@echo "==> Ensure web/ntask dev server is running: make web-dev (or cd web/ntask && pnpm dev)"
+	cd $(APP_DESKTOP) && pnpm tauri dev
+
+.PHONY: web-dev
+web-dev: ## Start web/ntask Vite dev server on :3017
+	cd $(WEB_NTASK) && pnpm dev
+
+.PHONY: desktop-build
+desktop-build: ## Full production desktop build (builds web/ntask first, then Tauri)
+	@echo "==> [desktop-build] Building web/ntask SPA..."
+	cd $(WEB_NTASK) && pnpm build
+	@echo "==> [desktop-build] Building Tauri desktop..."
+	cd $(APP_DESKTOP) && pnpm tauri build
+	@echo "==> [desktop-build] DONE"
+
+.PHONY: desktop-build-debug
+desktop-build-debug: ## Debug desktop build (builds web/ntask first, then Tauri --debug)
+	@echo "==> [desktop-build-debug] Building web/ntask SPA..."
+	cd $(WEB_NTASK) && pnpm build
+	@echo "==> [desktop-build-debug] Building Tauri desktop (debug)..."
+	cd $(APP_DESKTOP) && pnpm tauri build --debug
+	@echo "==> [desktop-build-debug] DONE"
+
+.PHONY: desktop-install
+desktop-install: ## Install desktop npm deps
+	cd $(APP_DESKTOP) && pnpm install
+
+.PHONY: tag-desktop
+tag-desktop: ## Tag and push a desktop release (reads version from tauri.conf.json)
+	$(eval VERSION := $(shell jq -r '.version' $(APP_DESKTOP)/src-tauri/tauri.conf.json))
+	@echo "Tagging ntask-v$(VERSION)"
+	git tag "ntask-v$(VERSION)"
+	git push origin "ntask-v$(VERSION)"
 
 # ---------------------------------------------------------------------------
 # Legacy Flutter targets (archived — app/ was removed in RN migration)

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Network access — required for GraphQL/WebSocket to Hasura backend -->
+  <key>com.apple.security.network.client</key><true/>
+
+  <!-- App sandbox — required for notarization / Gatekeeper approval -->
+  <key>com.apple.security.app-sandbox</key><true/>
+
+  <!-- User-selected file read/write — for export/import dialogs (E-S2-T3) -->
+  <key>com.apple.security.files.user-selected.read-write</key><true/>
+
+  <!-- Downloads folder read/write — default export destination -->
+  <key>com.apple.security.files.downloads.read-write</key><true/>
+
+  <!-- Native notifications — required for task due reminders (E-S2-T4) -->
+  <!-- NSUserNotificationUsageDescription is defined here for sandboxed notifications. -->
+  <key>NSUserNotificationUsageDescription</key>
+  <string>ɳTask uses notifications to remind you of upcoming task due dates and sync status changes.</string>
+</dict>
+</plist>

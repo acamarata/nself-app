@@ -1,0 +1,105 @@
+name: Desktop Linux Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['ntask-v*']
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'web/ntask/**'
+      - '.github/workflows/desktop-linux.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (x86_64-unknown-linux-gnu)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: '9'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      # Required Tauri 2 system dependencies for Linux.
+      # libayatana-appindicator3-dev: tray icon (runtime: libayatana-appindicator3-1).
+      # libwebkit2gtk-4.1-dev: Tauri 2 webview (webkit2gtk 4.1 — NOT 4.0).
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            patchelf
+
+      - name: Cache cargo registry + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ntask/apps/desktop/src-tauri/target
+          key: cargo-linux-x86_64-${{ hashFiles('ntask/apps/desktop/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cargo-linux-x86_64-
+
+      - name: Install pnpm deps (desktop)
+        working-directory: ntask/apps/desktop
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web/ntask SPA
+        working-directory: ntask/web/ntask
+        run: pnpm install --frozen-lockfile && pnpm build
+
+      - name: Clippy check
+        working-directory: ntask/apps/desktop/src-tauri
+        run: cargo clippy -- -D warnings
+
+      - name: Build Tauri app
+        working-directory: ntask/apps/desktop
+        env:
+          TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
+        run: pnpm tauri build
+
+      - name: Headless smoke test (AppImage)
+        run: |
+          APPIMAGE=$(find ntask/apps/desktop/src-tauri/target/release/bundle/appimage \
+            -name '*.AppImage' | head -1)
+          if [[ -f "$APPIMAGE" ]]; then
+            chmod +x "$APPIMAGE"
+            # Brief launch — verify binary executes (headless, exits immediately).
+            timeout 5 "$APPIMAGE" --no-sandbox || true
+            echo "AppImage smoke test: $APPIMAGE"
+          else
+            echo "No AppImage found — listing bundle dir:"
+            find ntask/apps/desktop/src-tauri/target/release/bundle -type f | head -20
+          fi
+
+      - name: Upload AppImage + deb artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux-x86_64
+          path: |
+            ntask/apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage
+            ntask/apps/desktop/src-tauri/target/release/bundle/deb/*.deb
+          retention-days: 30

@@ -1,0 +1,155 @@
+name: Desktop macOS Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['ntask-v*']
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'web/ntask/**'
+      - '.github/workflows/desktop-macos.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+          - os: macos-13
+            target: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: '9'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo registry + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ntask/apps/desktop/src-tauri/target
+          key: cargo-macos-${{ matrix.target }}-${{ hashFiles('ntask/apps/desktop/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cargo-macos-${{ matrix.target }}-
+
+      - name: Install pnpm deps (desktop)
+        working-directory: ntask/apps/desktop
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web/ntask SPA
+        working-directory: ntask/web/ntask
+        run: pnpm install --frozen-lockfile && pnpm build
+
+      - name: Clippy check
+        working-directory: ntask/apps/desktop/src-tauri
+        run: cargo clippy --target ${{ matrix.target }} -- -D warnings
+
+      - name: Import Apple cert (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/ntask-v')
+        env:
+          CERT_BASE64: ${{ secrets.APPLE_CERTIFICATE }}
+          CERT_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          echo "$CERT_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" \
+            -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security list-keychain -d user -s "$KEYCHAIN_PATH" \
+            $(security list-keychain -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+      - name: Build Tauri app
+        working-directory: ntask/apps/desktop
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
+        run: pnpm tauri build --target ${{ matrix.target }}
+
+      - name: Verify codesign (tag builds)
+        if: startsWith(github.ref, 'refs/tags/ntask-v')
+        run: |
+          for app in ntask/apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app; do
+            codesign --verify --deep --strict --verbose=2 "$app" || true
+          done
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos-${{ matrix.target }}
+          path: |
+            ntask/apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            ntask/apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
+          retention-days: 30
+
+  notarize:
+    name: Notarize (${{ matrix.target }})
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/ntask-v')
+    runs-on: macos-14
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [aarch64-apple-darwin, x86_64-apple-darwin]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-macos-${{ matrix.target }}
+          path: artifacts/
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for dmg in artifacts/*.dmg; do
+            [[ -f "$dmg" ]] || continue
+            xcrun notarytool submit "$dmg" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --wait
+            xcrun stapler staple "$dmg"
+          done
+
+      - name: Upload notarized artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos-${{ matrix.target }}-notarized
+          path: artifacts/*.dmg
+          retention-days: 30

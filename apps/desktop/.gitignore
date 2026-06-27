@@ -1,0 +1,18 @@
+# Rust build artifacts
+src-tauri/target/
+
+# Node modules
+node_modules/
+
+# pnpm store
+.pnpm-store/
+
+# Tauri generated dist (web/ntask dist is source-of-truth)
+dist/
+
+# Private Ed25519 signing key — NEVER commit
+src-tauri/ntask.key
+
+# macOS
+.DS_Store
+src-tauri/.cargo/

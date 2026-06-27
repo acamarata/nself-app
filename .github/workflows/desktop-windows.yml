@@ -1,11 +1,20 @@
 name: Desktop Windows Build
 
-# Tag-push trigger removed — Windows MSI signing deferred until Tauri desktop is re-introduced.
+# Replaces the dead stub that had `if: false` EV signing and no real build.
+# EV signing is conditional: only runs if SSL_COM_USERNAME secret is set.
+# Without EV cert, MSI ships unsigned — SmartScreen warns until reputation builds.
+# Reference: E-desktop-tauri.md PROC-2 for EV cert procurement details.
 
 on:
+  push:
+    branches: [main]
+    tags: ['ntask-v*']
   pull_request:
     branches: [main]
-    paths: ['.github/workflows/desktop-windows.yml']
+    paths:
+      - 'apps/desktop/**'
+      - 'web/ntask/**'
+      - '.github/workflows/desktop-windows.yml'
   workflow_dispatch:
 
 concurrency:
@@ -14,16 +23,64 @@ concurrency:
 
 jobs:
   build:
-    runs-on: windows-2022
-    timeout-minutes: 10
+    name: Build (x86_64-pc-windows-msvc)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
     steps:
       - uses: actions/checkout@v4
 
-      # SSL.com eSigner EV code-signing.
-      # Skipped: no MSI artifact (Tauri desktop removed; Flutter canonical; no MSI produced).
-      # When a Windows MSI build is re-introduced, update file_path below and remove this comment.
-      - name: Sign Windows MSI (EV, SSL.com eSigner)
-        if: false
+      - uses: pnpm/action-setup@v3
+        with:
+          version: '9'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache cargo registry + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ntask/apps/desktop/src-tauri/target
+          key: cargo-windows-x86_64-${{ hashFiles('ntask/apps/desktop/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cargo-windows-x86_64-
+
+      - name: Install pnpm deps (desktop)
+        working-directory: ntask/apps/desktop
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web/ntask SPA
+        working-directory: ntask/web/ntask
+        shell: bash
+        run: pnpm install --frozen-lockfile && pnpm build
+
+      - name: Build Tauri app
+        working-directory: ntask/apps/desktop
+        shell: bash
+        env:
+          TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
+        run: pnpm tauri build --target x86_64-pc-windows-msvc
+
+      # EV code-signing via SSL.com eSigner.
+      # Only runs when SSL_COM_USERNAME secret is configured (PROC-2 gate).
+      # Without EV cert: skip silently — MSI is valid but unsigned.
+      - name: Sign Windows MSI (SSL.com EV — conditional)
+        if: env.SSL_COM_USERNAME != ''
+        env:
+          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
+          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
+          SSL_COM_CREDENTIAL_ID: ${{ secrets.SSL_COM_CREDENTIAL_ID }}
+          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
         uses: SSLcom/esigner-codesign@v1.3.2
         with:
           command: sign
@@ -31,8 +88,15 @@ jobs:
           password: ${{ secrets.SSL_COM_PASSWORD }}
           credential_id: ${{ secrets.SSL_COM_CREDENTIAL_ID }}
           totp_secret: ${{ secrets.SSL_COM_TOTP_SECRET }}
-          file_path: ''
+          file_path: >-
+            ntask/apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/ntask-desktop_1.0.0_x64_en-US.msi
           override: true
 
-      - name: Report
-        run: echo "ntask Windows MSI signing deferred — no MSI build target. See workflow header."
+      - name: Upload MSI + NSIS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows-x86_64
+          path: |
+            ntask/apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+            ntask/apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          retention-days: 30
