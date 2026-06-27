@@ -41,7 +41,7 @@ Common backend issues and fixes. The backend is a Docker Compose stack driven by
 
 ## App can't reach Hasura
 
-**Symptom:** Flutter app GraphQL calls fail with network or CORS errors.
+**Symptom:** Client app (mobile/web/desktop/TV) GraphQL calls fail with network or CORS errors.
 **Cause:** Backend not running, wrong endpoint, or simulator/emulator can't see `localhost`.
 **Fix:**
 1. `cd backend && make health`: confirm the backend is up.

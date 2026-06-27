@@ -10,7 +10,7 @@ We release patches for security vulnerabilities. Which versions are eligible for
 
 ## Reporting a Vulnerability
 
-The ɳApp team takes security vulnerabilities seriously. We appreciate your efforts to responsibly disclose your findings.
+The ɳTasks team takes security vulnerabilities seriously. We appreciate your efforts to responsibly disclose your findings.
 
 ### How to Report
 
@@ -37,7 +37,7 @@ Include the following information in your report:
 
 ## Security Best Practices
 
-When using ɳApp, please follow these security best practices:
+When using ɳTasks, please follow these security best practices:
 
 ### Environment Variables
 

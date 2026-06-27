@@ -2,11 +2,9 @@
 
 The ɳTasks backend is a self-contained Docker Compose stack. It runs PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage over MinIO, Mailpit (dev email), and Traefik (HTTPS for staging and production).
 
-## Why Docker Compose, Not the nSelf CLI
+## nSelf-First Backend
 
-`task/` is the "any-stack" reference app. Other Type C apps in the nSelf ecosystem (`chat`, `claw`, `ntv`) use the `nself` CLI; this repo demonstrates the same Postgres + Hasura + Auth pattern as plain Docker Compose so a developer can fork, study, or operate the components directly.
-
-The other reference apps cover the `nself start` flow. `task/` covers the manual flow.
+`ntask/` uses the nSelf CLI per ecosystem convention. `make up` is a thin alias for `nself start`; `make down` for `nself stop`. Run `nself build` once before first `make up` to generate `backend/docker-compose.yml` from CLI templates.
 
 ## Service Diagram
 
@@ -104,7 +102,7 @@ The hosted free demo at `task.nself.org` runs the same stack via `web/backend`.
 
 ## Plugin Set
 
-`task/` is free-plugins-only by design (per F03, F12). It does not install nSelf pro plugins (ai, claw, mux, livekit, etc.). The free capabilities relevant to this app live in:
+`ntask/` is free-plugins-only by design (per F03, F12). It does not install nSelf pro plugins (ai, claw, mux, livekit, etc.). The free capabilities relevant to this app live in:
 
 - `plugins/storage` (covered by Hasura Storage + MinIO directly here)
 - `plugins/auth` (covered by `hasura-auth` directly here)
