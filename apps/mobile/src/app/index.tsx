@@ -40,6 +40,13 @@ import { TaskDetailScreen } from './TaskDetailScreen';
 import { SettingsScreen } from './SettingsScreen';
 import { ProfileScreen } from './ProfileScreen';
 import { NotificationsScreen } from './NotificationsScreen';
+import { ListMembersScreen } from './ListMembersScreen';
+import { AccountScreen } from './AccountScreen';
+import { ChangeEmailScreen } from './ChangeEmailScreen';
+import { ChangePasswordScreen } from './ChangePasswordScreen';
+import { SessionsScreen } from './SessionsScreen';
+import { MfaSetupScreen } from './MfaSetupScreen';
+import { DeleteAccountScreen } from './DeleteAccountScreen';
 import type { RootStackParamList } from '../types';
 import { initializeI18n } from '../i18n';
 import { ThemeProvider, getThemePreference, setThemePreference, type ThemePreference } from '../theme';
@@ -127,6 +134,13 @@ function AuthenticatedApp({ serverUrl, accessToken }: { serverUrl: string; acces
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="ListMembers" component={ListMembersScreen} />
+        <Stack.Screen name="Account" component={AccountScreen} />
+        <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
+        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="Sessions" component={SessionsScreen} />
+        <Stack.Screen name="MfaSetup" component={MfaSetupScreen} />
+        <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
       </Stack.Navigator>
     </UrqlProvider>
   );

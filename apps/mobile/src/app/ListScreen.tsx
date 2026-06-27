@@ -208,7 +208,19 @@ export function ListScreen({ route, navigation }: Props) {
           <Text style={styles.back}>‹ Back</Text>
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>{listTitle}</Text>
-        <View style={{ width: 60 }} />
+        <TouchableOpacity
+          style={styles.membersBtn}
+          onPress={() => navigation.navigate('ListMembers', {
+            listId,
+            listTitle,
+            currentUserId: '', // filled from auth context in a future pass
+            isOwner: false,    // conservative default
+          })}
+          accessibilityLabel="Manage members"
+          accessibilityRole="button"
+        >
+          <Text style={styles.membersBtnText}>👥</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Offline banner (always at top when offline) */}
@@ -262,6 +274,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
   back: { fontSize: 16, color: '#6366f1', width: 60 },
   title: { fontSize: 17, fontWeight: '700', color: '#111827', flex: 1, textAlign: 'center' },
+  membersBtn: { width: 60, alignItems: 'flex-end', justifyContent: 'center' },
+  membersBtnText: { fontSize: 20 },
   body: { flex: 1 },
   fab: { position: 'absolute', bottom: 32, right: 20, backgroundColor: '#6366f1', width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#6366f1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
   fabText: { color: '#fff', fontSize: 28, lineHeight: 32 },
