@@ -1,9 +1,6 @@
 name: Android TV CI
 
-# Disabled: Capacitor Android TV build removed with frontend/ in commit a3ed9c4.
-# Flutter Android TV support TBD — will be re-implemented under flutter-ci.yml
-# when Android TV flavors are introduced. Keeping this workflow to preserve CI
-# slot and history.
+# PENDING: Epic F will activate this for React Native TV builds.
 on:
   push:
     branches: [main]
