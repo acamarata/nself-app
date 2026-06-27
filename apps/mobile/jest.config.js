@@ -36,7 +36,14 @@ const config = {
       ')',
   ],
   moduleNameMapper: {
-    // Map @nself/* workspace packages to their src entry points for Jest
+    // Map @nself/* workspace packages to their src entry points for Jest.
+    // Sub-path exports (e.g. @nself/offline-queue/adapters) must come BEFORE
+    // the catch-all so they match first.
+    '^@nself/offline-queue/adapters$': '<rootDir>/../../../packages/@nself/offline-queue/src/adapters/index.ts',
+    '^@nself/offline-queue/adapters/mmkv$': '<rootDir>/../../../packages/@nself/offline-queue/src/adapters/mmkv.ts',
+    '^@nself/offline-queue(.*)$': '<rootDir>/../../../packages/@nself/offline-queue/src/index.ts',
+    '^@nself/ntask-core/validation$': '<rootDir>/../../../packages/@nself/ntask-core/src/validation/index.ts',
+    '^@nself/ntask-core(.*)$': '<rootDir>/../../../packages/@nself/ntask-core/src/index.ts',
     '^@nself/graphql-client(.*)$': '<rootDir>/../../../packages/@nself/graphql-client/src/index.ts',
     '^@nself/auth-core(.*)$': '<rootDir>/../../../packages/@nself/auth-core/src/index.ts',
     '^@nself/i18n(.*)$': '<rootDir>/../../../packages/@nself/i18n/src/index.ts',
@@ -44,6 +51,10 @@ const config = {
     '^@nself/errors(.*)$': '<rootDir>/../../../packages/@nself/errors/src/index.ts',
     '^@nself/sdk-core(.*)$': '<rootDir>/../../../packages/@nself/sdk-core/src/index.ts',
     '^@nself/types(.*)$': '<rootDir>/../../../packages/@nself/types/src/index.ts',
+    // Resolve .js ESM-style imports to .ts source files for Jest.
+    // Packages in this monorepo use explicit .js extensions per ESM convention,
+    // but Jest resolves TypeScript source, not compiled output.
+    '^(\\.{1,2}/.*)\\.js$': '$1',
     // Native modules not available in Jest (no native build) — provide manual mocks
     '^react-native-mmkv$': '<rootDir>/__mocks__/react-native-mmkv.js',
     '^@shopify/flash-list$': '<rootDir>/__mocks__/@shopify/flash-list.js',

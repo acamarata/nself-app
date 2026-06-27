@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useQuery } from 'urql';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList, TaskList } from '../types';
+import type { RootStackParamList, NpList } from '../types';
 import { GET_LISTS } from '../lib/hasura';
 import { useTaskMutations } from '../hooks/useTaskMutations';
 import { useAuth } from '../hooks/useAuth';
@@ -31,7 +31,7 @@ import { projectCreateSchema } from '../lib/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-interface ListsData { app_lists: TaskList[] }
+interface ListsData { np_lists: NpList[] }
 
 function parseColor(hex: string): string {
   // validate — fall back to indigo
@@ -50,13 +50,13 @@ export function HomeScreen({ navigation }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalError, setModalError] = useState<string | null>(null);
-  const [editTarget, setEditTarget] = useState<TaskList | null>(null);
+  const [editTarget, setEditTarget] = useState<NpList | null>(null);
 
   // Network state — OfflineBanner on all screens
   const { isConnected } = useNetworkState({ onReconnect: refetch });
 
   const openCreate = () => { setEditTarget(null); setModalTitle(''); setModalError(null); setModalVisible(true); };
-  const openRename = (list: TaskList) => { setEditTarget(list); setModalTitle(list.title); setModalError(null); setModalVisible(true); };
+  const openRename = (list: NpList) => { setEditTarget(list); setModalTitle(list.title); setModalError(null); setModalVisible(true); };
 
   const handleSave = async () => {
     if (editTarget) {
@@ -73,13 +73,13 @@ export function HomeScreen({ navigation }: Props) {
     refetch();
   };
 
-  const confirmDelete = (list: TaskList) =>
+  const confirmDelete = (list: NpList) =>
     Alert.alert('Delete list', `"${list.title}" and all its tasks will be deleted.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => { await deleteList(list.id); refetch(); } },
     ]);
 
-  const lists = data?.app_lists ?? [];
+  const lists = data?.np_lists ?? [];
 
   // Determine 7-state
   const renderBody = () => {

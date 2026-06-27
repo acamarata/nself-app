@@ -1,40 +1,31 @@
 /**
- * Purpose: Shared TypeScript types for task management domain
- * Outputs: Task, TaskList, TaskPriority types matching Hasura GraphQL schema
- * SPORT: Mirrors Flutter Task + TaskList models from app/lib/models/
+ * Purpose: Domain types for ɳTask mobile — re-exported from @nself/ntask-core.
+ * SPORT: P5-C-mobile — replaces old app_tasks/app_lists types.
  */
 
-export type TaskPriority = 'none' | 'low' | 'medium' | 'high';
+export type {
+  NpTask,
+  NpTaskSummary,
+  NpList,
+  NpSubtask,
+  NpComment,
+  NpTag,
+  NpTodoTag,
+  NpProfile,
+  Priority,
+  CreateTaskInput,
+  UpdateTaskInput,
+  CreateSubtaskInput,
+  CreateCommentInput,
+  CreateTagInput,
+} from '@nself/ntask-core';
 
-export interface Task {
-  id: string;
-  title: string;
-  description?: string | null;
-  completed: boolean;
-  due_date?: string | null;
-  list_id: string;
-  assignee_id?: string | null;
-  position: number;
-  tags: string[];
-  priority: TaskPriority;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface TaskList {
-  id: string;
-  title: string;
-  description?: string | null;
-  color: string;
-  position: number;
-  owner_id: string;
-  created_at: string;
-  updated_at: string;
-}
+// Convenience alias — some components use TaskPriority
+export type { Priority as TaskPriority } from '@nself/ntask-core';
 
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   List: { listId: string; listTitle: string };
-  TaskDetail: { task: Task; listId: string };
+  TaskDetail: { taskId: string; listId: string };
 };

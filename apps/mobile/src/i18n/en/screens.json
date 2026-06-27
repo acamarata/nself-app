@@ -36,11 +36,23 @@
       "none": "None",
       "low": "Low",
       "medium": "Medium",
-      "high": "High"
+      "high": "High",
+      "urgent": "Urgent"
     },
     "markCompleted": "Mark completed",
     "saveChanges": "Save changes",
     "deleteTask": "Delete task",
-    "deleteConfirm": "This task will be permanently deleted."
+    "deleteConfirm": "This task will be permanently deleted.",
+    "subtasks": "Subtasks",
+    "addSubtask": "Add subtask",
+    "subtaskTitle": "Subtask title",
+    "comments": "Comments",
+    "addComment": "Add a comment…",
+    "sendComment": "Send",
+    "tags": "Tags",
+    "newTag": "New tag",
+    "createTag": "Create tag",
+    "search": "Search tasks…",
+    "noResults": "No results"
   }
 }
