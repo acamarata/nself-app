@@ -18,11 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Sync to Wiki
-        # ACCEPTED: wiki repo is only created by GitHub after the first page is saved via the web UI.
-        # Until initialized (visit https://github.com/nself-org/ntask/wiki and save), pushes fail with
-        # "repository not found". Remove this flag once the wiki is initialized.
-        # Expiry: remove after wiki is initialized — it will then stay in sync automatically.
-        continue-on-error: true
+        # Wiki initialized — continue-on-error removed (P5 Epic G T10).
         uses: Andrew-Chen-Wang/github-wiki-action@v4
         with:
           path: .github/wiki/
