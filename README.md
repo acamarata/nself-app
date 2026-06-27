@@ -1,6 +1,6 @@
 # ɳTasks
 
-Self-hosted task management reference app. React Native (Expo) client over a Postgres + Hasura + Auth backend, managed by the nSelf CLI.
+Self-hosted, multi-surface task management reference app. React Native mobile + Vite web SaaS + Tauri desktop + rn-tvos TV, all over one Postgres + Hasura + Auth backend.
 
 [![Version](https://img.shields.io/github/v/release/nself-org/ntask?label=version)](https://github.com/nself-org/ntask/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -11,7 +11,7 @@ Self-hosted task management reference app. React Native (Expo) client over a Pos
 
 ## Description
 
-**ɳTasks** is a reference app in the nSelf ecosystem. The React Native (Expo) client connects to a self-hosted backend running PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage, and MinIO, orchestrated under `backend/` by the nSelf CLI.
+**ɳTasks** is a reference app in the nSelf ecosystem. Four client surfaces (React Native mobile, Vite web SaaS at `task.nself.org`, Tauri desktop, rn-tvos TV) connect to a shared backend running PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage, and MinIO, orchestrated under `backend/` by the nSelf CLI.
 
 Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the nSelf CLI as its backend entry point. `make up` delegates to `nself start`; `make down` delegates to `nself stop`.
 
@@ -24,7 +24,7 @@ Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the
 
 - Docker 20+ with Docker Compose v2
 - nSelf CLI v1.0.9+: `brew install nself-org/tap/nself` (macOS) or see [nself.org/install](https://nself.org/install)
-- Node.js 20+ and pnpm 9+
+- Node.js 20+ and pnpm 10+
 - (iOS/Android builds) Expo CLI: `pnpm add -g expo-cli`
 
 ### 2. Backend
@@ -71,7 +71,7 @@ DEMO_SEED=1 make demo-seed      # loads example tasks and lists
 - nSelf CLI v1.0.9+ ([install guide](https://nself.org/install))
 - Docker 20+ with Docker Compose v2
 - GNU Make
-- Node.js 20+ and pnpm 9+
+- Node.js 20+ and pnpm 10+
 - (Optional) Hasura CLI for migration management
 
 ### Backend Setup
@@ -124,7 +124,7 @@ make ci-local                      # full CI gate (lint + typecheck + tests)
 
 ## Architecture
 
-React Native (Expo) app talks to a Docker Compose backend (PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage over MinIO, Mailhog for dev email, Traefik for staging/prod HTTPS). The app uses Hasura GraphQL as the only backend boundary; no direct Postgres access.
+All four surfaces (mobile, web, desktop, TV) connect to a Docker Compose backend (PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage over MinIO, Mailpit for dev email, Traefik for staging/prod HTTPS). Hasura GraphQL is the only backend boundary — no direct Postgres access.
 
 See the [Backend Architecture wiki page](https://github.com/nself-org/ntask/wiki/Backend-Architecture) for the full deep-dive.
 
@@ -134,22 +134,27 @@ See the [Backend Architecture wiki page](https://github.com/nself-org/ntask/wiki
 |--------|--------|-------|
 | iOS | Active | `pnpm ios` (sim) or EAS build for device |
 | Android | Active | `pnpm android` (emulator) or EAS build |
-| Web SaaS | Active | `task.nself.org` — Vite app in `web/ntask/` |
-| Desktop (macOS/Win/Linux) | Planned | Tauri 2 wrapping the web app |
+| Web SaaS | Active | `task.nself.org` — Vite app in `apps/web/` |
+| Desktop (macOS/Win/Linux) | Planned | Tauri 2 wrapping the web app — Epic E |
+| Apple TV / Android TV | Planned | react-native-tvos in `apps/tv/` — Epic F |
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Mobile framework | React Native + Expo (TypeScript) |
+| Mobile (iOS/Android) | React Native 0.79 + Expo 53 (TypeScript) |
+| Web SaaS | React 19 + Vite 6 (TypeScript) |
+| Desktop | Tauri 2 wrapping the web app (Planned — Epic E) |
+| TV (Apple TV / Android TV) | react-native-tvos (Planned — Epic F) |
 | State management | Zustand |
-| Local storage | expo-secure-store + AsyncStorage |
+| Local storage | expo-secure-store + AsyncStorage (mobile) / localStorage (web) |
 | Networking | GraphQL over HTTP/WS (urql) |
+| Shared packages | @nself/* (auth-core, types, graphql-client, ui, observability) |
 | Database | PostgreSQL 16 |
 | GraphQL | Hasura GraphQL Engine |
 | Auth | Hasura Auth (JWT) |
 | Storage | Hasura Storage over MinIO (S3-compatible) |
-| Dev email | Mailhog |
+| Dev email | Mailpit |
 | HTTPS (staging/prod) | Traefik with Let's Encrypt |
 | Orchestration | nSelf CLI + Docker Compose + Makefile |
 
@@ -182,8 +187,3 @@ MIT, see [LICENSE](LICENSE).
 - [ntv](https://github.com/nself-org/ntv): open-source media player reference app
 - [web](https://github.com/nself-org/web): `nself.org` marketing + docs + cloud
 
----
-
-## Legacy Flutter Client (archived)
-
-The `app/` directory is an archived Flutter prototype. Active development is in `apps/mobile/` (React Native + Expo). The Flutter client was replaced in the RN migration (commit 7c594b5). The `app/` directory is gitignored and not tracked.
