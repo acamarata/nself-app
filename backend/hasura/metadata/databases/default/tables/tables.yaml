@@ -1378,3 +1378,55 @@
                     _eq: X-Hasura-User-Id
                 - role:
                     _eq: owner
+
+# ---------------------------------------------------------------------------
+# np_saved_views table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_saved_views
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - name
+          - filters
+          - sort
+          - source_account_id
+        check:
+          user_id:
+            _eq: X-Hasura-User-Id
+        set:
+          user_id: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - user_id
+          - name
+          - filters
+          - sort
+          - source_account_id
+          - created_at
+          - updated_at
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - name
+          - filters
+          - sort
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id

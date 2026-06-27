@@ -31,6 +31,22 @@ type PresenceResult {
   success: Boolean!
 }
 
+# ── Storage presign output types ─────────────────────────────────────────────
+
+type UploadUrlResult {
+  """Presigned PUT URL — client uploads binary directly to MinIO (SigV4, 15-min TTL)."""
+  uploadUrl: String!
+  """Storage path to persist in np_attachments.storage_key after upload."""
+  storagePath: String!
+  expiresAt: String!
+}
+
+type DownloadUrlResult {
+  """Presigned GET URL — client downloads attachment directly from MinIO (SigV4, 1-hour TTL)."""
+  downloadUrl: String!
+  expiresAt: String!
+}
+
 # ── Output types ──────────────────────────────────────────────────────────────
 
 type DeleteAccountResult {
@@ -146,6 +162,23 @@ type Mutation {
 
   upsertPresence(listId: String!, status: String!, editingTodoId: String): PresenceResult
   removePresence(listId: String!): PresenceResult
+
+  # ── Storage presign ─────────────────────────────────────────────────────────
+
+  """
+  P5-W5: Get a presigned PUT URL for direct client-to-MinIO upload.
+  todoId must belong to the calling user. After successful PUT, persist the
+  attachment row via insertAttachment mutation using the returned storagePath.
+  Upload URL expires in 15 minutes. mimeType must be in the server allowlist.
+  """
+  getUploadUrl(fileName: String!, mimeType: String!, todoId: String!): UploadUrlResult
+
+  """
+  P5-W5: Get a presigned GET URL for an existing attachment.
+  Access granted to uploader, todo owner, and list members.
+  Download URL expires in 1 hour.
+  """
+  getDownloadUrl(attachmentId: String!): DownloadUrlResult
 }
 
 
