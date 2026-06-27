@@ -1,0 +1,8 @@
+# Environment files — never commit these
+.env.local
+.env*.local
+.env.dev
+.env.production
+.env.staging
+
+# .env.example IS intentionally committed — it is the template for new devs

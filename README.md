@@ -1,147 +1,173 @@
 # ɳTasks
 
-Self-hosted task management reference app. Flutter client over a Postgres + Hasura + Auth backend, managed by the nSelf CLI.
+Self-hosted task management reference app. React Native (Expo) client over a Postgres + Hasura + Auth backend, managed by the nSelf CLI.
 
-[![Version](https://img.shields.io/github/v/release/nself-org/ntask?label=version)](https://github.com/nself-org/task/releases)
+[![Version](https://img.shields.io/github/v/release/nself-org/ntask?label=version)](https://github.com/nself-org/ntask/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Build](https://github.com/nself-org/task/actions/workflows/test.yml/badge.svg)](https://github.com/nself-org/task/actions/workflows/test.yml)
+[![Build](https://github.com/nself-org/ntask/actions/workflows/test.yml/badge.svg)](https://github.com/nself-org/ntask/actions/workflows/test.yml)
 <!-- VERSION_BADGE -->
+
+> **Full self-hosting guide:** [.github/docs/SELF-HOSTING.md](.github/docs/SELF-HOSTING.md)
 
 ## Description
 
-**ɳTasks** is a reference app in the nSelf ecosystem. The Flutter client connects to a self-hosted backend running PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage, and MinIO, orchestrated under `backend/` by the nSelf CLI.
+**ɳTasks** is a reference app in the nSelf ecosystem. The React Native (Expo) client connects to a self-hosted backend running PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage, and MinIO, orchestrated under `backend/` by the nSelf CLI.
 
 Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the nSelf CLI as its backend entry point. `make up` delegates to `nself start`; `make down` delegates to `nself stop`.
 
 ## Quick Start
 
+> **Fastest path:** `make bootstrap` sets up the full local environment in one command.
+> Edit `backend/.env.dev` after for custom secrets. See step-by-step below for details.
+
+### 1. Prerequisites
+
+- Docker 20+ with Docker Compose v2
+- nSelf CLI v1.0.9+: `brew install nself-org/tap/nself` (macOS) or see [nself.org/install](https://nself.org/install)
+- Node.js 20+ and pnpm 9+
+- (iOS/Android builds) Expo CLI: `pnpm add -g expo-cli`
+
+### 2. Backend
+
 ```bash
-git clone https://github.com/nself-org/ntask.git my-tasks
-cd my-tasks/backend
-cp .env.example .env.dev   # customize secrets
-nself build                # generate docker-compose.yml + nginx + SSL
-nself start                # start the stack  (or: make up)
-cd ../app && flutter run
+git clone https://github.com/nself-org/ntask.git
+cd ntask
+cp backend/.env.example backend/.env.dev    # then edit secrets
+make build           # generates docker-compose.yml (run once)
+make up              # starts Postgres + Hasura + Auth + Storage
+make health          # verify all services are green
 ```
 
-The backend exposes Hasura at `http://localhost:8080`, Auth at `http://localhost:4000`, Storage at `http://localhost:8484`. The Flutter app picks the right target based on your build platform.
+### 3. Mobile App (React Native / Expo)
+
+```bash
+cd apps/mobile
+cp .env.example .env.local       # edit EXPO_PUBLIC_* if needed
+pnpm install
+pnpm start                       # Expo dev server
+# Scan the QR code with Expo Go, or: pnpm ios / pnpm android
+# On first launch: enter your backend URL (http://localhost:8080)
+# On a real device use your LAN IP: http://192.168.x.x:8080
+```
+
+### 4. Demo Data (optional)
+
+```bash
+DEMO_SEED=1 make demo-seed      # loads example tasks and lists
+# Login: demo@example.com / DemoPass123!
+```
 
 ## Features
 
 ɳTasks ships 35+ task-management capabilities (lists, tags, recurring tasks, sharing, real-time presence, calendar/today/overdue views, attachments, smart notifications, PWA install). The full inventory lives in the wiki:
 
-- See the [Features wiki page](https://github.com/nself-org/task/wiki/Features) for the complete capability list with status, configuration, and usage notes.
+- See the [Features wiki page](https://github.com/nself-org/ntask/wiki/Features) for the complete capability list with status, configuration, and usage notes.
 
 ## Installation
 
 ### Prerequisites
 
-- Flutter 3.7+ ([install guide](https://docs.flutter.dev/get-started/install))
-- nSelf CLI v1.0.9+ ([install guide](https://docs.nself.org/getting-started))
+- React Native/Expo environment ([setup guide](https://docs.expo.dev/get-started/installation/))
+- nSelf CLI v1.0.9+ ([install guide](https://nself.org/install))
 - Docker 20+ with Docker Compose v2
 - GNU Make
+- Node.js 20+ and pnpm 9+
 - (Optional) Hasura CLI for migration management
 
 ### Backend Setup
 
 ```bash
 cd backend
-cp .env.example .env.dev   # fill in project secrets
-nself build                # generates docker-compose.yml, nginx config, SSL certs
-nself start                # start the stack  (or: make up)
-make health                # verify all services are healthy
+cp .env.example .env.dev         # fill in project secrets
+nself build                       # generates docker-compose.yml, nginx config, SSL certs
+nself start                       # start the stack  (or: make up)
+make health                       # verify all services are healthy
 ```
 
 Stop with `nself stop` (or `make down`). View logs with `make logs`. Open a Postgres shell with `make psql`.
 
-### App Setup
+### Mobile App Setup
 
 ```bash
-cd app
-flutter pub get
-flutter run                # picks the connected device / desktop / web target
+cd apps/mobile
+cp .env.example .env.local        # customize EXPO_PUBLIC_* vars
+pnpm install
+pnpm start                        # Expo dev server
 ```
 
 For platform-specific builds:
 
 ```bash
-flutter build web          # produces build/web/
-flutter build apk          # Android
-flutter build ios          # iOS (macOS host required)
-flutter build macos        # macOS desktop
-flutter build linux        # Linux desktop
-flutter build windows      # Windows desktop
+pnpm ios          # iOS simulator (macOS host required)
+pnpm android      # Android emulator
+pnpm build        # EAS production build
 ```
 
 ## Usage
 
 ```bash
-cd backend && nself start          # start backend (or: make up)
-cd app && flutter run -d chrome    # run app in Chrome
+make up                            # start backend (or: cd backend && nself start)
+make mobile-start                  # start Expo dev server
+DEMO_SEED=1 make demo-seed         # load example tasks (optional)
 ```
 
 ```bash
-cd backend && make migrate         # apply pending Hasura migrations
-cd backend && make backup          # create a Postgres backup to ./backups/
+make migrate                       # apply pending Hasura migrations
+make backup                        # create a Postgres backup to backend/backups/
 cd backend && nself start --env staging   # bring up staging stack
 ```
 
 ```bash
-cd app && flutter test                          # unit + widget tests
-cd app && flutter test integration_test/        # integration tests
+make mobile-test                   # unit + integration tests
+make ci-local                      # full CI gate (lint + typecheck + tests)
 ```
 
 ## Architecture
 
-Flutter app talks to a Docker Compose backend (PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage over MinIO, Mailpit for dev email, Traefik for staging/prod HTTPS). The app uses Hasura GraphQL as the only backend boundary; no direct Postgres access.
+React Native (Expo) app talks to a Docker Compose backend (PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage over MinIO, Mailhog for dev email, Traefik for staging/prod HTTPS). The app uses Hasura GraphQL as the only backend boundary; no direct Postgres access.
 
-See the [Backend Architecture wiki page](https://github.com/nself-org/task/wiki/Backend-Architecture) for the full deep-dive.
+See the [Backend Architecture wiki page](https://github.com/nself-org/ntask/wiki/Backend-Architecture) for the full deep-dive.
 
 ## Platform Support
 
-The app is Flutter and runs on:
-
 | Target | Status | Notes |
 |--------|--------|-------|
-| Web (PWA-capable) | Active | `flutter build web`, deployed via `web/task` to `task.nself.org` |
-| macOS desktop | Active | `flutter build macos` |
-| Linux desktop | Active | `flutter build linux` |
-| Windows desktop | Active | `flutter build windows` |
-| iOS | Building | Builds locally; not yet shipped to App Store |
-| Android | Building | Builds locally; not yet shipped to Google Play |
-
-There is no separate Swift, Kotlin, React Native, or Next.js frontend: Flutter is the only client codebase.
+| iOS | Active | `pnpm ios` (sim) or EAS build for device |
+| Android | Active | `pnpm android` (emulator) or EAS build |
+| Web SaaS | Active | `task.nself.org` — Vite app in `web/ntask/` |
+| Desktop (macOS/Win/Linux) | Planned | Tauri 2 wrapping the web app |
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| App framework | Flutter 3.7+ (Dart) |
-| App state | Riverpod 2.x |
-| App local storage | Hive + flutter_secure_storage |
-| App networking | `http` package (GraphQL over HTTP/WS) |
+| Mobile framework | React Native + Expo (TypeScript) |
+| State management | Zustand |
+| Local storage | expo-secure-store + AsyncStorage |
+| Networking | GraphQL over HTTP/WS (urql) |
 | Database | PostgreSQL 16 |
 | GraphQL | Hasura GraphQL Engine |
 | Auth | Hasura Auth (JWT) |
 | Storage | Hasura Storage over MinIO (S3-compatible) |
-| Dev email | Mailpit |
+| Dev email | Mailhog |
 | HTTPS (staging/prod) | Traefik with Let's Encrypt |
 | Orchestration | nSelf CLI + Docker Compose + Makefile |
 
 ## Documentation
 
-- [Home](https://github.com/nself-org/task/wiki/Home)
-- [Getting Started](https://github.com/nself-org/task/wiki/Getting-Started)
-- [Backend Setup](https://github.com/nself-org/task/wiki/Backend-Setup)
-- [Backend Architecture](https://github.com/nself-org/task/wiki/Backend-Architecture)
-- [Database Schema](https://github.com/nself-org/task/wiki/Database-Schema)
-- [Features](https://github.com/nself-org/task/wiki/Features)
-- [Deployment](https://github.com/nself-org/task/wiki/Deployment)
-- [Security](https://github.com/nself-org/task/wiki/Security)
+- [Self-Hosting Guide](.github/docs/SELF-HOSTING.md)
+- [Upgrade Guide](.github/docs/UPGRADE.md) (stub — see H-S4-T2)
+- [Home](https://github.com/nself-org/ntask/wiki/Home)
+- [Backend Setup](https://github.com/nself-org/ntask/wiki/Backend-Setup)
+- [Backend Architecture](https://github.com/nself-org/ntask/wiki/Backend-Architecture)
+- [Database Schema](https://github.com/nself-org/ntask/wiki/Database-Schema)
+- [Features](https://github.com/nself-org/ntask/wiki/Features)
+- [Deployment](https://github.com/nself-org/ntask/wiki/Deployment)
+- [Security](https://github.com/nself-org/ntask/wiki/Security)
 
 ## Contributing
 
-See [Contributing](https://github.com/nself-org/task/wiki/Contributing) for the contributor guide.
+See [Contributing](https://github.com/nself-org/ntask/wiki/Contributing) for the contributor guide.
 
 ## License
 
@@ -149,9 +175,15 @@ MIT, see [LICENSE](LICENSE).
 
 ## Related Repos
 
-- [cli](https://github.com/nself-org/cli): the nSelf CLI (not required for this repo, but the wider ecosystem entry point)
+- [cli](https://github.com/nself-org/cli): the nSelf CLI
 - [admin](https://github.com/nself-org/admin): local GUI companion for the CLI
-- [nchat](https://github.com/nself-org/nchat): open-source chat reference app (uses nSelf CLI)
-- [nclaw](https://github.com/nself-org/nclaw): open-source AI assistant reference app (uses nSelf CLI + pro plugins)
-- [ntv](https://github.com/nself-org/ntv): open-source media player reference app (uses nSelf CLI + nTV bundle)
-- [web](https://github.com/nself-org/web): `nself.org` marketing + docs + cloud (private; hosts the free demo at `task.nself.org`)
+- [nchat](https://github.com/nself-org/nchat): open-source chat reference app
+- [nclaw](https://github.com/nself-org/nclaw): open-source AI assistant reference app
+- [ntv](https://github.com/nself-org/ntv): open-source media player reference app
+- [web](https://github.com/nself-org/web): `nself.org` marketing + docs + cloud
+
+---
+
+## Legacy Flutter Client (archived)
+
+The `app/` directory is an archived Flutter prototype. Active development is in `apps/mobile/` (React Native + Expo). The Flutter client was replaced in the RN migration (commit 7c594b5). The `app/` directory is gitignored and not tracked.

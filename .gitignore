@@ -83,7 +83,10 @@ dist/
 build/
 .next/
 out/
-.releases/
+.releases/*
+!.releases/README.md
+!.releases/android/
+!.releases/android/README.md
 
 # =============================================================================
 # LOGS
