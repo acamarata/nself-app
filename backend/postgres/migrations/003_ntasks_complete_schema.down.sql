@@ -3,20 +3,20 @@
 -- Idempotent (IF EXISTS guards).
 
 -- ---------------------------------------------------------------------------
--- Drop app_user_preferences (and its trigger + RLS policies)
+-- Drop np_user_preferences (and its trigger + RLS policies)
 -- ---------------------------------------------------------------------------
-DROP POLICY IF EXISTS "Users can delete their own preferences" ON public.app_user_preferences;
-DROP POLICY IF EXISTS "Users can update their own preferences" ON public.app_user_preferences;
-DROP POLICY IF EXISTS "Users can insert their own preferences" ON public.app_user_preferences;
-DROP POLICY IF EXISTS "Users can view their own preferences" ON public.app_user_preferences;
+DROP POLICY IF EXISTS "Users can delete their own preferences" ON public.np_user_preferences;
+DROP POLICY IF EXISTS "Users can update their own preferences" ON public.np_user_preferences;
+DROP POLICY IF EXISTS "Users can insert their own preferences" ON public.np_user_preferences;
+DROP POLICY IF EXISTS "Users can view their own preferences" ON public.np_user_preferences;
 
-DROP TRIGGER IF EXISTS set_app_user_preferences_updated_at ON public.app_user_preferences;
-DROP TABLE IF EXISTS public.app_user_preferences;
+DROP TRIGGER IF EXISTS set_np_user_preferences_updated_at ON public.np_user_preferences;
+DROP TABLE IF EXISTS public.np_user_preferences;
 
 -- ---------------------------------------------------------------------------
--- Restore app_todos.priority CHECK to the prior set (without 'urgent')
+-- Restore np_todos.priority CHECK to the prior set (without 'urgent')
 -- ---------------------------------------------------------------------------
-ALTER TABLE public.app_todos DROP CONSTRAINT IF EXISTS app_todos_priority_check;
-ALTER TABLE public.app_todos
-  ADD CONSTRAINT app_todos_priority_check
+ALTER TABLE public.np_todos DROP CONSTRAINT IF EXISTS np_todos_priority_check;
+ALTER TABLE public.np_todos
+  ADD CONSTRAINT np_todos_priority_check
     CHECK (priority IN ('none', 'low', 'medium', 'high'));

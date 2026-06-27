@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 -- Function: create recurring task instances for today
 -- Evaluates recurrence_rule patterns (daily, weekly:mon,wed,fri, monthly:15)
--- and inserts into app_recurring_instances if no instance exists for today.
+-- and inserts into np_recurring_instances if no instance exists for today.
 CREATE OR REPLACE FUNCTION public.create_recurring_instances()
 RETURNS void
 LANGUAGE plpgsql
@@ -33,7 +33,7 @@ BEGIN
 
   FOR rec IN
     SELECT id, recurrence_rule
-    FROM public.app_todos
+    FROM public.np_todos
     WHERE recurrence_rule IS NOT NULL
       AND recurrence_rule != ''
   LOOP
@@ -67,7 +67,7 @@ BEGIN
 
     IF should_create THEN
       -- Only insert if no instance exists for this todo on this date
-      INSERT INTO public.app_recurring_instances (parent_todo_id, instance_date, completed, completed_at)
+      INSERT INTO public.np_recurring_instances (parent_todo_id, instance_date, completed, completed_at)
       VALUES (rec.id, today, FALSE, NULL)
       ON CONFLICT (parent_todo_id, instance_date) DO NOTHING;
     END IF;
