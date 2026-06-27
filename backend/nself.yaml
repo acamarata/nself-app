@@ -1,0 +1,44 @@
+# nself.yaml — ntask bundle manifest
+# Format: provisional (PCI filed: nself-yaml-bundle-format)
+# This file is read by `nself build` to determine plugin wiring and service
+# configuration for the ntask reference app.
+#
+# Plugin names must match directory names under plugins/free/.
+# All plugins listed here are free tier — no license key required.
+
+app: ntask
+display_name: "ɳTask"
+version: "1.1.4"
+bundle: ntask          # free bundle, no license key required
+tier: free
+
+plugins:
+  free:
+    - auth             # Hasura Auth: email/password + OAuth user management
+    - storage          # Hasura Storage: S3-compatible file storage via MinIO
+    - cron             # scheduled task runner: recurring task evaluation
+    - notify           # notification dispatch: in-app + push routing
+    - notifications    # push notification delivery: FCM/APNs device push
+    - jobs             # background job queue: async processing and retries
+    - search           # full-text task search: Postgres tsvector index
+    - feature-flags    # feature rollout control: per-user and global flags
+    - audit-log        # audit trail: tamper-evident mutation log
+    - webhooks         # outbound webhook delivery: HTTP callbacks on events
+    - invitations      # user invite flow: email-based list sharing
+    - tokens           # API token management: scoped long-lived tokens
+
+services:
+  postgres:
+    version: "16"
+    db: ntask
+  hasura:
+    version: "v2.42.0"
+  auth:
+    version: "0.32.1"
+  storage:
+    version: "0.6.1"
+  minio: {}
+  mailhog:
+    dev_only: true
+  traefik:
+    prod_only: true

@@ -159,6 +159,37 @@ clean: ## Remove all containers and volumes (DESTRUCTIVE - deletes all data)
 	@echo "All data removed."
 
 # ---------------------------------------------------------------------------
+# Bootstrap / Upgrade / Demo
+# ---------------------------------------------------------------------------
+
+.PHONY: bootstrap
+bootstrap: ## One-command local dev setup (idempotent; safe to re-run)
+	@bash scripts/bootstrap.sh
+
+.PHONY: upgrade
+upgrade: ## Upgrade ntask: backup -> pull -> rebuild -> migrate -> health
+	@bash scripts/upgrade.sh
+
+.PHONY: migrate
+migrate: ## Apply pending Hasura migrations and metadata
+	cd hasura && hasura migrate apply --database-name default \
+	  --admin-secret $(HASURA_ADMIN_SECRET)
+	cd hasura && hasura metadata apply --admin-secret $(HASURA_ADMIN_SECRET)
+
+.PHONY: demo-seed
+demo-seed: ## Seed demo data (requires DEMO_SEED=1 to prevent accidents)
+	@if [ "$(DEMO_SEED)" != "1" ]; then \
+	  echo "Error: Set DEMO_SEED=1 to confirm. Usage: DEMO_SEED=1 make demo-seed"; \
+	  exit 1; \
+	fi
+	@echo "Seeding demo data..."
+	docker compose exec -T postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
+	  < postgres/seed/demo-seed.sql
+	@echo "Demo data loaded."
+	@echo "  Login: demo@example.com / DemoPass123!"
+	@echo "  (Change this password before using in production)"
+
+# ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
 
