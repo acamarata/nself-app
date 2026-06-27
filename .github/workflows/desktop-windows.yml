@@ -1,15 +1,8 @@
 name: Desktop Windows Build
 
-# Note: ntask Tauri desktop was removed in commit a3ed9c4 (Flutter is now canonical).
-# This workflow is present for EV code-signing infrastructure parity with other nSelf apps.
-# The signing step is a no-op until (a) SSL_COM_USERNAME is set AND (b) a Windows MSI
-# build target is re-introduced. Flutter desktop does not produce an MSI installer.
-# See: ntask/.github/workflows/flutter-ci.yml for the active build pipeline.
+# Tag-push trigger removed — Windows MSI signing deferred until Tauri desktop is re-introduced.
 
 on:
-  push:
-    tags: ['v*']
-    branches: []
   pull_request:
     branches: [main]
     paths: ['.github/workflows/desktop-windows.yml']

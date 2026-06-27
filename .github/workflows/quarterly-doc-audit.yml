@@ -28,7 +28,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.26"
+          go-version: "1.24"  # Track: update to latest stable Go before each quarterly run. Canonical: go.dev/VERSION
           cache: true
 
       - name: Determine quarter label

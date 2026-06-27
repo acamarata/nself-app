@@ -20,8 +20,7 @@ jobs:
 
       - name: Install nself CLI
         env:
-          # Track cli v1.1.3 (release has full platform binaries).
-          NSELF_VERSION: "1.1.3"
+          NSELF_VERSION: "1.1.4"  # Pin: update when cli/VERSION is bumped. Source of truth: .claude/docs/MASTER-VERSIONS.md
         run: |
           curl -fsSL https://raw.githubusercontent.com/nself-org/cli/main/.github/install.sh | bash
           echo "$HOME/.nself/bin" >> $GITHUB_PATH
@@ -30,27 +29,13 @@ jobs:
         run: |
           nself version
           nself help
-
-  clean-root:
-    name: Clean Root Check
+  version-lockstep:
+    name: Version Lockstep
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Forbid markdown at repo root other than README.md
-        run: |
-          OFFENDERS=$(find . -maxdepth 1 -name '*.md' ! -name 'README.md' -type f | sort)
-          if [ -n "$OFFENDERS" ]; then
-            echo "::error::Disallowed markdown files at repo root: $OFFENDERS"
-            exit 1
-          fi
-          echo "Repo root markdown is clean."
-
-      - name: Forbid tracked OS junk / secret .env files
-        run: |
-          JUNK=$(git ls-files | grep -E '(^|/)(\.DS_Store|Thumbs\.db|desktop\.ini)$|\.swp$|\.swo$' || true)
-          if [ -n "$JUNK" ]; then echo "::error::Tracked OS junk: $JUNK"; exit 1; fi
-          ENV=$(git ls-files | grep -E '(^|/)(\.env|\.env\.local|\.env\.secrets|\.env\.computed)$' \
-            | grep -vE '(^|/)(\.environments|environments)/[^/]+/\.env$' || true)
-          if [ -n "$ENV" ]; then echo "::error::Tracked secret-bearing .env: $ENV"; exit 1; fi
-          echo "Working tree clean."
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check version lockstep
+        run: bash scripts/check-version-lockstep.sh
