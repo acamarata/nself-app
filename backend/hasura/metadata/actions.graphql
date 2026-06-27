@@ -6,6 +6,31 @@
 # J-S2-T2: changePassword — authenticated password update via hasura-auth
 # J-S2 aux: listSessions, revokeSession, enableMfa, disableMfa
 
+
+# ── L: Collaboration output types ─────────────────────────────────────────────
+
+type InviteResult {
+  success: Boolean!
+  inviteId: String
+  message: String
+}
+
+type ShareLinkResult {
+  success: Boolean!
+  shareUrl: String
+  token: String
+  expiresAt: String
+}
+
+type MemberResult {
+  success: Boolean!
+  message: String
+}
+
+type PresenceResult {
+  success: Boolean!
+}
+
 # ── Output types ──────────────────────────────────────────────────────────────
 
 type DeleteAccountResult {
@@ -97,7 +122,32 @@ type Mutation {
   Disable TOTP-based MFA. Requires OTP confirmation to prevent accidental lockout.
   """
   disableMfa(otp: String!): MfaResult
+
+  # ── L-S1: Invite lifecycle ─────────────────────────────────────────────────
+
+  createListInvite(listId: String!, email: String!, role: String!): InviteResult
+  acceptListInvite(token: String!): InviteResult
+  declineListInvite(token: String!): InviteResult
+  revokeListInvite(inviteId: String!): InviteResult
+
+  # ── L-S2: Share links ──────────────────────────────────────────────────────
+
+  createShareLink(listId: String!, permission: String!, expiresInDays: Int): ShareLinkResult
+  revokeShareLink(listId: String!): MemberResult
+
+  # ── L-S3: Member management ────────────────────────────────────────────────
+
+  updateMemberRole(listId: String!, userId: String!, role: String!): MemberResult
+  removeMember(listId: String!, userId: String!): MemberResult
+  leaveList(listId: String!): MemberResult
+  transferOwnership(listId: String!, newOwnerId: String!): MemberResult
+
+  # ── L-S4: Presence ─────────────────────────────────────────────────────────
+
+  upsertPresence(listId: String!, status: String!, editingTodoId: String): PresenceResult
+  removePresence(listId: String!): PresenceResult
 }
+
 
 # ── Queries ───────────────────────────────────────────────────────────────────
 
