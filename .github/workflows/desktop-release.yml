@@ -1,0 +1,116 @@
+name: Desktop Release
+
+# Tag-triggered unified release: builds all 3 OS targets in parallel,
+# creates a GitHub Release, and triggers the updater manifest publish.
+#
+# Trigger: push a tag matching 'ntask-v*' (e.g. ntask-v1.0.1).
+# Use: make tag-desktop (reads version from apps/desktop/src-tauri/tauri.conf.json).
+
+on:
+  push:
+    tags: ['ntask-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. ntask-v1.0.1)'
+        required: true
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false   # never cancel a release mid-flight
+
+jobs:
+  # ── Version gate ─────────────────────────────────────────────────────────
+  version-gate:
+    name: Version consistency check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assert tauri.conf.json version matches git tag
+        run: |
+          TAG="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          # Strip 'ntask-v' prefix to get semver.
+          EXPECTED="${TAG#ntask-v}"
+          ACTUAL=$(jq -r '.version' ntask/apps/desktop/src-tauri/tauri.conf.json)
+          echo "Tag version:    $EXPECTED"
+          echo "Conf version:   $ACTUAL"
+          if [[ "$EXPECTED" != "$ACTUAL" ]]; then
+            echo "ERROR: tag version ($EXPECTED) does not match tauri.conf.json ($ACTUAL)"
+            echo "Bump tauri.conf.json version before tagging."
+            exit 1
+          fi
+          echo "Version gate passed: $ACTUAL"
+
+  # ── Parallel OS builds ───────────────────────────────────────────────────
+  build-macos:
+    name: Build macOS
+    needs: version-gate
+    uses: ./.github/workflows/desktop-macos.yml
+    secrets: inherit
+
+  build-linux:
+    name: Build Linux
+    needs: version-gate
+    uses: ./.github/workflows/desktop-linux.yml
+    secrets: inherit
+
+  build-windows:
+    name: Build Windows
+    needs: version-gate
+    uses: ./.github/workflows/desktop-windows.yml
+    secrets: inherit
+
+  # ── GitHub Release ───────────────────────────────────────────────────────
+  publish:
+    name: Create GitHub Release
+    needs: [build-macos, build-linux, build-windows]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all desktop artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*
+          merge-multiple: true
+          path: release-artifacts/
+
+      - name: List artifacts
+        run: find release-artifacts/ -type f | sort
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          VERSION="${TAG#ntask-v}"
+
+          gh release create "$TAG" \
+            --title "ɳTask Desktop $VERSION" \
+            --notes "## ɳTask Desktop v${VERSION}
+
+          See [CHANGELOG](https://github.com/nself-org/ntask/blob/main/CHANGELOG.md) for details.
+
+          ### Downloads
+          | Platform | File |
+          |---|---|
+          | macOS (Apple Silicon) | \`*aarch64.dmg\` |
+          | macOS (Intel) | \`*x86_64.dmg\` |
+          | Windows x64 | \`*.msi\` or \`*.exe\` |
+          | Linux x64 | \`*.AppImage\` or \`*.deb\` |
+
+          ### Auto-update
+          Users on v1.0.0+ will be notified automatically.
+          " \
+            release-artifacts/**
+
+      - name: Trigger updater manifest publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run publish-updater.yml \
+            --field tag="${GITHUB_REF_NAME:-${{ inputs.tag }}}"

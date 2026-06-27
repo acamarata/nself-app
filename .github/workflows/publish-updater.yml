@@ -1,0 +1,217 @@
+name: Publish Updater Manifest (ɳTask Desktop)
+
+# Ported from nclaw/.github/workflows/publish-updater.yml.
+# Signs artifacts with Ed25519 (minisign) and uploads per-target JSON manifests
+# to R2 at packages.nself.org/desktop/ntask/.
+#
+# SECURITY NOTES:
+# - TAURI_UPDATER_PRIVATE_KEY: base64-encoded minisign private key, stored in
+#   GitHub Actions Secrets. Generated with: minisign -G -s ntask.key -p ntask.pub -W
+# - The Ed25519 PUBLIC key is the literal content of apps/desktop/src-tauri/ntask.pub
+#   baked into tauri.conf.json plugins.updater.pubkey — NEVER a $VAR reference.
+# - Downgrade protection: manifest version must be strictly newer than latest published.
+
+on:
+  workflow_run:
+    workflows: ['Desktop Release']
+    types: [completed]
+    branches: ['main']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (e.g. ntask-v1.0.1)'
+        required: true
+
+jobs:
+  # ── Pubkey safety gate ────────────────────────────────────────────────────
+  validate-pubkey:
+    name: Gate — verify pubkey is not a $VAR literal
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if tauri.conf.json pubkey contains unresolved $VAR
+        run: |
+          PUBKEY=$(jq -r '.plugins.updater.pubkey' ntask/apps/desktop/src-tauri/tauri.conf.json)
+          if [[ "$PUBKEY" == \$* ]] || [[ "$PUBKEY" == *PLACEHOLDER* ]]; then
+            echo "ERROR: pubkey in tauri.conf.json is not a real Ed25519 key."
+            echo "Current value: $PUBKEY"
+            echo "Generate a keypair (PROC-3): minisign -G -s ntask.key -p ntask.pub -W"
+            echo "Then paste the literal content of ntask.pub into tauri.conf.json pubkey."
+            exit 1
+          fi
+          echo "OK: pubkey is a real key."
+
+  # ── Manifest publish ──────────────────────────────────────────────────────
+  publish-manifest:
+    name: Sign + publish updater manifests
+    needs: validate-pubkey
+    if: >
+      (github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install minisign
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq minisign
+
+      - name: Determine version + downgrade guard
+        run: |
+          VERSION=$(jq -r '.version' ntask/apps/desktop/src-tauri/tauri.conf.json)
+          echo "Offered version: $VERSION"
+
+          # Downgrade guard: fetch current published manifest.
+          MANIFEST_URL="https://packages.nself.org/desktop/ntask/latest-ntask-darwin-aarch64.json"
+          CURRENT=$(curl -sf "$MANIFEST_URL" | jq -r '.version' 2>/dev/null || echo "0.0.0")
+          echo "Current published version: $CURRENT"
+
+          HIGHER=$(printf '%s\n%s' "$CURRENT" "$VERSION" | sort -V | tail -1)
+          if [[ "$HIGHER" == "$CURRENT" && "$VERSION" != "$CURRENT" ]]; then
+            echo "ERROR: downgrade rejected — offered $VERSION <= current $CURRENT"
+            exit 1
+          fi
+          if [[ "$VERSION" == "$CURRENT" ]]; then
+            echo "ERROR: same-version publish rejected"
+            exit 1
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Downgrade guard passed: $VERSION > $CURRENT"
+
+      - name: Download release artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ inputs.tag }}"
+          [[ -z "$TAG" ]] && TAG="ntask-v${VERSION}"
+          mkdir -p release-data
+          gh release download "$TAG" \
+            --repo nself-org/ntask \
+            --dir release-data/ \
+            --pattern "*.dmg" \
+            --pattern "*.AppImage" \
+            --pattern "*.msi" \
+            || echo "Some artifact types may not exist — continuing."
+
+      - name: Generate Ed25519 signatures and manifests
+        env:
+          TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
+        run: |
+          VERSION="${{ env.VERSION }}"
+          DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          mkdir -p manifests
+
+          # Decode private key to temp file (passphrase-free — generated with -W).
+          echo "$TAURI_UPDATER_PRIVATE_KEY" | base64 --decode > /tmp/ntask_minisign_key
+          chmod 600 /tmp/ntask_minisign_key
+
+          sign_file() {
+            local file="$1"
+            if [[ ! -f "$file" ]]; then echo ""; return; fi
+            minisign -S -W -s /tmp/ntask_minisign_key -m "$file" -x "${file}.minisig" \
+              -t "ntask updater v${VERSION}"
+            cat "${file}.minisig"
+          }
+
+          # macOS arm64
+          SIG_MAC_ARM=$(sign_file "release-data/$(ls release-data/ | grep aarch64.*dmg | head -1)")
+          MAC_ARM_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep aarch64.*dmg | head -1)"
+
+          # macOS x86_64
+          SIG_MAC_X64=$(sign_file "release-data/$(ls release-data/ | grep x86_64.*dmg | head -1)")
+          MAC_X64_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep x86_64.*dmg | head -1)"
+
+          # Windows
+          SIG_WIN_X64=$(sign_file "release-data/$(ls release-data/ | grep '\.msi' | head -1)")
+          WIN_X64_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep '\.msi' | head -1)"
+
+          # Linux
+          SIG_LINUX_X64=$(sign_file "release-data/$(ls release-data/ | grep '\.AppImage' | head -1)")
+          LINUX_X64_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep '\.AppImage' | head -1)"
+
+          # Manifest helper
+          write_manifest() {
+            local name="$1"; shift
+            python3 - "$name" "$VERSION" "$DATE" "$@" <<'PYEOF'
+          import json, sys
+          name, version, date = sys.argv[1], sys.argv[2], sys.argv[3]
+          platforms = {}
+          i = 4
+          while i < len(sys.argv) - 1:
+              key, sig, url = sys.argv[i], sys.argv[i+1], sys.argv[i+2]
+              if sig and url:
+                  platforms[key] = {"signature": sig, "url": url}
+              i += 3
+          manifest = {
+              "version": version,
+              "notes": f"See https://github.com/nself-org/ntask/releases/tag/ntask-v{version}",
+              "pub_date": date,
+              "platforms": platforms,
+          }
+          print(json.dumps(manifest, indent=2))
+          PYEOF
+          }
+
+          write_manifest "latest-ntask-darwin-aarch64" \
+            "darwin-aarch64" "$SIG_MAC_ARM" "$MAC_ARM_URL" \
+            > manifests/latest-ntask-darwin-aarch64.json
+
+          write_manifest "latest-ntask-darwin-x86_64" \
+            "darwin-x86_64" "$SIG_MAC_X64" "$MAC_X64_URL" \
+            > manifests/latest-ntask-darwin-x86_64.json
+
+          write_manifest "latest-ntask-windows-x86_64" \
+            "windows-x86_64" "$SIG_WIN_X64" "$WIN_X64_URL" \
+            > manifests/latest-ntask-windows-x86_64.json
+
+          write_manifest "latest-ntask-linux-x86_64" \
+            "linux-x86_64" "$SIG_LINUX_X64" "$LINUX_X64_URL" \
+            > manifests/latest-ntask-linux-x86_64.json
+
+          rm /tmp/ntask_minisign_key
+          echo "Generated manifests:"
+          cat manifests/*.json
+
+      - name: Upload manifests to R2
+        env:
+          CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = $CLOUDFLARE_R2_ACCESS_KEY_ID
+          secret_access_key = $CLOUDFLARE_R2_SECRET_ACCESS_KEY
+          endpoint = https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          acl = public-read
+          EOF
+          rclone copy manifests/ r2:packages-nself-org/desktop/ntask/ -v
+          echo "Manifests published to packages.nself.org/desktop/ntask/"
+
+      - name: Purge Cloudflare cache
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          curl -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "files": [
+                "https://packages.nself.org/desktop/ntask/latest-ntask-darwin-aarch64.json",
+                "https://packages.nself.org/desktop/ntask/latest-ntask-darwin-x86_64.json",
+                "https://packages.nself.org/desktop/ntask/latest-ntask-windows-x86_64.json",
+                "https://packages.nself.org/desktop/ntask/latest-ntask-linux-x86_64.json"
+              ]
+            }'
+          echo "Cloudflare cache purged for ntask updater endpoints."

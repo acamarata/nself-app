@@ -1,0 +1,65 @@
+[package]
+name = "ntask-desktop"
+version = "0.1.0"
+edition = "2021"
+description = "ɳTask Desktop — Tauri 2 shell wrapping web/ntask Vite SPA"
+license = "MIT"
+
+[lib]
+name = "ntask_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "ntask-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# ── Tauri 2 core ──────────────────────────────────────────────────────────────
+tauri = { version = "2", features = [
+  "tray-icon",   # E-S2-T1 — system tray
+  "image-png",   # tray state icons (connected/syncing/offline)
+] }
+
+# ── Tauri 2 plugins ───────────────────────────────────────────────────────────
+tauri-plugin-window-state    = "2"   # E-S2-T7 — persist window size/position
+tauri-plugin-autostart       = "2"   # E-S2-T1 — launch at login
+tauri-plugin-updater         = "2"   # E-S3-T5 — Ed25519 auto-update
+tauri-plugin-global-shortcut = "2"   # E-S2-T5 — Cmd/Ctrl+Shift+N, T
+tauri-plugin-notification    = "2"   # E-S2-T4 — native OS notifications
+tauri-plugin-deep-link       = "2"   # E-S2-T2 — ntask:// URL scheme
+tauri-plugin-fs              = "2"   # E-S2-T3 — sandboxed file export/import
+tauri-plugin-dialog          = "2"   # E-S2-T3 — native save/open file picker
+tauri-plugin-shell           = "2"   # openUrl via @nself/tauri-bridge shell module
+tauri-plugin-os              = "2"   # OS detection for platform-conditional behaviour
+tauri-plugin-process         = "2"   # app.restart() for post-update relaunch
+
+# ── Serialization ─────────────────────────────────────────────────────────────
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# ── CSV export (E-S2-T3) ──────────────────────────────────────────────────────
+csv = "1"
+
+# ── Error handling ────────────────────────────────────────────────────────────
+anyhow    = "1"
+thiserror = "2"
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+chrono = { version = "0.4", features = ["serde"] }   # export timestamps
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+[profile.release]
+panic         = "abort"
+codegen-units = 1
+lto           = true
+opt-level     = 3
+strip         = true
+
+[profile.dev]
+incremental = true
