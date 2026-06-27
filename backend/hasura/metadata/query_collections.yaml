@@ -1,0 +1,95 @@
+- name: ntask_allowed_operations
+  definition:
+    queries:
+      - name: GetTodos
+        query: |
+          query GetTodos($userId: uuid!) {
+            np_todos(where: {user_id: {_eq: $userId}}, order_by: {created_at: desc}) {
+              id user_id title description completed is_public created_at updated_at
+            }
+          }
+      - name: GetLists
+        query: |
+          query GetLists {
+            np_lists(order_by: {position: asc}) {
+              id user_id title description color icon is_default position created_at updated_at
+            }
+          }
+      - name: GetProfile
+        query: |
+          query GetProfile($userId: uuid!) {
+            np_profiles(where: {id: {_eq: $userId}}) {
+              id email display_name bio avatar_url time_format auto_hide_completed default_list_id theme_preference created_at updated_at
+            }
+          }
+      - name: GetNotifications
+        query: |
+          query GetNotifications($userId: uuid!) {
+            np_notifications(where: {user_id: {_eq: $userId}}, order_by: {created_at: desc}, limit: 50) {
+              id type title body read action_url created_at
+            }
+          }
+      - name: GetRecurringInstances
+        query: |
+          query GetRecurringInstances($date: date!) {
+            np_recurring_instances(where: {instance_date: {_eq: $date}}, order_by: {created_at: asc}) {
+              id parent_todo_id instance_date completed completed_at
+            }
+          }
+      - name: InsertTodo
+        query: |
+          mutation InsertTodo($title: String!, $description: String, $completed: Boolean, $is_public: Boolean) {
+            insert_np_todos_one(object: {title: $title, description: $description, completed: $completed, is_public: $is_public}) {
+              id title created_at
+            }
+          }
+      - name: UpdateTodo
+        query: |
+          mutation UpdateTodo($id: uuid!, $title: String, $description: String, $completed: Boolean) {
+            update_np_todos_by_pk(pk_columns: {id: $id}, _set: {title: $title, description: $description, completed: $completed}) {
+              id title completed updated_at
+            }
+          }
+      - name: DeleteTodo
+        query: |
+          mutation DeleteTodo($id: uuid!) {
+            delete_np_todos_by_pk(id: $id) { id }
+          }
+      - name: InsertList
+        query: |
+          mutation InsertList($title: String!, $color: String, $icon: String, $position: Int) {
+            insert_np_lists_one(object: {title: $title, color: $color, icon: $icon, position: $position}) {
+              id title created_at
+            }
+          }
+      - name: UpdateList
+        query: |
+          mutation UpdateList($id: uuid!, $title: String, $color: String, $icon: String, $position: Int) {
+            update_np_lists_by_pk(pk_columns: {id: $id}, _set: {title: $title, color: $color, icon: $icon, position: $position}) {
+              id title updated_at
+            }
+          }
+      - name: DeleteList
+        query: |
+          mutation DeleteList($id: uuid!) {
+            delete_np_lists_by_pk(id: $id) { id }
+          }
+      - name: MarkNotificationRead
+        query: |
+          mutation MarkNotificationRead($id: uuid!) {
+            update_np_notifications_by_pk(pk_columns: {id: $id}, _set: {read: true}) { id read }
+          }
+      - name: UpdateProfile
+        query: |
+          mutation UpdateProfile($id: uuid!, $display_name: String, $bio: String, $avatar_url: String, $theme_preference: String) {
+            update_np_profiles_by_pk(pk_columns: {id: $id}, _set: {display_name: $display_name, bio: $bio, avatar_url: $avatar_url, theme_preference: $theme_preference}) {
+              id display_name updated_at
+            }
+          }
+      - name: CompleteRecurringInstance
+        query: |
+          mutation CompleteRecurringInstance($id: uuid!, $completed: Boolean!, $completed_at: timestamptz) {
+            update_np_recurring_instances_by_pk(pk_columns: {id: $id}, _set: {completed: $completed, completed_at: $completed_at}) {
+              id completed completed_at
+            }
+          }

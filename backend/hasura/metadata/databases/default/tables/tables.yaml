@@ -166,6 +166,7 @@
         filter:
           user_id:
             _eq: X-Hasura-User-Id
+    # PUBLIC ROLE: intentional — read-only access to tasks with is_public=true (shareable link feature). Do NOT add insert/update/delete for public role.
     - role: public
       permission:
         columns:
