@@ -1,0 +1,64 @@
+# Hasura Event Triggers — ntask backend
+# Applied via: hasura metadata apply
+# Triggers fire webhook calls on table mutations.
+# Handler URL: {{ACTION_HANDLER_URL}}/events/<trigger-name>
+
+- name: task_activity_trigger
+  table:
+    schema: public
+    name: np_todos
+  webhook: "{{ACTION_HANDLER_URL}}/events/task-activity"
+  insert:
+    columns: "*"
+  update:
+    columns:
+      - title
+      - description
+      - completed
+      - assigned_to_user_id
+      - priority
+      - due_date
+      - list_id
+      - status
+  delete:
+    columns: "*"
+  retry_conf:
+    num_retries: 3
+    interval_sec: 10
+    timeout_sec: 60
+  headers: []
+  cleanup_config:
+    batch_size: 10000
+    clean_invocation_logs: true
+    clear_older_than: 168
+    paused: false
+    schedule: "0 4 * * *"
+    timeout: 60
+  comment: "Log activity and notify assignees on todo INSERT/UPDATE/DELETE"
+
+- name: notify_dispatch_trigger
+  table:
+    schema: public
+    name: np_notifications
+  webhook: "{{ACTION_HANDLER_URL}}/events/notify-dispatch"
+  insert:
+    columns:
+      - id
+      - user_id
+      - type
+      - title
+      - body
+      - data
+  retry_conf:
+    num_retries: 3
+    interval_sec: 30
+    timeout_sec: 60
+  headers: []
+  cleanup_config:
+    batch_size: 10000
+    clean_invocation_logs: true
+    clear_older_than: 168
+    paused: false
+    schedule: "0 5 * * *"
+    timeout: 60
+  comment: "Dispatch push notifications when a new notification record is inserted"
