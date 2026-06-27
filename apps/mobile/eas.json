@@ -20,19 +20,24 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "credentialsSource": "remote"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "aab",
+        "credentialsSource": "remote"
+      },
+      "env": {
+        "APP_ENV": "production"
       }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "nself@example.com",
-        "ascAppId": "dev.nself.ntask",
-        "appleTeamId": "NSELF_TEAM_ID"
+        "appleId": "APPLE_ID_FROM_EAS_SECRETS",
+        "ascAppId": "FILL_AFTER_ASC_APP_CREATED",
+        "appleTeamId": "FILL_FROM_APPLE_DEVELOPER_ACCOUNT"
       },
       "android": {
         "serviceAccountKeyPath": "./google-services-key.json"

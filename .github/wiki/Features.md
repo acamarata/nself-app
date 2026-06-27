@@ -4,35 +4,36 @@
 
 ## Overview
 
-ɳTasks is a self-hosted, collaborative task management app. Built on a Flutter client and a Postgres + Hasura + Auth backend, it ships a deep feature set across list management, advanced todos, real-time collaboration, sharing, search/filtering, smart views, attachments, notifications, user preferences, and PWA install.
+ɳTasks is a self-hosted, collaborative task management app. Built on a React Native/Vite/Tauri multi-surface client and a Postgres + Hasura + Auth backend, it ships a deep feature set across list management, advanced todos, real-time collaboration, sharing, search/filtering, smart views, attachments, notifications, and user preferences.
 
 This page is the canonical inventory of every shipped capability. Each feature has a status, a one-line description, and (where relevant) configuration and usage notes. Status uses the master-list scheme: Active, Beta, Planned, Deprecated.
 
 ## Requirements
 
 | Item | Required | Notes |
-|------|----------|-------|
-| Flutter | 3.7+ | Per `app/pubspec.yaml` |
+|---|---|---|
+| pnpm 10+ + Node 20+ | Required | Per `apps/mobile/package.json` |
+| Expo CLI | Required (mobile) | `npm install -g expo-cli` |
 | Backend stack | Required | `cd backend && make up` (Postgres + Hasura + Auth + Storage + MinIO + Mailpit) |
-| Tier | Free | `task/` is free-plugins-only by design (per F03, F12) |
+| Tier | Free | `ntask` is free-plugins-only by design (per F03, F12) |
 | Bundle | None | No paid bundle required |
 
 ## Configuration
 
-Most feature configuration is in the Flutter app settings (per-user preferences) and in `backend/.env` (server-side defaults). The full env reference lives in [Backend Setup](Backend-Setup) and [Environment Variables](Environment-Variables).
+Most feature configuration is in per-surface app settings (per-user preferences) and in `backend/.env.dev` (server-side defaults). The full env reference lives in [Backend Setup](Backend-Setup) and [Environment Variables](Environment-Variables).
 
 | Env Var | Default | Description |
-|---------|---------|-------------|
+|---|---|---|
 | `POSTGRES_DB` | `nself` | Postgres database name |
-| `HASURA_GRAPHQL_ADMIN_SECRET` | (set in `.env`) | Required to access the Hasura console |
-| `AUTH_JWT_CUSTOM_CLAIMS` | (set in `.env`) | Custom JWT claims for app permissions |
+| `HASURA_GRAPHQL_ADMIN_SECRET` | (set in `.env.dev`) | Required to access the Hasura console |
+| `AUTH_JWT_CUSTOM_CLAIMS` | (set in `.env.dev`) | Custom JWT claims for app permissions |
 
 ## Feature Inventory
 
 ### List Management
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Multiple lists | Active | Create unlimited lists with custom colors, icons, and descriptions |
 | Smart organization | Active | Drag-and-drop reordering, default list support |
 | List templates | Active | Shopping list, work tasks, travel checklist, and more |
@@ -42,7 +43,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Advanced Todo Features
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Due dates | Active | Natural-language input ("tomorrow", "next monday", "in 3 days") |
 | Priority levels | Active | None, Low, Medium, High (color-coded) |
 | Tags | Active | Autocomplete, multi-select, filter by tags |
@@ -59,7 +60,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Real-Time Collaboration
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Live presence | Active | See who is viewing or editing each list in real time |
 | User avatars | Active | Overlapping avatar stack (max 5 visible, "+N" overflow) |
 | Editing indicators | Active | Visual cues when someone is editing a specific todo |
@@ -69,7 +70,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Sharing
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Granular permissions | Active | Owner / Editor / Viewer roles per list |
 | Invite system | Active | Email-based invites with pending and accepted states |
 | Public links | Active | Generate shareable links for read-only views |
@@ -79,7 +80,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Search and Filtering
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Real-time search | Active | Search across todos, notes, and tags as you type |
 | Filter by status | Active | Active vs Completed |
 | Filter by priority | Active | High / Medium / Low |
@@ -91,7 +92,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Sorting
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Manual order | Active | Drag-and-drop position |
 | Sort by created date | Active | Newest first / Oldest first |
 | Sort by due date | Active | Soonest first / Latest first |
@@ -103,7 +104,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Bulk Operations
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Multi-select mode | Active | Toggle selection mode with one tap |
 | Floating action toolbar | Active | Appears when items are selected |
 | Bulk complete | Active | Complete multiple todos at once |
@@ -115,7 +116,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Smart Views
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Today view | Active | All todos due today across lists, grouped by list |
 | Overdue view | Active | All past-due incomplete todos, sorted by due date |
 | Calendar view | Active | Week-at-a-glance, color-coded by list, today highlighted |
@@ -123,7 +124,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Attachments
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Drag-and-drop upload | Active | Drop files directly onto todos |
 | File preview | Active | Type-aware icons (images, documents, etc.) |
 | Download and delete | Active | Full file lifecycle |
@@ -134,7 +135,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### Notifications
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | New-todo-assigned | Active | When someone assigns you a todo |
 | Due-date reminder | Active | Configurable timing |
 | List-shared notification | Active | When a list is shared with you |
@@ -148,7 +149,7 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 ### User Preferences
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+|---|---|---|
 | Time format | Active | 12-hour vs 24-hour |
 | Auto-hide completed | Active | Toggle visibility of completed tasks |
 | Theme | Active | Light, Dark, System |
@@ -157,51 +158,39 @@ Most feature configuration is in the Flutter app settings (per-user preferences)
 | Evening reminder time | Active | Customize the daily digest hour |
 | Due reminder timing | Active | 15 / 30 / 60 minutes before |
 
-### Progressive Web App
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Installable | Active | Add to home screen on supported platforms |
-| Offline-first | Active | Service workers cache the app shell |
-| Background sync | Active | Queued changes sync when the connection returns |
-| Web Push | Active | Browser notifications via Web Push API |
-| App shortcuts | Active | Quick actions from the home screen |
-| PWA manifest | Active | 8 icon sizes, theme + background colors set |
-
 ### Cross-Platform Targets
 
 | Target | Status | Notes |
-|--------|--------|-------|
-| Web (PWA) | Active | `flutter build web`, hosted at `task.nself.org` |
-| macOS desktop | Active | `flutter build macos` |
-| Linux desktop | Active | `flutter build linux` |
-| Windows desktop | Active | `flutter build windows` |
-| iOS | Building | Builds locally; not yet shipped to App Store |
-| Android | Building | Builds locally; not yet shipped to Google Play |
+|---|---|---|
+| Mobile (iOS + Android) | Building | React Native + Expo; EAS Build profiles configured |
+| Web SaaS | Building | React + Vite SPA; hosted at `task.nself.org` |
+| Desktop (macOS/Windows/Linux) | Planned | Tauri 2; Epic E target |
+| TV (Apple TV + Android TV) | Planned | react-native-tvos; Epic F target |
 
 ## Limitations
 
-- iOS and Android store submissions are not yet shipped. Builds work locally but the App Store / Google Play release pipeline is still in progress.
+- Desktop and TV surfaces are Planned (Epic E/F). Not yet shipped.
+- iOS and Android store submissions are in progress. EAS Build configured but not yet submitted to App Store / Play Console.
 - Move-between-lists in bulk operations is Planned, not Active.
 - Free plugins only. The pro plugin set (ai, claw, mux, livekit, etc.) is intentionally out of scope per F03 and F12.
 
 ## Known Issues
 
-None currently tracked. Report issues at [github.com/nself-org/task/issues](https://github.com/nself-org/task/issues).
+None currently tracked. Report issues at [github.com/nself-org/ntask/issues](https://github.com/nself-org/ntask/issues).
 
 ## Troubleshooting
 
 ### Backend services don't start
 
 **Symptom:** `make up` fails or services exit immediately.
-**Cause:** `.env` not created from `.env.example`, or required ports already in use.
-**Fix:** `cd backend && cp .env.example .env`, then `lsof -i :8080,4000,8484,5432,9000` to free conflicting ports, then `make up` again.
+**Cause:** `.env.dev` not created from `.env.example`, or required ports already in use.
+**Fix:** `cd backend && cp .env.example .env.dev`, then `lsof -i :8080,4000,8484,5432,9000` to free conflicting ports, then `make up` again.
 
 ### App can't reach Hasura
 
 **Symptom:** GraphQL calls fail with network errors.
 **Cause:** Backend not running, or app pointing at the wrong endpoint.
-**Fix:** `cd backend && make health`. If healthy, verify the Flutter app's GraphQL endpoint matches the platform target (web typically uses `localhost:8080`, mobile sims may need the host machine IP).
+**Fix:** `cd backend && make health`. If healthy, verify the client app's GraphQL endpoint matches the platform target (`apps/mobile/` or `apps/web/` per surface). Mobile simulators may need the host machine IP instead of `localhost`.
 
 ### Hasura migrations not applied
 

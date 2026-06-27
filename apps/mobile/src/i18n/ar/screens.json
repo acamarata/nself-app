@@ -54,5 +54,43 @@
     "createTag": "إنشاء وسم",
     "search": "البحث في المهام…",
     "noResults": "لا نتائج"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "connection": "الاتصال",
+    "serverUrl": "عنوان URL للخادم",
+    "testConnection": "اختبار الاتصال",
+    "connected": "متصل",
+    "connectionFailed": "فشل الاتصال",
+    "language": "اللغة",
+    "appearance": "المظهر",
+    "system": "النظام",
+    "light": "فاتح",
+    "dark": "داكن",
+    "notifications": "الإشعارات",
+    "notifComments": "التعليقات على مهامي",
+    "notifAssigned": "المهام المسندة إليّ",
+    "notifReminders": "تذكيرات المهام",
+    "notifMasterOff": "جميع الإشعارات",
+    "restartRequired": "إعادة التشغيل مطلوبة",
+    "restartMessage": "يلزم إعادة التشغيل لتطبيق تغييرات RTL.",
+    "restart": "إعادة التشغيل"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "displayName": "الاسم المعروض",
+    "email": "البريد الإلكتروني",
+    "serverUrl": "عنوان URL للخادم",
+    "version": "الإصدار",
+    "signOut": "تسجيل الخروج",
+    "signOutConfirm": "هل تريد تسجيل الخروج؟"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "commentAdded": "تعليق جديد",
+    "taskAssigned": "مهمة مُسندة",
+    "taskDue": "موعد مهمة"
   }
 }

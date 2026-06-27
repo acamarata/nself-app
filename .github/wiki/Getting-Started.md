@@ -1,20 +1,24 @@
-# Getting Started
+# Getting Started — ɳTasks
 
-Get ɳTask boilerplate running on your machine in minutes.
+Get ɳTasks running on your machine in minutes. ɳTasks is a multi-surface app: React Native + Expo (mobile), React 19 + Vite SPA (web), with Tauri 2 desktop and rn-tvos TV surfaces planned.
 
 ---
 
 ## Prerequisites
 
-Before you begin, ensure you have:
+| Tool | Version | Install |
+|---|---|---|
+| Node.js | 20+ | [nodejs.org](https://nodejs.org/) |
+| pnpm | 10+ | `npm install -g pnpm` |
+| Expo CLI | Latest | `pnpm add -g expo-cli` |
+| EAS CLI | Latest | `pnpm add -g eas-cli` |
+| Docker Desktop | 20+ | [docker.com](https://docker.com) |
+| nSelf CLI | Latest | `brew install nself-org/tap/nself` |
+| Make | — | macOS: `xcode-select --install` |
 
-- **Node.js 18+** - [Download](https://nodejs.org/)
-- **npm** or **yarn** - Comes with Node.js
-- **Docker Desktop** - [Download](https://www.docker.com/products/docker-desktop/) (for self-hosted backend)
-- **Git** - For cloning the repository
-
-Optional:
-- **Make** - For backend commands (usually pre-installed on macOS/Linux)
+Optional for mobile:
+- **Xcode** — iOS simulator (macOS only)
+- **Android Studio** — Android emulator
 
 ---
 
@@ -23,196 +27,158 @@ Optional:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/nself-org/tasks.git my-app
-cd my-app
+git clone https://github.com/nself-org/ntask.git
+cd ntask
 ```
 
-### 2. Choose Your Backend
+### 2. Start the Backend
 
-You have two options: **self-hosted** (recommended for learning) or **managed** (faster for production).
-
-#### Option A: Self-Hosted Backend (nSelf)
-
-Start the complete backend stack locally with Docker:
+The backend stack runs locally via Docker (managed by nSelf CLI):
 
 ```bash
-# Navigate to backend directory
 cd backend
-
-# Create environment file
-cp .env.example .env
-
-# Start all services (PostgreSQL, Hasura, Auth, Storage, MinIO)
-make up
-
-# Wait for services to start (about 30 seconds)
-# Verify everything is running
-make health
+cp .env.example .env.dev     # Edit passwords for any non-local environment
+nself build                  # Generate docker-compose.yml (first time only)
+make up                      # Start Postgres, Hasura, Auth, Storage, MinIO, Mailpit
+make health                  # Verify all services are up
 ```
 
-Your backend services are now running:
-- **GraphQL API**: http://localhost:8080/v1/graphql
-- **Hasura Console**: http://localhost:8080/console
-- **Auth API**: http://localhost:4000
-- **Storage API**: http://localhost:8484
+Backend services:
 
-Return to project root: `cd ..`
+| Service | Local URL |
+|---|---|
+| GraphQL API | http://localhost:8080/v1/graphql |
+| Hasura Console | http://localhost:8080/console |
+| Auth API | http://localhost:4000 |
+| Storage API | http://localhost:8484 |
+| MinIO Console | http://localhost:9001 |
+| Mailpit (email) | http://localhost:8025 |
 
-#### Option B: Managed Backend (Supabase/Nhost)
-
-Skip Docker and use a managed backend:
-
-**For Supabase:**
-1. Create a project at [supabase.com](https://supabase.com)
-2. Copy `.env.example` to `.env`
-3. Set `NEXT_PUBLIC_BACKEND_PROVIDER=supabase`
-4. Add your Supabase URL and anon key
-
-**For Nhost:**
-1. Create a project at [nhost.io](https://nhost.io)
-2. Copy `.env.example` to `.env`
-3. Set `NEXT_PUBLIC_BACKEND_PROVIDER=nhost`
-4. Add your Nhost subdomain and region
-
-See [Backend Setup](Backend-Setup) for detailed instructions.
-
-### 3. Install Frontend Dependencies
+### 3. Run the Mobile App
 
 ```bash
-# Install npm packages
+cd apps/mobile
+cp .env.example .env.local
 pnpm install
+pnpm start          # Expo dev server
 ```
 
-### 4. Configure Environment
+Press `i` for iOS simulator, `a` for Android emulator.
+
+Environment (`apps/mobile/.env.local`):
 
 ```bash
-# Create local environment file
-cp .env.example .env
-
-# For self-hosted (default):
-# NEXT_PUBLIC_BACKEND_PROVIDER=nself
-# Already configured for localhost!
-
-# For Supabase:
-# NEXT_PUBLIC_BACKEND_PROVIDER=supabase
-# Fill in NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-# For Nhost:
-# NEXT_PUBLIC_BACKEND_PROVIDER=nhost
-# Fill in NEXT_PUBLIC_NHOST_* variables
+EXPO_PUBLIC_HASURA_URL=http://localhost:8080/v1/graphql
+EXPO_PUBLIC_HASURA_WS_URL=ws://localhost:8080/v1/graphql
+EXPO_PUBLIC_AUTH_URL=http://localhost:4000
+EXPO_PUBLIC_STORAGE_URL=http://localhost:8484
 ```
 
-### 5. Start the Development Server
+See [[RN-Setup]] for the full React Native setup guide.
+
+### 4. Run the Web SaaS
 
 ```bash
-pnpm dev
+cd apps/web
+cp .env.example .env.local
+pnpm install
+pnpm dev            # http://localhost:5173
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Environment (`apps/web/.env.local`):
+
+```bash
+VITE_HASURA_URL=http://localhost:8080/v1/graphql
+VITE_HASURA_WS_URL=ws://localhost:8080/v1/graphql
+VITE_AUTH_URL=http://localhost:4000
+VITE_STORAGE_URL=http://localhost:8484
+```
+
+See [[Web-SPA]] for the full Vite web SaaS setup guide.
 
 ---
 
 ## First Steps
 
-### 1. Register an Account
+### 1. Create an Account
 
-1. Click **"Get Started"** or **"Sign in"**
-2. Navigate to **Register**
-3. Create an account with email/password
-4. You'll be automatically signed in
+- **Mobile:** tap the Register button in the app.
+- **Web:** navigate to http://localhost:5173/register.
 
-### 2. Explore the Dashboard
+Emails are caught locally by Mailpit at http://localhost:8025.
 
-After signing in, you'll see:
-- **Backend status** - Which backend you're using
-- **Environment info** - Local/staging/production
-- **Quick stats** - Your data overview
+### 2. Explore the App
 
-### 3. Try the Todo Example
+After signing in:
+- **Today** — tasks due today
+- **Overdue** — past-due tasks
+- **Calendar** — date-based view
+- **Notifications** — task activity feed
+- **List detail** — tap any list to see tasks; create/edit/complete tasks; share lists
 
-1. Click **"Todos"** in the navigation
-2. **Create a todo** - Add your first item
-3. **Toggle completion** - Mark it done
-4. **Share a todo** - Click the share icon:
-   - Toggle public/private
-   - Copy the shareable link
-   - Share by email with permissions
-5. **View public todo** - Open the link in a private/incognito window
+### 3. Explore the GraphQL API
 
-This demonstrates the complete feature set: CRUD operations, authentication, row-level security, and sharing.
+Open http://localhost:8080/console → **API** tab:
+
+```graphql
+query MyLists {
+  np_lists {
+    id
+    name
+    np_todos {
+      id
+      title
+      completed
+      due_date
+    }
+  }
+}
+```
+
+Schema prefix: `np_*`. Tables: `np_lists`, `np_todos`, `np_shares`, `np_attachments`, `np_comments`, `np_subtasks`, `np_presence`.
 
 ---
 
 ## Project Structure
 
-Here's what you just installed:
+```
+ntask/
+├── apps/
+│   ├── mobile/       # React Native + Expo (iOS, Android)
+│   └── web/          # React 19 + Vite SPA (task.nself.org)
+├── backend/
+│   ├── hasura/       # GraphQL metadata + migrations
+│   ├── nginx/        # Reverse proxy config
+│   └── postgres/     # Init scripts + migrations (np_* schema)
+└── .github/
+    ├── wiki/         # This documentation
+    └── workflows/    # CI/CD
+```
 
-```
-my-app/
-├── app/              # Next.js pages (App Router)
-│   ├── page.tsx      # Home page
-│   ├── login/        # Auth pages
-│   ├── dashboard/    # Protected dashboard
-│   └── todos/        # Todo app example
-├── components/       # React components
-│   ├── ui/           # shadcn/ui components
-│   ├── todos/        # Todo-specific components
-│   └── layout/       # Header, footer, navigation
-├── lib/
-│   ├── backend/      # Backend adapters (nself, supabase, nhost)
-│   ├── services/     # Business logic (todos, profiles)
-│   ├── providers/    # React context (auth, backend, theme)
-│   └── config.ts     # App configuration
-├── hooks/            # Custom React hooks
-├── backend/          # Self-hosted backend (Docker)
-│   ├── docker-compose.yml
-│   ├── postgres/     # Database init scripts
-│   └── hasura/       # GraphQL metadata
-├── .env.example      # Environment template
-└── package.json      # Dependencies
-```
+Planned surfaces: `apps/desktop/` (Tauri 2, Epic E), `apps/tv/` (rn-tvos, Epic F).
 
 ---
 
-## What's Next?
+## Stop the Backend
 
-Now that you're up and running:
-
-1. **[Understand the Architecture](Architecture)** - Learn how it all works
-2. **[Explore the Database](Database-Schema)** - See the data structure
-3. **[Customize Your App](Customization)** - Make it your own
-4. **[Deploy to Production](Deployment)** - Ship it!
+```bash
+cd backend && make down
+```
 
 ---
 
 ## Common Issues
 
-### Docker Services Won't Start
+| Symptom | Fix |
+|---|---|
+| `make up` hangs | Run `make down` first, then `make up` |
+| Port 8080/4000/8484 in use | Stop conflicting service or edit `backend/.env.dev` ports |
+| `nself build` not found | Install nSelf CLI: `brew install nself-org/tap/nself` |
+| Expo metro bundler error | Delete `apps/mobile/.expo/` and restart |
+| Vite dev server can't connect | Verify `apps/web/.env.local` env vars are set |
 
-```bash
-# Check if ports are already in use
-docker ps
-
-# Stop all containers and start fresh
-cd backend && make down && make up
-```
-
-### "Port already in use" Error
-
-Another app is using port 3000, 8080, or 5432. Either:
-- Stop the conflicting app
-- Change ports in `.env` and `docker-compose.yml`
-
-### Frontend Can't Connect to Backend
-
-1. Verify backend is running: `cd backend && make health`
-2. Check `.env` has correct URLs for your backend
-3. Restart frontend: Stop dev server (Ctrl+C) and run `pnpm dev` again
-
-See [Troubleshooting](Troubleshooting) for more help.
+See [Backend-Troubleshooting](Backend-Troubleshooting) for more.
 
 ---
 
-**Having trouble?** [Open an issue](https://github.com/nself-org/tasks/issues) or check the [Troubleshooting guide](Troubleshooting).
-
-**Next:** [Backend Setup →](Backend-Setup)
+**Next:** [[Backend-Setup]] | [[RN-Setup]] | [[Web-SPA]] | [[Features]]

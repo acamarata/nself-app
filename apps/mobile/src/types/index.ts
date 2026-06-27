@@ -28,4 +28,7 @@ export type RootStackParamList = {
   Home: undefined;
   List: { listId: string; listTitle: string };
   TaskDetail: { taskId: string; listId: string };
+  Settings: undefined;
+  Profile: undefined;
+  Notifications: undefined;
 };

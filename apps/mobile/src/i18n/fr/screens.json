@@ -1,0 +1,96 @@
+{
+  "login": {
+    "title": "Connexion",
+    "serverUrl": "URL du serveur",
+    "email": "Email",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "missingFields": "Champs manquants",
+    "pleaseFillAll": "Veuillez remplir tous les champs."
+  },
+  "home": {
+    "newList": "Nouvelle liste",
+    "noLists": "Aucune liste",
+    "createList": "Créer une liste",
+    "renameList": "Renommer la liste",
+    "deleteList": "Supprimer la liste",
+    "listName": "Nom de la liste",
+    "nameRequired": "Le nom est requis.",
+    "saveListName": "Enregistrer le nom",
+    "rename": "Renommer",
+    "signOut": "Déconnexion"
+  },
+  "list": {
+    "addTask": "Ajouter une tâche",
+    "noTasks": "Aucune tâche",
+    "taskTitle": "Titre de la tâche",
+    "saveTask": "Enregistrer",
+    "taskNotSaved": "Tâche non enregistrée"
+  },
+  "taskDetail": {
+    "title": "Titre de la tâche",
+    "notes": "Notes",
+    "dueDate": "Date d'échéance",
+    "priority": {
+      "label": "Priorité",
+      "none": "Aucune",
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "urgent": "Urgente"
+    },
+    "markCompleted": "Marquer comme terminé",
+    "saveChanges": "Enregistrer",
+    "deleteTask": "Supprimer la tâche",
+    "deleteConfirm": "Cette tâche sera définitivement supprimée.",
+    "subtasks": "Sous-tâches",
+    "addSubtask": "Ajouter une sous-tâche",
+    "subtaskTitle": "Titre de la sous-tâche",
+    "comments": "Commentaires",
+    "addComment": "Ajouter un commentaire…",
+    "sendComment": "Envoyer",
+    "tags": "Étiquettes",
+    "newTag": "Nouvelle étiquette",
+    "createTag": "Créer une étiquette",
+    "search": "Rechercher des tâches…",
+    "noResults": "Aucun résultat"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "connection": "Connexion",
+    "serverUrl": "URL du serveur",
+    "testConnection": "Tester la connexion",
+    "connected": "Connecté",
+    "connectionFailed": "Connexion échouée",
+    "language": "Langue",
+    "appearance": "Apparence",
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre",
+    "notifications": "Notifications",
+    "notifComments": "Commentaires sur mes tâches",
+    "notifAssigned": "Tâches qui me sont assignées",
+    "notifReminders": "Rappels d'échéance",
+    "notifMasterOff": "Toutes les notifications",
+    "restartRequired": "Redémarrage requis",
+    "restartMessage": "Un redémarrage est nécessaire pour appliquer les changements RTL.",
+    "restart": "Redémarrer"
+  },
+  "profile": {
+    "title": "Profil",
+    "displayName": "Nom d'affichage",
+    "email": "Email",
+    "serverUrl": "URL du serveur",
+    "version": "Version",
+    "signOut": "Déconnexion",
+    "signOutConfirm": "Voulez-vous vraiment vous déconnecter ?"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "markAllRead": "Tout marquer comme lu",
+    "commentAdded": "Nouveau commentaire",
+    "taskAssigned": "Tâche assignée",
+    "taskDue": "Tâche due"
+  }
+}

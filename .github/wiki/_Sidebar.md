@@ -6,6 +6,10 @@
 
 - [[Getting-Started]]
 - [[Quickstart-Guide]]
+- [[RN-Setup]]
+- [[Web-SPA]]
+- [[Desktop]]
+- [[TV]]
 - [[Backend-Setup]]
 - [[Backend-Troubleshooting]]
 
@@ -42,6 +46,7 @@
 
 **Reference**
 
+- [[API-Reference]]
 - [[Developer-Tools]]
 - [[Security]]
 - [[Contributing]]
@@ -52,8 +57,8 @@
 
 **External**
 
-- [GitHub](https://github.com/nself-org/task)
-- [Issues](https://github.com/nself-org/task/issues)
-- [Discussions](https://github.com/nself-org/task/discussions)
+- [GitHub](https://github.com/nself-org/ntask)
+- [Issues](https://github.com/nself-org/ntask/issues)
+- [Discussions](https://github.com/nself-org/ntask/discussions)
 - [task.nself.org](https://task.nself.org)
 - [docs.nself.org](https://docs.nself.org)

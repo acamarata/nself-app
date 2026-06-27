@@ -1,8 +1,8 @@
 name: Lighthouse CI
 
-# Disabled: Next.js web target removed in commit a3ed9c4 (Flutter is now canonical).
-# Re-enable and replace with flutter_driver or integration_test web perf audit
-# when Flutter web build with a hosted preview URL is introduced.
+# Disabled: Flutter web target removed — web SaaS is React 19 + Vite 6 SPA (apps/web/).
+# Re-enable via Epic G (performance/PWA audit) when apps/web/ has a hosted preview URL.
+# Lighthouse is applicable to the Vite SPA; re-wire with @lhci/cli when ready.
 on:
   push:
     branches: [main]
@@ -14,7 +14,7 @@ on:
 
 jobs:
   lighthouse-ci:
-    name: Lighthouse CI (disabled)
+    name: Lighthouse CI (disabled — Epic G)
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Lighthouse CI not applicable to Flutter app. Re-enable when Flutter web preview is set up."
+      - run: echo "Lighthouse CI not applicable until apps/web/ has a hosted preview URL. Re-enable in Epic G."

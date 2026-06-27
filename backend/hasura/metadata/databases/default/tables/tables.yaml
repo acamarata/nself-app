@@ -422,6 +422,13 @@
           table:
             schema: public
             name: np_list_presence
+    - name: invites
+      using:
+        foreign_key_constraint_on:
+          column: list_id
+          table:
+            schema: public
+            name: np_list_invites
   insert_permissions:
     - role: user
       permission:
@@ -1281,3 +1288,92 @@
         filter:
           user_id:
             _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_list_invites table (L-S1-T1: email-based collaboration invites)
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_list_invites
+  object_relationships:
+    - name: list
+      using:
+        foreign_key_constraint_on: list_id
+    - name: inviter
+      using:
+        foreign_key_constraint_on: invited_by
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - list_id
+          - invited_email
+          - role
+        check:
+          list:
+            members:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - role:
+                    _in:
+                      - owner
+                      - admin
+        set:
+          invited_by: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - list_id
+          - invited_email
+          - role
+          - status
+          - invited_by
+          - expires_at
+          - source_account_id
+          - created_at
+          - updated_at
+        filter:
+          _or:
+            # Owner/admin sees all invites for their list
+            - list:
+                members:
+                  _and:
+                    - user_id:
+                        _eq: X-Hasura-User-Id
+                    - role:
+                        _in:
+                          - owner
+                          - admin
+            # Inviter sees invites they created
+            - invited_by:
+                _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - status
+        filter:
+          list:
+            members:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - role:
+                    _in:
+                      - owner
+                      - admin
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          list:
+            members:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - role:
+                    _eq: owner

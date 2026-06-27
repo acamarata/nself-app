@@ -1,50 +1,69 @@
-# GitHub Copilot Instructions for nApp
+# GitHub Copilot Instructions for ɳTasks
 
-This project uses a backend abstraction layer. All application code is backend-agnostic.
+ɳTasks is a multi-surface task management app: React Native + Expo (mobile), React 19 + Vite SPA (web), Tauri 2 (desktop, planned), react-native-tvos (TV, planned). Backend is Hasura GraphQL + nSelf Auth over `np_*` PostgreSQL tables.
 
-## Key Rules
+## Core Rules
 
-1. **Never import backend SDKs directly** (`@supabase/supabase-js`, `graphql-request`, etc.)
-2. **Always use the abstraction hooks**: `useAuth`, `useQuery`, `useMutation`, `useStorage`, `useRealtime`, `useFunctions`
-3. **Components use**: shadcn/ui, Tailwind CSS, Lucide React icons
-4. **Forms use**: React Hook Form + Zod
-5. **Add `'use client'`** directive for components using React hooks
+1. **Schema prefix is `np_*`** — all tables are `np_lists`, `np_todos`, `np_shares`, `np_attachments`, `np_comments`, `np_subtasks`, `np_presence`.
+2. **GraphQL only** — never import pg/prisma/drizzle directly in app code. Go through Hasura.
+3. **Auth via nSelf Auth** — use `EXPO_PUBLIC_AUTH_URL` (mobile) or `VITE_AUTH_URL` (web). Never raw `Authorization` headers — use the shared `@nself/auth-core` hook.
+4. **pnpm only** — never npm/yarn/bun.
+5. **TypeScript strict** — no `any`, no `// @ts-ignore` without linked issue.
+6. **No `'use client'`** — this is not Next.js. Mobile = React Native, web = Vite SPA (no SSR).
+7. **Free plugins only** — `ntask/` consumes only free plugins (`plugins/`). Never reference pro plugins.
 
-## Import Patterns
+## Surface-Specific Patterns
+
+### Mobile (`apps/mobile/`)
+
+- Framework: React Native 0.79.7 + Expo SDK 53
+- Routing: Expo Router (file-based, `app/` dir inside `apps/mobile/`)
+- State: React Query + Apollo Client for GraphQL
+- Env prefix: `EXPO_PUBLIC_*`
+- Test: jest-expo
 
 ```typescript
-// Auth
-import { useAuth } from '@/lib/providers';
+// Correct mobile import pattern
+import { useAuth } from '@nself/auth-core';
+import { useTasks } from '@/hooks/use-tasks';
+import { np_todos } from '@/lib/graphql/operations';
+```
 
-// Data
-import { useQuery, useMutation } from '@/hooks';
+### Web SaaS (`apps/web/`)
 
-// Storage
-import { useStorage } from '@/hooks';
+- Framework: React 19 + Vite 6 (SPA — no SSR, no Next.js)
+- Routing: React Router v7
+- State: React Query + Apollo Client for GraphQL
+- Env prefix: `VITE_*`
+- Test: Vitest
 
-// UI Components
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-
-// Icons
-import { Plus, Trash2 } from 'lucide-react';
-
-// Config
-import { config } from '@/lib/config';
-import { appConfig } from '@/lib/app.config';
+```typescript
+// Correct web import pattern
+import { useAuth } from '@nself/auth-core';
+import { useTasks } from '@/hooks/use-tasks';
 ```
 
 ## File Organization
 
-- Pages: `app/[route]/page.tsx`
-- Components: `components/[feature]/[name].tsx`
+### Mobile (`apps/mobile/src/`)
+- Screens: `app/(tabs)/[screen].tsx` (Expo Router tabs)
+- Components: `components/[feature]/[Name].tsx`
 - Hooks: `hooks/use-[name].ts`
+- GraphQL: `lib/graphql/operations.ts` (codegen output — do not hand-edit)
 - Types: `lib/types/[name].ts`
-- Utils: `lib/[name].ts`
+
+### Web (`apps/web/src/`)
+- Pages: `pages/[Route].tsx` (React Router)
+- Components: `components/[feature]/[Name].tsx`
+- Hooks: `hooks/use-[name].ts`
+- GraphQL: `lib/graphql/operations.ts` (codegen output — do not hand-edit)
+- Types: `lib/types/[name].ts`
 
 ## Reference Files
 
-- `lib/types/backend.ts` - All TypeScript interfaces
-- `lib/backend/index.ts` - Backend factory
-- `hooks/index.ts` - Available hooks
-- `.cursorrules` - Complete coding guide
+- `backend/hasura/metadata/` — Hasura table definitions, permissions, relationships
+- `backend/postgres/migrations/` — SQL migrations (`np_*` schema)
+- `apps/mobile/src/lib/graphql/` — current mobile operation definitions
+- `apps/web/src/lib/graphql/` — current web operation definitions
+- `.claude/docs/ARCHITECTURE.md` — full system architecture
+- `.claude/docs/FEATURES.md` — feature inventory

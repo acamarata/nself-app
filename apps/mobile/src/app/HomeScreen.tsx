@@ -20,7 +20,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList, NpList } from '../types';
 import { GET_LISTS } from '../lib/hasura';
 import { useTaskMutations } from '../hooks/useTaskMutations';
-import { useAuth } from '../hooks/useAuth';
 import { useNetworkState } from '../hooks/useNetworkState';
 import {
   EmptyState, ErrorCard, OfflineBanner,
@@ -39,7 +38,6 @@ function parseColor(hex: string): string {
 }
 
 export function HomeScreen({ navigation }: Props) {
-  const { signOut } = useAuth();
   const [result, reexecuteQuery] = useQuery<ListsData>({
     query: GET_LISTS,
     requestPolicy: 'cache-and-network',
@@ -136,12 +134,32 @@ export function HomeScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ɳTask</Text>
-        <TouchableOpacity onPress={() => Alert.alert('Sign out', 'Are you sure?', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign out', style: 'destructive', onPress: signOut },
-        ])} accessibilityLabel="Sign out">
-          <Text style={styles.signOut}>Sign out</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Notifications')}
+            accessibilityLabel="Notifications"
+            accessibilityRole="button"
+            style={styles.headerIcon}
+          >
+            <Text style={styles.headerIconText}>🔔</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings')}
+            accessibilityLabel="Settings"
+            accessibilityRole="button"
+            style={styles.headerIcon}
+          >
+            <Text style={styles.headerIconText}>⚙️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Profile')}
+            accessibilityLabel="Profile"
+            accessibilityRole="button"
+            style={styles.headerIcon}
+          >
+            <Text style={styles.headerIconText}>👤</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Offline banner */}
@@ -191,7 +209,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
   headerTitle: { fontSize: 22, fontWeight: '800', color: '#6366f1' },
-  signOut: { fontSize: 14, color: '#6b7280' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerIcon: { padding: 6 },
+  headerIconText: { fontSize: 20 },
   body: { flex: 1 },
   listContent: { padding: 16, gap: 10 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 },

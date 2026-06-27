@@ -1,4 +1,11 @@
 # =============================================================================
+# ROOT-LEVEL DOCS DIRECTORY (clean-root violation — content migrated to .github/wiki/)
+# =============================================================================
+# docs/RELEASE.md was migrated to .github/wiki/Deployment.md merge in Epic I (2026-06-27).
+# Remove from tracking: git rm -r --cached docs/ && git commit -m "chore: remove docs/ clean-root violation"
+docs/
+
+# =============================================================================
 # FLUTTER / DART BUILD ARTIFACTS (legacy — app/ removed in RN migration)
 # =============================================================================
 # app/ directory: leftover Flutter build artifacts from pre-RN-migration Flutter
