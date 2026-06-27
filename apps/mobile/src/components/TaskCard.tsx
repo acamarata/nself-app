@@ -10,18 +10,19 @@
 
 import React from 'react';
 import { ActivityIndicator, View, Text, TouchableOpacity, StyleSheet, Alert, I18nManager } from 'react-native';
-import type { Task, TaskPriority } from '../types';
+import type { NpTask, Priority } from '../types';
 import { formatHijriDate } from '../i18n';
 
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
+const PRIORITY_COLORS: Record<Priority, string> = {
   none: 'transparent',
   low: '#9ca3af',
   medium: '#f59e0b',
   high: '#ef4444',
+  urgent: '#dc2626',
 };
 
 interface Props {
-  task: Task;
+  task: NpTask;
   onToggle: (completed: boolean) => void;
   onDelete: () => void;
   onPress: () => void;

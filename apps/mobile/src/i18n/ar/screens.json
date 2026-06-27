@@ -36,11 +36,23 @@
       "none": "لا شيء",
       "low": "منخفضة",
       "medium": "متوسطة",
-      "high": "عالية"
+      "high": "عالية",
+      "urgent": "عاجل"
     },
     "markCompleted": "تحديد كمكتمل",
     "saveChanges": "حفظ التغييرات",
     "deleteTask": "حذف المهمة",
-    "deleteConfirm": "ستُحذف هذه المهمة نهائياً."
+    "deleteConfirm": "ستُحذف هذه المهمة نهائياً.",
+    "subtasks": "المهام الفرعية",
+    "addSubtask": "إضافة مهمة فرعية",
+    "subtaskTitle": "عنوان المهمة الفرعية",
+    "comments": "التعليقات",
+    "addComment": "أضف تعليقاً…",
+    "sendComment": "إرسال",
+    "tags": "الوسوم",
+    "newTag": "وسم جديد",
+    "createTag": "إنشاء وسم",
+    "search": "البحث في المهام…",
+    "noResults": "لا نتائج"
   }
 }

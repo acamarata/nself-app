@@ -1,26 +1,18 @@
 /**
- * Purpose: Task and list mutation hooks — create, update, toggle, delete; idempotency-keyed
- * Outputs: Mutation functions; urql invalidates cache via document-based cache exchange
- * Constraints:
- *   - Replaces @apollo/client useMutation per D-P3-REACT19 / E2 wiring.
- *   - idempotencyKey: optional header sent with ALL mutations (create/update/toggle/delete)
- *     for server-side dedup — required so the offline queue can safely replay any mutation type.
- *   - urql doesn't have refetchQueries — cache invalidation handled automatically
- *     by the cacheExchange when mutations return affected entities.
- * SPORT: T-P3-E5-W3-S1-T01-c idempotency + T01-a offline mutations
+ * Purpose: Task, list, subtask, comment, and tag mutation hooks.
+ * All operations target np_* tables via @nself/ntask-core operations.
+ * SPORT: P5-C-mobile data layer rewire.
  */
 
 import { useMutation } from 'urql';
 import {
-  CREATE_TASK, UPDATE_TASK, TOGGLE_TASK, DELETE_TASK,
+  CREATE_TODO, UPDATE_TODO, TOGGLE_TODO, DELETE_TODO,
   CREATE_LIST, UPDATE_LIST, DELETE_LIST,
+  CREATE_SUBTASK, UPDATE_SUBTASK, TOGGLE_SUBTASK, DELETE_SUBTASK,
+  CREATE_COMMENT, UPDATE_COMMENT, DELETE_COMMENT,
+  CREATE_TAG, UPDATE_TAG, DELETE_TAG, ADD_TODO_TAG, REMOVE_TODO_TAG,
 } from '../lib/hasura';
 
-/**
- * Build urql operation context that carries the idempotency header, or undefined
- * when no key is supplied. Used by every mutation so the offline queue can replay
- * any mutation type safely (server dedups on X-Idempotency-Key).
- */
 function idempotencyContext(idempotencyKey?: string) {
   return idempotencyKey
     ? { fetchOptions: { headers: { 'X-Idempotency-Key': idempotencyKey } } }
@@ -28,33 +20,28 @@ function idempotencyContext(idempotencyKey?: string) {
 }
 
 export function useTaskMutations(listId?: string) {
-  const [createTaskResult, execCreateTask] = useMutation(CREATE_TASK);
-  const [, execUpdateTask] = useMutation(UPDATE_TASK);
-  const [, execToggleTask] = useMutation(TOGGLE_TASK);
-  const [, execDeleteTask] = useMutation(DELETE_TASK);
+  const [createResult, execCreate] = useMutation(CREATE_TODO);
+  const [, execUpdate] = useMutation(UPDATE_TODO);
+  const [, execToggle] = useMutation(TOGGLE_TODO);
+  const [, execDelete] = useMutation(DELETE_TODO);
   const [, execCreateList] = useMutation(CREATE_LIST);
   const [, execUpdateList] = useMutation(UPDATE_LIST);
   const [, execDeleteList] = useMutation(DELETE_LIST);
 
   return {
-    creating: createTaskResult.fetching,
+    creating: createResult.fetching,
 
-    /**
-     * Create a task.
-     * @param title - Task title (pre-validated by caller via taskCreateSchema)
-     * @param idempotencyKey - Optional key for server-side deduplication on retry
-     */
     createTask: (title: string, idempotencyKey?: string) =>
-      execCreateTask({ listId, title }, idempotencyContext(idempotencyKey)),
+      execCreate({ listId, title }, idempotencyContext(idempotencyKey)),
 
     updateTask: (id: string, fields: Record<string, unknown>, idempotencyKey?: string) =>
-      execUpdateTask({ id, ...fields }, idempotencyContext(idempotencyKey)),
+      execUpdate({ id, ...fields }, idempotencyContext(idempotencyKey)),
 
     toggleTask: (id: string, completed: boolean, idempotencyKey?: string) =>
-      execToggleTask({ id, completed }, idempotencyContext(idempotencyKey)),
+      execToggle({ id, completed }, idempotencyContext(idempotencyKey)),
 
     deleteTask: (id: string, idempotencyKey?: string) =>
-      execDeleteTask({ id }, idempotencyContext(idempotencyKey)),
+      execDelete({ id }, idempotencyContext(idempotencyKey)),
 
     createList: (title: string, color = '#6366F1', idempotencyKey?: string) =>
       execCreateList({ title, color }, idempotencyContext(idempotencyKey)),
@@ -64,5 +51,62 @@ export function useTaskMutations(listId?: string) {
 
     deleteList: (id: string, idempotencyKey?: string) =>
       execDeleteList({ id }, idempotencyContext(idempotencyKey)),
+  };
+}
+
+export function useSubtaskMutations() {
+  const [createResult, execCreate] = useMutation(CREATE_SUBTASK);
+  const [, execUpdate] = useMutation(UPDATE_SUBTASK);
+  const [, execToggle] = useMutation(TOGGLE_SUBTASK);
+  const [, execDelete] = useMutation(DELETE_SUBTASK);
+
+  return {
+    creating: createResult.fetching,
+    createSubtask: (todoId: string, title: string, position?: number) =>
+      execCreate({ todoId, title, position }),
+    updateSubtask: (id: string, fields: { title?: string; isDone?: boolean; position?: number }) =>
+      execUpdate({ id, ...fields }),
+    toggleSubtask: (id: string, isDone: boolean) =>
+      execToggle({ id, isDone }),
+    deleteSubtask: (id: string) =>
+      execDelete({ id }),
+  };
+}
+
+export function useCommentMutations() {
+  const [createResult, execCreate] = useMutation(CREATE_COMMENT);
+  const [, execUpdate] = useMutation(UPDATE_COMMENT);
+  const [, execDelete] = useMutation(DELETE_COMMENT);
+
+  return {
+    creating: createResult.fetching,
+    createComment: (todoId: string, body: string, idempotencyKey?: string, parentCommentId?: string) =>
+      execCreate({ todoId, body, idempotencyKey, parentCommentId }),
+    updateComment: (id: string, body: string) =>
+      execUpdate({ id, body }),
+    deleteComment: (id: string) =>
+      execDelete({ id }),
+  };
+}
+
+export function useTagMutations() {
+  const [createResult, execCreate] = useMutation(CREATE_TAG);
+  const [, execUpdate] = useMutation(UPDATE_TAG);
+  const [, execDelete] = useMutation(DELETE_TAG);
+  const [, execAddTodoTag] = useMutation(ADD_TODO_TAG);
+  const [, execRemoveTodoTag] = useMutation(REMOVE_TODO_TAG);
+
+  return {
+    creating: createResult.fetching,
+    createTag: (name: string, color: string) =>
+      execCreate({ name, color }),
+    updateTag: (id: string, fields: { name?: string; color?: string }) =>
+      execUpdate({ id, ...fields }),
+    deleteTag: (id: string) =>
+      execDelete({ id }),
+    addTodoTag: (todoId: string, tagId: string) =>
+      execAddTodoTag({ todoId, tagId }),
+    removeTodoTag: (todoId: string, tagId: string) =>
+      execRemoveTodoTag({ todoId, tagId }),
   };
 }

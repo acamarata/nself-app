@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList, Task } from '../types';
+import type { RootStackParamList, NpTask } from '../types';
 import { TaskCard } from '../components/TaskCard';
 import { AddTaskModal } from '../components/AddTaskModal';
 import {
@@ -28,14 +28,14 @@ import {
 import { useTasks } from '../hooks/useTasks';
 import { useTaskMutations } from '../hooks/useTaskMutations';
 import { useNetworkState } from '../hooks/useNetworkState';
-import { enqueue, queueLength } from '../lib/offline-queue';
+import { enqueue, queueSize } from '../lib/offline-queue';
 import { generateIdempotencyKey } from '../lib/idempotency';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'List'>;
 
 /** A task with an optional pending-optimistic flag */
-interface DisplayTask extends Task {
+interface DisplayTask extends NpTask {
   pending?: boolean;
 }
 
@@ -70,18 +70,13 @@ export function ListScreen({ route, navigation }: Props) {
         completed: false,
         list_id: listId,
         position: displayTasks.length,
-        tags: [],
         priority: 'none',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         pending: true,
       };
       setOptimisticTasks((prev) => [...prev, optimistic]);
-      enqueue({
-        type: 'create_task',
-        payload: { listId, title },
-        idempotencyKey,
-      });
+      void enqueue('create_task', { listId, title }, idempotencyKey);
       return;
     }
 
@@ -93,7 +88,6 @@ export function ListScreen({ route, navigation }: Props) {
       completed: false,
       list_id: listId,
       position: displayTasks.length,
-      tags: [],
       priority: 'none',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -131,28 +125,20 @@ export function ListScreen({ route, navigation }: Props) {
         pending={item.pending}
         onToggle={(completed) => {
           if (isOffline) {
-            enqueue({
-              type: 'toggle_task',
-              payload: { id: item.id, completed },
-              idempotencyKey: generateIdempotencyKey('toggle_task', `${item.id}:${String(completed)}`),
-            });
+            void enqueue('toggle_task', { id: item.id, completed }, generateIdempotencyKey('toggle_task', `${item.id}:${String(completed)}`));
             return;
           }
           toggleTask(item.id, completed).then(() => refetch());
         }}
         onDelete={() => {
           if (isOffline) {
-            enqueue({
-              type: 'delete_task',
-              payload: { id: item.id },
-              idempotencyKey: generateIdempotencyKey('delete_task', item.id),
-            });
+            void enqueue('delete_task', { id: item.id }, generateIdempotencyKey('delete_task', item.id));
             setOptimisticTasks((prev) => prev.filter((t) => t.id !== item.id));
             return;
           }
           deleteTask(item.id).then(() => refetch());
         }}
-        onPress={() => navigation.navigate('TaskDetail', { task: item, listId })}
+        onPress={() => navigation.navigate('TaskDetail', { taskId: item.id, listId })}
       />
     ),
     [isOffline, toggleTask, deleteTask, refetch, navigation, listId],
@@ -239,12 +225,12 @@ export function ListScreen({ route, navigation }: Props) {
  * Returns isConnected + live queueLength count.
  */
 function useQueueAwareNetwork(onReconnect: () => void) {
-  const [offlineQueueCount, setOfflineQueueCount] = useState(queueLength());
+  const [offlineQueueCount, setOfflineQueueCount] = useState(0);
 
   const handleReconnect = useCallback(() => {
     onReconnect();
     // Re-read queue length after sync attempt (actual drain handled by OfflineSyncDriver at app level)
-    setTimeout(() => setOfflineQueueCount(queueLength()), 500);
+    setTimeout(() => { void queueSize().then(setOfflineQueueCount); }, 500);
   }, [onReconnect]);
 
   const { isConnected } = useNetworkState({ onReconnect: handleReconnect });

@@ -14,6 +14,8 @@
     "ci:local": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "dependencies": {
+    "@nself/ntask-core": "workspace:*",
+    "@nself/offline-queue": "workspace:*",
     "@nself/auth-core": "workspace:*",
     "@nself/errors": "workspace:*",
     "@nself/graphql-client": "workspace:*",
