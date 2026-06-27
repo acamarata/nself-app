@@ -415,6 +415,50 @@ actions:
     comment: >
       L-S4-T2: Remove the caller's presence record from a list (on disconnect/blur).
 
+  # ── Storage presign ─────────────────────────────────────────────────────────
+
+  - name: getUploadUrl
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/get-upload-url'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      P5-W5: Returns a presigned MinIO PUT URL (SigV4, 15-min TTL) for direct
+      client-to-MinIO upload. todoId must belong to the calling user.
+      After upload, client persists the attachment via insertAttachment mutation
+      using the returned storagePath.
+
+  - name: getDownloadUrl
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/get-download-url'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      P5-W5: Returns a presigned MinIO GET URL (SigV4, 1-hour TTL) for
+      an existing attachment. Access check: uploader OR todo owner OR list member.
+
 
 custom_types:
   enums: []
@@ -513,6 +557,22 @@ custom_types:
       fields:
         - name: success
           type: Boolean!
+
+    - name: UploadUrlResult
+      fields:
+        - name: uploadUrl
+          type: String!
+        - name: storagePath
+          type: String!
+        - name: expiresAt
+          type: String!
+
+    - name: DownloadUrlResult
+      fields:
+        - name: downloadUrl
+          type: String!
+        - name: expiresAt
+          type: String!
 
 
   scalars: []
