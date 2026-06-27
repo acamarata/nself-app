@@ -1,0 +1,3 @@
+- collection: ntask_allowed_operations
+  scope:
+    global: true

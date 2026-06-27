@@ -87,6 +87,36 @@ restore: ## Restore from most recent backup (usage: make restore FILE=backups/ba
 	@if [ -z "$(FILE)" ]; then echo "Usage: make restore FILE=backups/backup-xxx.sql"; exit 1; fi
 	docker compose exec -T postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) < $(FILE)
 
+.PHONY: backup-remote
+backup-remote: ## Stream pg_dump to Cloudflare R2 (requires BACKUP_* env vars from .env.dev)
+	@echo "Starting remote backup to R2..."
+	@bash scripts/backup-remote.sh
+
+.PHONY: restore-remote
+restore-remote: ## Restore from R2 backup (usage: FILE=ntask/backup-xxx.sql.gz make restore-remote)
+	@if [ -z "$(FILE)" ]; then echo "Usage: FILE=ntask/backup-xxx.sql.gz make restore-remote"; exit 1; fi
+	@bash scripts/restore-remote.sh
+
+.PHONY: list-backups
+list-backups: ## List available R2 backups (most recent 20)
+	@bash scripts/list-backups.sh
+
+.PHONY: dr-test
+dr-test: ## Disaster recovery drill: restore latest backup to scratch DB and verify (non-destructive)
+	@echo "--- DR Test: Restore to scratch database ---"
+	@echo "This test downloads the latest backup from R2 and restores it to DR_DATABASE_URL."
+	@echo "It does NOT touch the production database."
+	@if [ -z "$(DR_DATABASE_URL)" ]; then \
+	  echo "DR_DATABASE_URL not set. Using local scratch: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/ntask_dr_test"; \
+	  export DR_DATABASE_URL="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/ntask_dr_test"; \
+	fi
+	@LATEST=$$(bash scripts/list-backups.sh 2>/dev/null | grep -v '^\[' | head -1 | awk '{print $$NF}'); \
+	 if [ -z "$$LATEST" ]; then echo "No backups found in R2. Run make backup-remote first."; exit 1; fi; \
+	 echo "Restoring: $$LATEST"; \
+	 DATABASE_URL="$${DR_DATABASE_URL:-postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/ntask_dr_test}" \
+	 FILE="${BACKUP_S3_PREFIX:-ntask}/$$LATEST" bash scripts/restore-remote.sh; \
+	 echo "--- DR Test complete. Verify row counts manually with: make psql ---"
+
 # ---------------------------------------------------------------------------
 # Hasura
 # ---------------------------------------------------------------------------

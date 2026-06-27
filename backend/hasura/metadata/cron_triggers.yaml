@@ -1,0 +1,38 @@
+# Hasura Cron Triggers — ntask backend
+# Applied via: hasura metadata apply
+# All triggers target the backend functions endpoint.
+# Handler URL uses ACTION_HANDLER_URL env var (set to http://functions:3001 in compose).
+
+- name: ntask_create_recurring_instances
+  webhook: "{{ACTION_HANDLER_URL}}/cron/create-recurring-instances"
+  schedule: "0 3 * * *"
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 3
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+  comment: "Daily at 03:00 UTC: generate recurring task instances for today (np_recurring_rules → np_recurring_instances)"
+
+- name: ntask_dispatch_reminders
+  webhook: "{{ACTION_HANDLER_URL}}/cron/dispatch-reminders"
+  schedule: "*/5 * * * *"
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 2
+    timeout_seconds: 30
+    tolerance_seconds: 300
+  comment: "Every 5 minutes: query np_reminders where remind_at <= NOW() and not dispatched; dispatch via notify-dispatch"
+
+- name: ntask_cleanup_old_activity
+  webhook: "{{ACTION_HANDLER_URL}}/cron/cleanup"
+  schedule: "0 4 * * 0"
+  include_in_metadata: true
+  payload:
+    retain_days: 90
+  retry_conf:
+    num_retries: 1
+    timeout_seconds: 120
+    tolerance_seconds: 86400
+  comment: "Weekly Sunday 04:00 UTC: delete np_activity records older than retain_days days"
