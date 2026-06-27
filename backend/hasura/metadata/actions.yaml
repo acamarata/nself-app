@@ -1,23 +1,233 @@
 # Hasura Actions Configuration
 #
-# Map custom GraphQL operations to HTTP handlers.
+# J-S3-T1: deleteMyAccount
+# J-S3-T2: requestDataExport
+# J-S2-T1: changeEmail
+# J-S2-T2: changePassword
+# J-S2 aux: listSessions, revokeSession, enableMfa, disableMfa
 #
-# Example:
-#
-# actions:
-#   - name: sendWelcomeEmail
-#     definition:
-#       kind: synchronous
-#       handler: '{{ACTION_HANDLER_URL}}/api/actions/send-welcome-email'
-#     permissions:
-#       - role: user
-#
-# Docs: https://hasura.io/docs/latest/actions/overview/
+# ACTION_HANDLER_URL resolves to the functions service (see docker-compose.yml).
+# Local dev: http://functions:3000
+# Staging/prod: set via HASURA_ACTION_HANDLER_URL env var in nself.yaml
 
-actions: []
+actions:
+  - name: deleteMyAccount
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/delete-account'
+      timeout: 60
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      J-S3-T1: Hard-delete all np_* rows + MinIO objects + auth.users for the
+      authenticated user. Irreversible. HASURA_AUTH_ADMIN_SECRET is server-side only.
+
+  - name: requestDataExport
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/export-data'
+      timeout: 120
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      J-S3-T2: GDPR Art. 20 data portability. Returns presigned MinIO URL
+      valid 7 days. Rate-limited 1 request/24h per user.
+
+  - name: changeEmail
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/change-email'
+      timeout: 30
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      J-S2-T1: Proxies to hasura-auth PATCH /user with new email.
+      Triggers re-verification email. Old email valid until confirmed.
+
+  - name: changePassword
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/change-password'
+      timeout: 30
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      J-S2-T2: Proxies to hasura-auth PATCH /user with new password.
+      Min 8 chars enforced. Session stays valid on success.
+
+  - name: revokeSession
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/revoke-session'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: Proxies to hasura-auth DELETE /user/sessions/{id}. Idempotent.
+
+  - name: enableMfa
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/enable-mfa'
+      timeout: 30
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: Proxies to hasura-auth POST /user/mfa/totp/generate. Returns TOTP secret + QR URL.
+
+  - name: disableMfa
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/disable-mfa'
+      timeout: 30
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: Proxies to hasura-auth POST /user/mfa/totp/disable. Requires OTP confirmation.
+
+  - name: listSessions
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/list-sessions'
+      timeout: 15
+      type: query
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: Proxies to hasura-auth GET /user/sessions. Returns active session list.
 
 custom_types:
   enums: []
   input_objects: []
-  objects: []
+  objects:
+    - name: DeleteAccountResult
+      fields:
+        - name: success
+          type: Boolean!
+        - name: deletedAt
+          type: String!
+
+    - name: DataExportResult
+      fields:
+        - name: downloadUrl
+          type: String!
+        - name: expiresAt
+          type: String!
+
+    - name: ChangeEmailResult
+      fields:
+        - name: success
+          type: Boolean!
+        - name: message
+          type: String!
+
+    - name: ChangePasswordResult
+      fields:
+        - name: success
+          type: Boolean!
+        - name: message
+          type: String!
+
+    - name: Session
+      fields:
+        - name: id
+          type: String!
+        - name: createdAt
+          type: String
+        - name: updatedAt
+          type: String
+        - name: accessToken
+          type: String
+        - name: refreshToken
+          type: String
+
+    - name: SessionsResult
+      fields:
+        - name: sessions
+          type: '[Session!]!'
+
+    - name: RevokeSessionResult
+      fields:
+        - name: success
+          type: Boolean!
+
+    - name: MfaResult
+      fields:
+        - name: success
+          type: Boolean!
+        - name: totpSecret
+          type: String
+        - name: qrCodeUrl
+          type: String
+        - name: message
+          type: String
+
   scalars: []

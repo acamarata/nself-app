@@ -1,18 +1,109 @@
 # Hasura Actions - Custom GraphQL Operations
 #
-# Define custom queries and mutations here that are handled by your
-# Next.js API routes or serverless functions.
-#
-# Example:
-#
-# type Mutation {
-#   sendWelcomeEmail(userId: uuid!): SendEmailResponse
-# }
-#
-# type SendEmailResponse {
-#   success: Boolean!
-#   message: String
-# }
-#
-# After defining actions here, configure them in actions.yaml,
-# then apply with: hasura metadata apply
+# J-S3-T1: deleteMyAccount — hard-delete all user data + auth record
+# J-S3-T2: requestDataExport — GDPR Art. 20 data portability
+# J-S2-T1: changeEmail — authenticated email update via hasura-auth
+# J-S2-T2: changePassword — authenticated password update via hasura-auth
+# J-S2 aux: listSessions, revokeSession, enableMfa, disableMfa
+
+# ── Output types ──────────────────────────────────────────────────────────────
+
+type DeleteAccountResult {
+  success: Boolean!
+  deletedAt: String!
+}
+
+type DataExportResult {
+  downloadUrl: String!
+  expiresAt: String!
+}
+
+type ChangeEmailResult {
+  success: Boolean!
+  message: String!
+}
+
+type ChangePasswordResult {
+  success: Boolean!
+  message: String!
+}
+
+type Session {
+  id: String!
+  createdAt: String
+  updatedAt: String
+  accessToken: String
+  refreshToken: String
+}
+
+type SessionsResult {
+  sessions: [Session!]!
+}
+
+type RevokeSessionResult {
+  success: Boolean!
+}
+
+type MfaResult {
+  success: Boolean!
+  totpSecret: String
+  qrCodeUrl: String
+  message: String
+}
+
+# ── Mutations ─────────────────────────────────────────────────────────────────
+
+type Mutation {
+  """
+  J-S3-T1: Hard-delete the authenticated user's account and all associated data.
+  Cascades through all np_* tables, deletes MinIO objects, and removes the
+  auth.users record. Irreversible. Requires role=user JWT.
+  """
+  deleteMyAccount: DeleteAccountResult
+
+  """
+  J-S3-T2: Request a GDPR Art. 20 data export. Returns a presigned MinIO URL
+  valid for 7 days containing all the user's np_* data as JSON.
+  Rate-limited to 1 request per 24 hours per user.
+  """
+  requestDataExport: DataExportResult
+
+  """
+  J-S2-T1: Change the authenticated user's email address.
+  Triggers a verification email to the new address via hasura-auth.
+  Old email remains valid until the new one is confirmed.
+  """
+  changeEmail(newEmail: String!): ChangeEmailResult
+
+  """
+  J-S2-T2: Change the authenticated user's password.
+  Requires a valid access token (re-auth is built into the JWT validation).
+  Minimum 8 characters enforced server-side.
+  """
+  changePassword(newPassword: String!): ChangePasswordResult
+
+  """
+  Revoke a specific session by ID (MFA/session management).
+  """
+  revokeSession(sessionId: String!): RevokeSessionResult
+
+  """
+  Enable TOTP-based MFA for the authenticated user.
+  Returns TOTP secret and QR code URL for authenticator app setup.
+  """
+  enableMfa: MfaResult
+
+  """
+  Disable TOTP-based MFA. Requires OTP confirmation to prevent accidental lockout.
+  """
+  disableMfa(otp: String!): MfaResult
+}
+
+# ── Queries ───────────────────────────────────────────────────────────────────
+
+type Query {
+  """
+  List active sessions for the authenticated user (proxies hasura-auth).
+  """
+  listSessions: SessionsResult
+}
