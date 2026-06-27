@@ -1,7 +1,6 @@
 name: Desktop CI
 
-# Disabled: Tauri/Next.js desktop removed in commit a3ed9c4 (Flutter is now canonical).
-# Flutter desktop builds are handled by flutter-ci.yml.
+# PENDING: Epic E will activate this for desktop builds. Flutter desktop removed.
 on:
   workflow_dispatch:
 

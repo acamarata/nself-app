@@ -1,4 +1,5 @@
 name: iOS Release
+# PENDING: Epic C will retarget this to EAS build. Tag-push trigger removed (built app/ Flutter dir that no longer exists).
 
 on:
   workflow_dispatch:
@@ -9,9 +10,6 @@ on:
         default: 'testflight'
         type: choice
         options: [testflight, app-store]
-  push:
-    tags:
-      - 'v*.*.*'
 
 jobs:
   build-ios:
