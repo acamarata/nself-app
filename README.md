@@ -134,22 +134,27 @@ See the [Backend Architecture wiki page](https://github.com/nself-org/ntask/wiki
 |--------|--------|-------|
 | iOS | Active | `pnpm ios` (sim) or EAS build for device |
 | Android | Active | `pnpm android` (emulator) or EAS build |
-| Web SaaS | Active | `task.nself.org` — Vite app in `web/ntask/` |
-| Desktop (macOS/Win/Linux) | Planned | Tauri 2 wrapping the web app |
+| Web SaaS | Active | `task.nself.org` — Vite app in `apps/web/` |
+| Desktop (macOS/Win/Linux) | Planned | Tauri 2 wrapping the web app — Epic E |
+| Apple TV / Android TV | Planned | react-native-tvos in `apps/tv/` — Epic F |
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Mobile framework | React Native + Expo (TypeScript) |
+| Mobile (iOS/Android) | React Native 0.79 + Expo 53 (TypeScript) |
+| Web SaaS | React 19 + Vite 6 (TypeScript) |
+| Desktop | Tauri 2 wrapping the web app (Planned — Epic E) |
+| TV (Apple TV / Android TV) | react-native-tvos (Planned — Epic F) |
 | State management | Zustand |
-| Local storage | expo-secure-store + AsyncStorage |
+| Local storage | expo-secure-store + AsyncStorage (mobile) / localStorage (web) |
 | Networking | GraphQL over HTTP/WS (urql) |
+| Shared packages | @nself/* (auth-core, types, graphql-client, ui, observability) |
 | Database | PostgreSQL 16 |
 | GraphQL | Hasura GraphQL Engine |
 | Auth | Hasura Auth (JWT) |
 | Storage | Hasura Storage over MinIO (S3-compatible) |
-| Dev email | Mailhog |
+| Dev email | Mailpit |
 | HTTPS (staging/prod) | Traefik with Let's Encrypt |
 | Orchestration | nSelf CLI + Docker Compose + Makefile |
 
@@ -182,8 +187,3 @@ MIT, see [LICENSE](LICENSE).
 - [ntv](https://github.com/nself-org/ntv): open-source media player reference app
 - [web](https://github.com/nself-org/web): `nself.org` marketing + docs + cloud
 
----
-
-## Legacy Flutter Client (archived)
-
-The `app/` directory is an archived Flutter prototype. Active development is in `apps/mobile/` (React Native + Expo). The Flutter client was replaced in the RN migration (commit 7c594b5). The `app/` directory is gitignored and not tracked.
