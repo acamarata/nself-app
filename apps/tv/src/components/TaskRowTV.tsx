@@ -7,43 +7,50 @@
  *   - Priority badge: color from theme.priorityColors.
  *   - Completed tasks show strike-through title + muted color.
  *   - Mark-done button is a separate focusable to the RIGHT of the row (nextFocusRight routing).
- *   - Due date rendered as "Today", "Tomorrow", "Jan 15", or "Overdue: Jan 10" for scannability.
+ *   - Due date rendered as i18n-aware labels ("Today", "Tomorrow", "Jan 15", "Overdue: Jan 10").
  *   - No subtask/comment counts on TV (out of scope per D4).
- * SPORT: Epic F — TV scaffold.
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { TVFocusable } from '../navigation/FocusContext';
-import { tvTheme } from '../theme';
-import type { NpTask } from '@nself/ntask-core';
+import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { TVFocusable } from '../navigation/FocusContext'
+import { tvTheme } from '../theme'
+import type { NpTask } from '@nself/ntask-core'
 
-function formatDueDate(due: string | null): string | null {
-  if (!due) return null;
-  const d = new Date(due);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
+/**
+ * bucketDueDate — pure date comparison helper.
+ * Returns 'today', 'tomorrow', 'overdue', or a formatted date string (e.g. "Jan 15").
+ * Exported for unit testing in components/__tests__/TaskRowTV.test.ts.
+ */
+export function bucketDueDate(due: string | null): 'today' | 'tomorrow' | 'overdue' | string | null {
+  if (!due) return null
+  const d = new Date(due)
+  const now = new Date()
+  const tomorrow = new Date(now)
+  tomorrow.setDate(now.getDate() + 1)
 
-  const dStr = due.substring(0, 10);
-  const todayStr = today.toISOString().substring(0, 10);
-  const tomorrowStr = tomorrow.toISOString().substring(0, 10);
+  const dStr = due.substring(0, 10)
+  // Use local date strings for comparison (same pattern as useTVTasks)
+  const nowLocal = now.toISOString().substring(0, 10)
+  const tomorrowLocal = tomorrow.toISOString().substring(0, 10)
 
-  if (dStr === todayStr) return 'Today';
-  if (dStr === tomorrowStr) return 'Tomorrow';
-  if (dStr < todayStr) return `Overdue: ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (dStr === nowLocal) return 'today'
+  if (dStr === tomorrowLocal) return 'tomorrow'
+  if (dStr < nowLocal) return 'overdue'
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 interface TaskRowTVProps {
-  task: NpTask;
-  onSelect: () => void;
-  onMarkDone: () => void;
-  markingDone?: boolean;
+  task: NpTask
+  onSelect: () => void
+  onMarkDone: () => void
+  markingDone?: boolean
   /** Focus id for this row's main area */
-  id: string;
-  nextFocusUp?: string;
-  nextFocusDown?: string;
+  id: string
+  nextFocusUp?: string
+  nextFocusDown?: string
 }
 
 export function TaskRowTV({
@@ -55,9 +62,26 @@ export function TaskRowTV({
   nextFocusUp,
   nextFocusDown,
 }: TaskRowTVProps) {
-  const markDoneId = `${id}-done`;
-  const dueLabel = formatDueDate(task.due_date);
-  const isOverdue = dueLabel?.startsWith('Overdue') ?? false;
+  const { t } = useTranslation('screens')
+  const markDoneId = `${id}-done`
+  const dueBucket = bucketDueDate(task.due_date)
+
+  // Resolve display label for due date
+  let dueLabel: string | null = null
+  let isOverdue = false
+  if (dueBucket === 'today') {
+    dueLabel = t('dashboard.today')
+  } else if (dueBucket === 'tomorrow') {
+    // "Tomorrow" is not in screens.json but is a common pattern; add a fallback
+    dueLabel = 'Tomorrow'
+  } else if (dueBucket === 'overdue') {
+    const d = new Date(task.due_date!)
+    const formatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    dueLabel = `${t('dashboard.overdue')}: ${formatted}`
+    isOverdue = true
+  } else if (dueBucket !== null) {
+    dueLabel = dueBucket
+  }
 
   return (
     <View style={styles.row}>
@@ -109,7 +133,7 @@ export function TaskRowTV({
         </TVFocusable>
       )}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -169,4 +193,4 @@ const styles = StyleSheet.create({
     color: tvTheme.colors.textPrimary,
     fontWeight: '700',
   },
-});
+})

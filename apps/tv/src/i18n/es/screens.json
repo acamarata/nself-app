@@ -1,0 +1,62 @@
+{
+  "connect": {
+    "title": "Conectar a ɳTasks",
+    "subtitle": "Ingresa la URL del servidor y tus credenciales",
+    "serverUrl": "URL del servidor",
+    "serverUrlPlaceholder": "https://your-server.com",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tú@ejemplo.com",
+    "password": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "connectButton": "Conectar",
+    "connecting": "Conectando…",
+    "errorTitle": "Conexión fallida"
+  },
+  "dashboard": {
+    "title": "Mis tareas",
+    "overdue": "Vencido",
+    "today": "Hoy",
+    "upcoming": "Próximas",
+    "noTasks": "Sin tareas",
+    "moreTasks": "+{{count}} más",
+    "errorTitle": "Error al cargar las tareas",
+    "retryButton": "Reintentar",
+    "viewTasks": "Ver tareas",
+    "menuHint": "Menú"
+  },
+  "listView": {
+    "title": "Tareas",
+    "taskCount": "{{count}} tarea",
+    "taskCount_plural": "{{count}} tareas",
+    "noTasks": "Sin tareas en esta lista",
+    "errorTitle": "Error al cargar las tareas",
+    "viewTask": "Ver tarea",
+    "markDone": "Marcar como hecho",
+    "backHint": "Atrás"
+  },
+  "taskDetail": {
+    "description": "Descripción",
+    "dueDate": "Fecha de vencimiento",
+    "notes": "Notas",
+    "createdAt": "Creado",
+    "status": "Estado",
+    "completed": "Completado",
+    "inProgress": "En progreso",
+    "markDone": "✓  Marcar como hecho",
+    "markDoneLoading": "Marcando…",
+    "alreadyDone": "✓ Hecho",
+    "backButton": "Atrás",
+    "markDoneHint": "Marcar como hecho",
+    "backHint": "Atrás"
+  },
+  "remoteHints": {
+    "viewTasks": "Ver tareas",
+    "viewTask": "Ver tarea",
+    "markDone": "Marcar como hecho",
+    "back": "Atrás",
+    "menu": "Menú"
+  },
+  "sidebar": {
+    "lists": "Listas"
+  }
+}

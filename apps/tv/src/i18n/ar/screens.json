@@ -1,0 +1,62 @@
+{
+  "connect": {
+    "title": "الاتصال بـ ɳTasks",
+    "subtitle": "أدخل رابط الخادم وبيانات الاعتماد",
+    "serverUrl": "رابط الخادم",
+    "serverUrlPlaceholder": "https://your-server.com",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "you@example.com",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "••••••••",
+    "connectButton": "اتصال",
+    "connecting": "جارٍ الاتصال…",
+    "errorTitle": "فشل الاتصال"
+  },
+  "dashboard": {
+    "title": "مهامي",
+    "overdue": "متأخر",
+    "today": "اليوم",
+    "upcoming": "القادمة",
+    "noTasks": "لا توجد مهام",
+    "moreTasks": "+{{count}} المزيد",
+    "errorTitle": "فشل تحميل المهام",
+    "retryButton": "إعادة المحاولة",
+    "viewTasks": "عرض المهام",
+    "menuHint": "القائمة"
+  },
+  "listView": {
+    "title": "المهام",
+    "taskCount": "{{count}} مهمة",
+    "taskCount_plural": "{{count}} مهام",
+    "noTasks": "لا توجد مهام في هذه القائمة",
+    "errorTitle": "فشل تحميل المهام",
+    "viewTask": "عرض المهمة",
+    "markDone": "تحديد كمنجز",
+    "backHint": "رجوع"
+  },
+  "taskDetail": {
+    "description": "الوصف",
+    "dueDate": "تاريخ الاستحقاق",
+    "notes": "الملاحظات",
+    "createdAt": "تاريخ الإنشاء",
+    "status": "الحالة",
+    "completed": "مكتمل",
+    "inProgress": "قيد التنفيذ",
+    "markDone": "✓  تحديد كمنجز",
+    "markDoneLoading": "جارٍ التحديد…",
+    "alreadyDone": "✓ تم",
+    "backButton": "رجوع",
+    "markDoneHint": "تحديد كمنجز",
+    "backHint": "رجوع"
+  },
+  "remoteHints": {
+    "viewTasks": "عرض المهام",
+    "viewTask": "عرض المهمة",
+    "markDone": "تحديد كمنجز",
+    "back": "رجوع",
+    "menu": "القائمة"
+  },
+  "sidebar": {
+    "lists": "القوائم"
+  }
+}

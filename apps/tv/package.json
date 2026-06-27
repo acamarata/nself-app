@@ -14,6 +14,7 @@
     "ci:local": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "dependencies": {
+    "@nself/i18n": "workspace:*",
     "@nself/ntask-core": "workspace:*",
     "@nself/offline-queue": "workspace:*",
     "@nself/auth-core": "workspace:*",
@@ -21,6 +22,9 @@
     "@nself/graphql-client": "workspace:*",
     "@nself/sdk-core": "workspace:*",
     "@nself/types": "workspace:*",
+    "expo-localization": "~17.0.9",
+    "i18next": "^23.7.6",
+    "react-i18next": "^15.1.0",
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-navigation/native": "^6.1.18",

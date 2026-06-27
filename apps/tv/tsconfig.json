@@ -11,7 +11,8 @@
       "@nself/sdk-core": ["../../../packages/@nself/sdk-core/src/index.ts"],
       "@nself/types": ["../../../packages/@nself/types/src/index.ts"],
       "@nself/ntask-core": ["../../../packages/@nself/ntask-core/src/index.ts"],
-      "@nself/offline-queue": ["../../../packages/@nself/offline-queue/src/index.ts"]
+      "@nself/offline-queue": ["../../../packages/@nself/offline-queue/src/index.ts"],
+      "@nself/i18n": ["../../../packages/@nself/i18n/src/index.ts"]
     }
   }
 }

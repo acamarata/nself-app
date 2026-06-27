@@ -8,21 +8,22 @@
  *   - Selected item uses brand color background; focused item gets the standard focus ring.
  *   - List icon (emoji or letter) shown to the left of the title.
  *   - No virtualization needed — a user won't have >100 lists; flat ScrollView is fine.
- * SPORT: Epic F — TV scaffold.
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { TVFocusable } from '../navigation/FocusContext';
-import { tvTheme } from '../theme';
-import type { NpList } from '@nself/ntask-core';
+import React from 'react'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { TVFocusable } from '../navigation/FocusContext'
+import { tvTheme } from '../theme'
+import type { NpList } from '@nself/ntask-core'
 
 interface ListSidebarTVProps {
-  lists: NpList[];
-  selectedListId: string | null;
-  onSelectList: (listId: string) => void;
+  lists: NpList[]
+  selectedListId: string | null
+  onSelectList: (listId: string) => void
   /** Focus id prefix — each item gets id `${idPrefix}-${index}` */
-  idPrefix?: string;
+  idPrefix?: string
 }
 
 export function ListSidebarTV({
@@ -31,18 +32,20 @@ export function ListSidebarTV({
   onSelectList,
   idPrefix = 'sidebar',
 }: ListSidebarTVProps) {
+  const { t } = useTranslation('screens')
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Lists</Text>
+      <Text style={styles.header}>{t('sidebar.lists')}</Text>
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
         {lists.map((list, index) => {
-          const isSelected = list.id === selectedListId;
-          const focusId = `${idPrefix}-${index}`;
-          const nextUp = index > 0 ? `${idPrefix}-${index - 1}` : undefined;
-          const nextDown = index < lists.length - 1 ? `${idPrefix}-${index + 1}` : undefined;
+          const isSelected = list.id === selectedListId
+          const focusId = `${idPrefix}-${index}`
+          const nextUp = index > 0 ? `${idPrefix}-${index - 1}` : undefined
+          const nextDown = index < lists.length - 1 ? `${idPrefix}-${index + 1}` : undefined
 
           return (
             <TVFocusable
@@ -72,11 +75,11 @@ export function ListSidebarTV({
                 </Text>
               </View>
             </TVFocusable>
-          );
+          )
         })}
       </ScrollView>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -130,4 +133,4 @@ const styles = StyleSheet.create({
     color: tvTheme.colors.brand,
     fontWeight: '600',
   },
-});
+})

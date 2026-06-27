@@ -1,0 +1,62 @@
+{
+  "connect": {
+    "title": "Se connecter à ɳTasks",
+    "subtitle": "Entrez l'URL du serveur et vos identifiants",
+    "serverUrl": "URL du serveur",
+    "serverUrlPlaceholder": "https://your-server.com",
+    "email": "E-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "••••••••",
+    "connectButton": "Se connecter",
+    "connecting": "Connexion en cours…",
+    "errorTitle": "Connexion échouée"
+  },
+  "dashboard": {
+    "title": "Mes tâches",
+    "overdue": "En retard",
+    "today": "Aujourd'hui",
+    "upcoming": "À venir",
+    "noTasks": "Aucune tâche",
+    "moreTasks": "+{{count}} de plus",
+    "errorTitle": "Échec du chargement des tâches",
+    "retryButton": "Réessayer",
+    "viewTasks": "Voir les tâches",
+    "menuHint": "Menu"
+  },
+  "listView": {
+    "title": "Tâches",
+    "taskCount": "{{count}} tâche",
+    "taskCount_plural": "{{count}} tâches",
+    "noTasks": "Aucune tâche dans cette liste",
+    "errorTitle": "Échec du chargement des tâches",
+    "viewTask": "Voir la tâche",
+    "markDone": "Marquer comme fait",
+    "backHint": "Retour"
+  },
+  "taskDetail": {
+    "description": "Description",
+    "dueDate": "Date d'échéance",
+    "notes": "Notes",
+    "createdAt": "Créé le",
+    "status": "Statut",
+    "completed": "Terminé",
+    "inProgress": "En cours",
+    "markDone": "✓  Marquer comme fait",
+    "markDoneLoading": "Marquage en cours…",
+    "alreadyDone": "✓ Terminé",
+    "backButton": "Retour",
+    "markDoneHint": "Marquer comme fait",
+    "backHint": "Retour"
+  },
+  "remoteHints": {
+    "viewTasks": "Voir les tâches",
+    "viewTask": "Voir la tâche",
+    "markDone": "Marquer comme fait",
+    "back": "Retour",
+    "menu": "Menu"
+  },
+  "sidebar": {
+    "lists": "Listes"
+  }
+}

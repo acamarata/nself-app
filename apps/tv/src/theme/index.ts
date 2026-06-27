@@ -107,12 +107,13 @@ export const lightColors = {
 
 export type TVColors = typeof darkColors;
 
-/** Priority color map — consistent with mobile app. */
+/** Priority color map — keys match NpTask Priority: 'none'|'low'|'medium'|'high'|'urgent'. */
 export const priorityColors: Record<string, string> = {
   urgent: '#F87171',
   high: '#FBBF24',
-  normal: '#60A5FA',
+  medium: '#60A5FA',
   low: '#9CA3AF',
+  none: '#9CA3AF',
 };
 
 /** Full TV theme — always dark (TV default). Caller may override with light for accessibility modes. */

@@ -8,21 +8,22 @@
  *   - Post-success: calls onSuccess() so the parent screen can navigate back.
  *   - Already-completed tasks: renders a "Done" static label (non-interactive).
  *   - Size: 160px height, full-width in its container — the most prominent affordance on screen.
- * SPORT: Epic F — TV scaffold.
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React, { useCallback } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { TVFocusable } from '../navigation/FocusContext';
-import { useMarkDone } from '../hooks/useTVTasks';
-import { tvTheme } from '../theme';
+import React, { useCallback } from 'react'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { TVFocusable } from '../navigation/FocusContext'
+import { useMarkDone } from '../hooks/useTVTasks'
+import { tvTheme } from '../theme'
 
 interface MarkDoneButtonTVProps {
-  taskId: string;
-  taskTitle: string;
-  completed: boolean;
-  onSuccess?: () => void;
-  id?: string;
+  taskId: string
+  taskTitle: string
+  completed: boolean
+  onSuccess?: () => void
+  id?: string
 }
 
 export function MarkDoneButtonTV({
@@ -32,22 +33,23 @@ export function MarkDoneButtonTV({
   onSuccess,
   id = 'mark-done-btn',
 }: MarkDoneButtonTVProps) {
-  const { markDone, loading } = useMarkDone();
+  const { t } = useTranslation('screens')
+  const { markDone, loading } = useMarkDone()
 
   const handleSelect = useCallback(async () => {
-    if (loading || completed) return;
-    const result = await markDone(taskId);
+    if (loading || completed) return
+    const result = await markDone(taskId)
     if (!result.error) {
-      onSuccess?.();
+      onSuccess?.()
     }
-  }, [taskId, loading, completed, markDone, onSuccess]);
+  }, [taskId, loading, completed, markDone, onSuccess])
 
   if (completed) {
     return (
       <View style={[styles.button, styles.completedButton]}>
-        <Text style={styles.completedText}>✓ Done</Text>
+        <Text style={styles.completedText}>{t('taskDetail.alreadyDone')}</Text>
       </View>
-    );
+    )
   }
 
   return (
@@ -61,10 +63,10 @@ export function MarkDoneButtonTV({
       {loading ? (
         <ActivityIndicator color={tvTheme.colors.textPrimary} size="large" />
       ) : (
-        <Text style={styles.label}>✓  Mark as Done</Text>
+        <Text style={styles.label}>{t('taskDetail.markDone')}</Text>
       )}
     </TVFocusable>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -88,4 +90,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: tvTheme.colors.success,
   },
-});
+})

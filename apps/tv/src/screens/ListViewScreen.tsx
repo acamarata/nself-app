@@ -9,56 +9,63 @@
  *   - Back navigation: Menu/Back button on remote (handled by navigation.goBack() via
  *     built-in TVEventHandler in react-native-tvos).
  *   - No create/edit buttons per D4 scope.
- * SPORT: Epic F — TV scaffold.
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { TaskRowTV } from '../components/TaskRowTV';
-import { ListSidebarTV } from '../components/ListSidebarTV';
-import { RemoteHintBar, HINTS } from '../components/RemoteHintBar';
-import { FocusableButton } from '../components/FocusableButton';
-import { useTVListTasks, useMarkDone, useTVLists } from '../hooks/useTVTasks';
-import { tvTheme } from '../theme';
-import type { TVStackParamList } from '../navigation/TVNavigator';
+} from 'react-native'
+import { useTranslation } from 'react-i18next'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { TaskRowTV } from '../components/TaskRowTV'
+import { ListSidebarTV } from '../components/ListSidebarTV'
+import { RemoteHintBar, HINTS } from '../components/RemoteHintBar'
+import { FocusableButton } from '../components/FocusableButton'
+import { useTVListTasks, useMarkDone, useTVLists } from '../hooks/useTVTasks'
+import { tvTheme } from '../theme'
+import type { TVStackParamList } from '../navigation/TVNavigator'
 
-type Props = NativeStackScreenProps<TVStackParamList, 'ListView'>;
+type Props = NativeStackScreenProps<TVStackParamList, 'ListView'>
 
 export function ListViewScreen({ route, navigation }: Props) {
-  const { listId, listTitle } = route.params;
-  const [activeListId, setActiveListId] = useState(listId);
-  const [markingDoneId, setMarkingDoneId] = useState<string | null>(null);
+  const { listId, listTitle } = route.params
+  const { t } = useTranslation('screens')
+  const { t: tCommon } = useTranslation('common')
 
-  const { lists } = useTVLists();
+  const [activeListId, setActiveListId] = useState(listId)
+  const [markingDoneId, setMarkingDoneId] = useState<string | null>(null)
+
+  const { lists } = useTVLists()
   const { todayTasks, upcomingTasks, overdueTasks, loading, error, refetch } =
-    useTVListTasks(activeListId);
-  const { markDone } = useMarkDone();
+    useTVListTasks(activeListId)
+  const { markDone } = useMarkDone()
 
-  const allTasks = [...overdueTasks, ...todayTasks, ...upcomingTasks];
+  const allTasks = [...overdueTasks, ...todayTasks, ...upcomingTasks]
 
   const handleMarkDone = async (taskId: string) => {
-    setMarkingDoneId(taskId);
-    await markDone(taskId);
-    setMarkingDoneId(null);
-  };
+    setMarkingDoneId(taskId)
+    await markDone(taskId)
+    setMarkingDoneId(null)
+  }
 
-  const hints = allTasks.length === 0 ? HINTS.listEmpty : HINTS.listWithTasks;
+  const hints = allTasks.length === 0 ? HINTS.listEmpty : HINTS.listWithTasks
+
+  // Pluralize task count
+  const taskCountLabel = allTasks.length === 1
+    ? t('listView.taskCount', { count: allTasks.length })
+    : t('listView.taskCount_plural', { count: allTasks.length })
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>{listTitle}</Text>
-        <Text style={styles.count}>
-          {allTasks.length} task{allTasks.length !== 1 ? 's' : ''}
-        </Text>
+        <Text style={styles.count}>{taskCountLabel}</Text>
       </View>
 
       <View style={styles.body}>
@@ -66,10 +73,10 @@ export function ListViewScreen({ route, navigation }: Props) {
           lists={lists}
           selectedListId={activeListId}
           onSelectList={(id) => {
-            const list = lists.find((l) => l.id === id);
-            setActiveListId(id);
+            const list = lists.find((l) => l.id === id)
+            setActiveListId(id)
             if (list) {
-              navigation.setParams({ listId: id, listTitle: list.title });
+              navigation.setParams({ listId: id, listTitle: list.title })
             }
           }}
           idPrefix="lv-sidebar"
@@ -82,12 +89,12 @@ export function ListViewScreen({ route, navigation }: Props) {
             </View>
           ) : error ? (
             <View style={styles.center}>
-              <Text style={styles.errorText}>Failed to load tasks</Text>
-              <FocusableButton id="lv-retry" label="Retry" onSelect={refetch} />
+              <Text style={styles.errorText}>{t('listView.errorTitle')}</Text>
+              <FocusableButton id="lv-retry" label={tCommon('retry')} onSelect={refetch} />
             </View>
           ) : allTasks.length === 0 ? (
             <View style={styles.center}>
-              <Text style={styles.emptyText}>No tasks in this list</Text>
+              <Text style={styles.emptyText}>{t('listView.noTasks')}</Text>
             </View>
           ) : (
             <ScrollView
@@ -96,7 +103,7 @@ export function ListViewScreen({ route, navigation }: Props) {
               showsVerticalScrollIndicator={false}
             >
               {allTasks.map((task, index) => {
-                const rowId = `lv-row-${index}`;
+                const rowId = `lv-row-${index}`
                 return (
                   <TaskRowTV
                     key={task.id}
@@ -113,7 +120,7 @@ export function ListViewScreen({ route, navigation }: Props) {
                     nextFocusUp={index > 0 ? `lv-row-${index - 1}` : undefined}
                     nextFocusDown={index < allTasks.length - 1 ? `lv-row-${index + 1}` : undefined}
                   />
-                );
+                )
               })}
             </ScrollView>
           )}
@@ -122,7 +129,7 @@ export function ListViewScreen({ route, navigation }: Props) {
 
       <RemoteHintBar hints={hints} />
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -177,4 +184,4 @@ const styles = StyleSheet.create({
     fontSize: tvTheme.typeScale.heading3,
     color: tvTheme.colors.textDisabled,
   },
-});
+})
