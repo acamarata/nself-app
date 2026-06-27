@@ -39,3 +39,42 @@ jobs:
           node-version: '20'
       - name: Check version lockstep
         run: bash scripts/check-version-lockstep.sh
+
+  mobile-test:
+    name: Mobile Tests (coverage gate ≥60%)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10.30.1'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: apps/mobile/pnpm-lock.yaml
+      - name: Install mobile dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: apps/mobile
+      - name: Run mobile tests with coverage gate
+        # Coverage threshold (lines ≥60%, branches ≥50%) is configured in jest.config.js.
+        # N-S3-T5: failing here means coverage dropped below the gate — fix coverage, not the threshold.
+        run: pnpm test --coverage
+        working-directory: apps/mobile
+
+  i18n-completeness:
+    name: I18n Completeness Gate (N-S3-T3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install tsx
+        run: npm install -g tsx
+      - name: Check i18n key completeness (mobile + web; TV skipped until F-S2-T6)
+        # Exits non-zero and lists missing keys if any target locale (ar/fr/es) is
+        # missing a key present in the English (en) baseline. N-S3-T3.
+        run: tsx scripts/check-i18n-completeness.ts
