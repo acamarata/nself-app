@@ -1,6 +1,6 @@
 # ɳTasks
 
-Self-hosted task management reference app. React Native (Expo) client over a Postgres + Hasura + Auth backend, managed by the nSelf CLI.
+Self-hosted, multi-surface task management reference app. React Native mobile + Vite web SaaS + Tauri desktop + rn-tvos TV, all over one Postgres + Hasura + Auth backend.
 
 [![Version](https://img.shields.io/github/v/release/nself-org/ntask?label=version)](https://github.com/nself-org/ntask/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -11,7 +11,7 @@ Self-hosted task management reference app. React Native (Expo) client over a Pos
 
 ## Description
 
-**ɳTasks** is a reference app in the nSelf ecosystem. The React Native (Expo) client connects to a self-hosted backend running PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage, and MinIO, orchestrated under `backend/` by the nSelf CLI.
+**ɳTasks** is a reference app in the nSelf ecosystem. Four client surfaces (React Native mobile, Vite web SaaS at `task.nself.org`, Tauri desktop, rn-tvos TV) connect to a shared backend running PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage, and MinIO, orchestrated under `backend/` by the nSelf CLI.
 
 Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the nSelf CLI as its backend entry point. `make up` delegates to `nself start`; `make down` delegates to `nself stop`.
 
@@ -24,7 +24,7 @@ Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the
 
 - Docker 20+ with Docker Compose v2
 - nSelf CLI v1.0.9+: `brew install nself-org/tap/nself` (macOS) or see [nself.org/install](https://nself.org/install)
-- Node.js 20+ and pnpm 9+
+- Node.js 20+ and pnpm 10+
 - (iOS/Android builds) Expo CLI: `pnpm add -g expo-cli`
 
 ### 2. Backend
@@ -71,7 +71,7 @@ DEMO_SEED=1 make demo-seed      # loads example tasks and lists
 - nSelf CLI v1.0.9+ ([install guide](https://nself.org/install))
 - Docker 20+ with Docker Compose v2
 - GNU Make
-- Node.js 20+ and pnpm 9+
+- Node.js 20+ and pnpm 10+
 - (Optional) Hasura CLI for migration management
 
 ### Backend Setup
@@ -124,7 +124,7 @@ make ci-local                      # full CI gate (lint + typecheck + tests)
 
 ## Architecture
 
-React Native (Expo) app talks to a Docker Compose backend (PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage over MinIO, Mailhog for dev email, Traefik for staging/prod HTTPS). The app uses Hasura GraphQL as the only backend boundary; no direct Postgres access.
+All four surfaces (mobile, web, desktop, TV) connect to a Docker Compose backend (PostgreSQL 16, Hasura GraphQL Engine, Hasura Auth, Hasura Storage over MinIO, Mailpit for dev email, Traefik for staging/prod HTTPS). Hasura GraphQL is the only backend boundary — no direct Postgres access.
 
 See the [Backend Architecture wiki page](https://github.com/nself-org/ntask/wiki/Backend-Architecture) for the full deep-dive.
 

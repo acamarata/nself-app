@@ -1,6 +1,6 @@
-# Contributing to ɳApp
+# Contributing to ɳTasks
 
-Thank you for considering contributing to ɳApp! This document outlines the guidelines for contributing.
+Thank you for considering contributing to ɳTasks! This document outlines the guidelines for contributing.
 
 ## Code of Conduct
 
@@ -10,7 +10,7 @@ Be respectful, inclusive, and constructive in all interactions.
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/nself-org/tasks/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/nself-org/ntask/issues)
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce
@@ -21,7 +21,7 @@ Be respectful, inclusive, and constructive in all interactions.
 
 ### Suggesting Features
 
-1. Check [Discussions](https://github.com/nself-org/tasks/discussions) for existing suggestions
+1. Check [Discussions](https://github.com/nself-org/ntask/discussions) for existing suggestions
 2. Create a new discussion with:
    - Clear use case
    - Proposed implementation (if you have ideas)
@@ -33,8 +33,8 @@ Be respectful, inclusive, and constructive in all interactions.
 1. **Fork the repository**
 
    ```bash
-   git clone https://github.com/nself-org/tasks.git
-   cd nself-tasks
+   git clone https://github.com/nself-org/ntask.git
+   cd ntask
    ```
 
 2. **Create a feature branch**
@@ -59,10 +59,8 @@ Be respectful, inclusive, and constructive in all interactions.
 
 5. **Test with multiple backends**
    Test your changes with different backend providers:
-   - `NEXT_PUBLIC_BACKEND_PROVIDER=bolt`
-   - `NEXT_PUBLIC_BACKEND_PROVIDER=supabase`
-   - `NEXT_PUBLIC_BACKEND_PROVIDER=nhost`
-   - `NEXT_PUBLIC_BACKEND_PROVIDER=nself`
+   - `EXPO_PUBLIC_HASURA_URL=http://localhost:8080/v1/graphql` (mobile)
+   - `VITE_HASURA_URL=http://localhost:8080/v1/graphql` (web SaaS)
 
 6. **Commit your changes**
 
@@ -215,8 +213,8 @@ For custom components:
 
 ## Questions?
 
-- Check existing [Issues](https://github.com/nself-org/tasks/issues)
-- Join [Discussions](https://github.com/nself-org/tasks/discussions)
+- Check existing [Issues](https://github.com/nself-org/ntask/issues)
+- Join [Discussions](https://github.com/nself-org/ntask/discussions)
 - Read [README.md](README.md) and [BACKEND.md](BACKEND.md)
 
 ## License
@@ -225,4 +223,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-Thank you for contributing to ɳApp!
+Thank you for contributing to ɳTasks!
