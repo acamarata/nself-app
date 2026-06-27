@@ -87,6 +87,55 @@
           table:
             schema: public
             name: np_todo_shares
+    - name: subtasks
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_subtasks
+    - name: comments
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_comments
+    - name: attachments
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_attachments
+    - name: assignees
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_todo_assignees
+    - name: reminders
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_reminders
+    - name: todo_tags
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_todo_tags
+    - name: recurring_rule
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_recurring_rules
   insert_permissions:
     - role: user
       permission:
@@ -613,3 +662,622 @@
           list:
             user_id:
               _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_subtasks table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_subtasks
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: todo_id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - todo_id
+          - title
+          - is_done
+          - position
+          - source_account_id
+        check:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - todo_id
+          - title
+          - is_done
+          - position
+          - source_account_id
+          - created_at
+          - updated_at
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - title
+          - is_done
+          - position
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_comments table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_comments
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: todo_id
+    - name: author
+      using:
+        foreign_key_constraint_on: author_id
+    - name: parent_comment
+      using:
+        foreign_key_constraint_on: parent_comment_id
+  array_relationships:
+    - name: replies
+      using:
+        foreign_key_constraint_on:
+          column: parent_comment_id
+          table:
+            schema: public
+            name: np_comments
+    - name: attachments
+      using:
+        foreign_key_constraint_on:
+          column: comment_id
+          table:
+            schema: public
+            name: np_attachments
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - todo_id
+          - parent_comment_id
+          - body
+          - idempotency_key
+          - source_account_id
+        check:
+          _and:
+            - author_id:
+                _eq: X-Hasura-User-Id
+            - todo:
+                user_id:
+                  _eq: X-Hasura-User-Id
+        set:
+          author_id: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - todo_id
+          - author_id
+          - parent_comment_id
+          - body
+          - idempotency_key
+          - edited_at
+          - deleted_at
+          - source_account_id
+          - created_at
+          - updated_at
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - body
+          - edited_at
+        filter:
+          author_id:
+            _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          author_id:
+            _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_attachments table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_attachments
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: todo_id
+    - name: comment
+      using:
+        foreign_key_constraint_on: comment_id
+    - name: uploader
+      using:
+        foreign_key_constraint_on: uploader_id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - todo_id
+          - comment_id
+          - storage_key
+          - bucket
+          - file_name
+          - mime_type
+          - file_size_bytes
+          - acl
+          - source_account_id
+        check:
+          uploader_id:
+            _eq: X-Hasura-User-Id
+        set:
+          uploader_id: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - todo_id
+          - comment_id
+          - uploader_id
+          - storage_key
+          - bucket
+          - file_name
+          - mime_type
+          - file_size_bytes
+          - acl
+          - source_account_id
+          - created_at
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          uploader_id:
+            _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_tags table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_tags
+  array_relationships:
+    - name: todo_tags
+      using:
+        foreign_key_constraint_on:
+          column: tag_id
+          table:
+            schema: public
+            name: np_todo_tags
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - name
+          - color
+          - source_account_id
+        check:
+          user_id:
+            _eq: X-Hasura-User-Id
+        set:
+          user_id: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - user_id
+          - name
+          - color
+          - source_account_id
+          - created_at
+          - updated_at
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - name
+          - color
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_todo_tags table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_todo_tags
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: todo_id
+    - name: tag
+      using:
+        foreign_key_constraint_on: tag_id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - todo_id
+          - tag_id
+          - source_account_id
+        check:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - todo_id
+          - tag_id
+          - source_account_id
+          - created_at
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_reminders table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_reminders
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: todo_id
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - todo_id
+          - channel
+          - remind_at
+          - source_account_id
+        check:
+          user_id:
+            _eq: X-Hasura-User-Id
+        set:
+          user_id: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - todo_id
+          - user_id
+          - channel
+          - remind_at
+          - sent
+          - sent_at
+          - source_account_id
+          - created_at
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - remind_at
+          - channel
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_recurring_rules table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_recurring_rules
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: todo_id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - todo_id
+          - frequency
+          - interval_count
+          - by_day
+          - by_month_day
+          - by_month
+          - until_date
+          - count_limit
+          - rrule
+          - start_date
+          - end_date
+          - source_account_id
+        check:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - todo_id
+          - frequency
+          - interval_count
+          - by_day
+          - by_month_day
+          - by_month
+          - until_date
+          - count_limit
+          - rrule
+          - start_date
+          - end_date
+          - source_account_id
+          - created_at
+          - updated_at
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - frequency
+          - interval_count
+          - by_day
+          - by_month_day
+          - by_month
+          - until_date
+          - count_limit
+          - rrule
+          - start_date
+          - end_date
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_todo_assignees table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_todo_assignees
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: todo_id
+    - name: assignee
+      using:
+        foreign_key_constraint_on: assignee_id
+    - name: assigner
+      using:
+        foreign_key_constraint_on: assigned_by
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - todo_id
+          - assignee_id
+          - assigned_by
+          - assigned_at
+          - source_account_id
+        check:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+        set:
+          assigned_by: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - todo_id
+          - assignee_id
+          - assigned_by
+          - assigned_at
+          - source_account_id
+          - created_at
+        filter:
+          _or:
+            - assignee_id:
+                _eq: X-Hasura-User-Id
+            - todo:
+                user_id:
+                  _eq: X-Hasura-User-Id
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          _or:
+            - assignee_id:
+                _eq: X-Hasura-User-Id
+            - todo:
+                user_id:
+                  _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_offline_outbox table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_offline_outbox
+  object_relationships:
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - idempotency_key
+          - mutation_type
+          - payload
+          - source_account_id
+        check:
+          user_id:
+            _eq: X-Hasura-User-Id
+        set:
+          user_id: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - user_id
+          - idempotency_key
+          - mutation_type
+          - payload
+          - result
+          - status
+          - error_message
+          - source_account_id
+          - created_at
+          - processed_at
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - status
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# np_device_tokens table
+# ---------------------------------------------------------------------------
+- table:
+    schema: public
+    name: np_device_tokens
+  object_relationships:
+    - name: user
+      using:
+        foreign_key_constraint_on: user_id
+  insert_permissions:
+    - role: user
+      permission:
+        columns:
+          - platform
+          - token
+          - last_seen_at
+          - source_account_id
+        check:
+          user_id:
+            _eq: X-Hasura-User-Id
+        set:
+          user_id: X-Hasura-User-Id
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - user_id
+          - platform
+          - token
+          - last_seen_at
+          - source_account_id
+          - created_at
+          - updated_at
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+  update_permissions:
+    - role: user
+      permission:
+        columns:
+          - token
+          - platform
+          - last_seen_at
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id
+        check: null
+  delete_permissions:
+    - role: user
+      permission:
+        filter:
+          user_id:
+            _eq: X-Hasura-User-Id

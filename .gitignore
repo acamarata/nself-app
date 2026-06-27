@@ -197,3 +197,4 @@ local.properties
 # =============================================================================
 docker-compose.dev.yml
 docker-compose.override.yml
+backend/docker-compose.yml
