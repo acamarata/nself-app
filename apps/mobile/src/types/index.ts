@@ -31,4 +31,13 @@ export type RootStackParamList = {
   Settings: undefined;
   Profile: undefined;
   Notifications: undefined;
+  // Epic J — account/legal screens
+  Account: undefined;
+  ChangeEmail: undefined;
+  ChangePassword: undefined;
+  Sessions: undefined;
+  MfaSetup: { isEnabled: boolean };
+  DeleteAccount: undefined;
+  // Epic L — collaboration screens
+  ListMembers: { listId: string; listTitle: string; currentUserId: string; isOwner: boolean };
 };

@@ -148,6 +148,20 @@ export function SettingsScreen({ navigation }: Props) {
           <ToggleRow label="Tasks assigned to me" value={prefs.assigned} onChange={setAssigned} disabled={!prefs.masterEnabled} />
           <ToggleRow label="Task due reminders" value={prefs.reminders} onChange={setReminders} disabled={!prefs.masterEnabled} />
         </View>
+
+        {/* Account */}
+        <Text style={styles.sectionHeader}>Account</Text>
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.navRow}
+            onPress={() => navigation.navigate('Account')}
+            accessibilityRole="button"
+            accessibilityLabel="Account settings"
+          >
+            <Text style={styles.navRowLabel}>Account & Security</Text>
+            <Text style={styles.navRowChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -190,4 +204,7 @@ const styles = StyleSheet.create({
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   toggleLabel: { fontSize: 15, color: '#374151', flex: 1 },
   toggleLabelDisabled: { color: '#9CA3AF' },
+  navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  navRowLabel: { fontSize: 15, color: '#374151', flex: 1 },
+  navRowChevron: { fontSize: 20, color: '#9CA3AF' },
 });

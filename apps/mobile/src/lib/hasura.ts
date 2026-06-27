@@ -45,3 +45,7 @@ export {
 } from '@nself/ntask-core';
 
 export { GET_PROFILE } from '@nself/ntask-core';
+
+// Collab + Account ops are defined inline in lib/collabOps.ts and lib/accountOps.ts.
+// They are imported directly by their respective hooks and screens.
+// They will be upstreamed to @nself/ntask-core in a future phase.

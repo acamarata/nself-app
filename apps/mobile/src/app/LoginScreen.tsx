@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, KeyboardAvoidingView,
-  Platform, ScrollView, Alert,
+  Platform, ScrollView, Alert, Linking,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
@@ -23,6 +23,7 @@ export function LoginScreen({ navigation }: Props) {
   const [serverUrl, setServerUrl] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [tosAccepted, setTosAccepted] = useState(false);
 
   const handleSignIn = async () => {
     if (!serverUrl.trim() || !email.trim() || !password) {
@@ -76,10 +77,41 @@ export function LoginScreen({ navigation }: Props) {
 
           {error && <Text style={styles.error}>{error}</Text>}
 
+          {/* ToS acceptance */}
+          <View style={styles.tosRow}>
+            <TouchableOpacity
+              style={[styles.checkbox, tosAccepted && styles.checkboxChecked]}
+              onPress={() => setTosAccepted((v) => !v)}
+              accessibilityLabel="Accept Terms of Service"
+              accessibilityRole="checkbox"
+            >
+              {tosAccepted && <Text style={styles.checkmark}>✓</Text>}
+            </TouchableOpacity>
+            <Text style={styles.tosText}>
+              {'By signing in, you agree to our '}
+              <Text
+                style={styles.tosLink}
+                onPress={() => void Linking.openURL('https://nself.org/terms')}
+                accessibilityRole="link"
+              >
+                Terms of Service
+              </Text>
+              {' and '}
+              <Text
+                style={styles.tosLink}
+                onPress={() => void Linking.openURL('https://nself.org/privacy')}
+                accessibilityRole="link"
+              >
+                Privacy Policy
+              </Text>
+              {'.'}
+            </Text>
+          </View>
+
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[styles.button, (loading || !tosAccepted) && styles.buttonDisabled]}
             onPress={handleSignIn}
-            disabled={loading}
+            disabled={loading || !tosAccepted}
             accessibilityRole="button"
             accessibilityLabel="Sign in"
           >
@@ -104,7 +136,13 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '500', color: '#374151', marginBottom: 4, marginTop: 12 },
   input: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, fontSize: 15, backgroundColor: '#fff' },
   error: { color: '#ef4444', fontSize: 13, marginTop: 8 },
-  button: { backgroundColor: '#6366f1', borderRadius: 8, padding: 14, alignItems: 'center', marginTop: 24 },
+  tosRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 20, gap: 10 },
+  checkbox: { width: 20, height: 20, borderWidth: 1.5, borderColor: '#6366f1', borderRadius: 4, alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
+  checkboxChecked: { backgroundColor: '#6366f1' },
+  checkmark: { color: '#fff', fontSize: 13, fontWeight: '700', lineHeight: 16 },
+  tosText: { flex: 1, fontSize: 13, color: '#6b7280', lineHeight: 18 },
+  tosLink: { color: '#6366f1', textDecorationLine: 'underline' },
+  button: { backgroundColor: '#6366f1', borderRadius: 8, padding: 14, alignItems: 'center', marginTop: 16 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
