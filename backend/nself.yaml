@@ -38,6 +38,15 @@ services:
   storage:
     version: "0.6.1"
   minio: {}
+  # functions service — serves Hasura Action + event trigger webhooks.
+  # nself build generates a compose block mounting ./functions:/opt/project.
+  # ACTION_HANDLER_URL must be http://functions:3001 when running inside Docker.
+  # CLI gap: nself-functions-service-entrypoint (see PCI note in PR).
+  # The nhost/functions:latest image (Node.js runtime) mounts ./functions and
+  # runs server.ts as the entrypoint via `node --loader tsx server.ts`.
+  functions:
+    enabled: true
+    port: 3001
   mailhog:
     dev_only: true
   traefik:
