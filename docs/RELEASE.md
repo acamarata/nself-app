@@ -1,136 +1,121 @@
 # ɳTask Release Guide
 
-This guide covers how ɳTask is signed and shipped on each platform. Until store
-automation lands, every release is produced manually from a clean checkout.
+This guide covers how ɳTask is built and shipped on each platform.
 
-> All version bumps and tag creation require an approved release plan.
-> Do not bump `pubspec.yaml` or create a git tag without explicit approval.
+> **Version Lock:** All version bumps require an approved release plan.
+> Do NOT bump `apps/mobile/package.json` version or create a git tag without explicit approval.
+
+---
 
 ## Versioning
 
-- Source of truth: `app/pubspec.yaml` `version:` line (`<semver>+<build>`)
-- Current: `1.0.9+1`
-- Bump `+build` on every store submission even if semver is unchanged, so each
-  upload has a unique build number
-- Update the version badge in `README.md` when shipping a new semver
+- **Source of truth:** `apps/mobile/package.json` `version:` field (mobile); `web/ntask/package.json` (web SaaS)
+- **SPORT F01** and `MASTER-VERSIONS.md` must match — update both on every bump
+- Patch bumps within a Build wave are auto-authorized; minor/major require explicit user instruction
+- `app/pubspec.yaml` is a legacy reference — **not the version source of truth**
 
-## Android (Google Play)
+---
+
+## Release Checklist
+
+### Pre-release (run locally)
+```bash
+# From repo root
+pnpm version-check                        # Verify root + mobile versions match
+
+# Mobile app gates
+cd apps/mobile
+pnpm lint && pnpm typecheck && pnpm test  # Must all pass
+
+# Web SaaS gates
+cd ../../web/ntask
+pnpm build                                # Must exit 0
+```
+
+### Version bump (when approved)
+1. Update `apps/mobile/package.json` version
+2. Update `web/ntask/package.json` version (if releasing web)
+3. Update root `package.json` version (must match mobile)
+4. Update `.claude/docs/MASTER-VERSIONS.md` (ntask entry)
+5. Update `~/Sites/nself/.opencode/phases/sport/F01-MASTER-VERSIONS.md`
+6. Commit: `chore(release): bump ntask to vX.Y.Z`
+7. Tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
+
+---
+
+## Mobile (React Native + Expo)
+
+**Status:** EAS build setup is pending (Epic C). Current process is manual.
 
 ### Prerequisites
+- Node 20+, pnpm 10+
+- Expo CLI: `pnpm dlx expo-cli`
+- EAS CLI: `pnpm dlx eas-cli`
+- Android: EAS handles signing via secrets — no local keystore needed for CI builds
+- iOS: EAS handles Apple credentials — no local provisioning profile needed for CI builds
 
-- Flutter 3.7+ installed
-- Android SDK platform-tools 34+
-- JDK 17
-- A keystore file (`.jks`) — **never commit this, never check into git**
-- A filled-out `app/android/key.properties`:
-  ```
-  storePassword=<keystore password>
-  keyPassword=<key password>
-  keyAlias=<alias>
-  storeFile=<absolute path to .jks>
-  ```
-
-### Build a signed bundle
-
+### Development build
 ```bash
-cd app
-flutter clean
-flutter pub get
-flutter build appbundle --release
+cd apps/mobile
+pnpm install
+pnpm start           # Expo dev server
 ```
 
-Output: `app/build/app/outputs/bundle/release/app-release.aab`
-
-### Submit to Play
-
-1. Open Google Play Console → ɳTask → Production → Create new release.
-2. Upload `app-release.aab`. Rollout percentage starts at 20%, ramps over 48h.
-3. Paste release notes from `.releases/` directory.
-4. Review and roll out.
-
-## iOS (App Store)
-
-### Prerequisites
-
-- macOS host with Xcode 15+
-- Active Apple Developer account (`aric.camarata@gmail.com` team)
-- Distribution certificate in the Keychain
-- App Store provisioning profile for `com.nself.task`
-
-### Build and archive
-
+### Production build (EAS — when configured)
 ```bash
-cd app
-flutter clean
-flutter pub get
-flutter build ipa --release
+cd apps/mobile
+eas build --platform android --profile production
+eas build --platform ios --profile production
+eas submit --platform android --latest
+eas submit --platform ios --latest
 ```
 
-Output: `app/build/ios/ipa/ntask.ipa`
+### Manual local build (interim, pre-EAS)
+Android: Use Android Studio or `npx expo run:android --variant release`
+iOS: Use Xcode or `npx expo run:ios --configuration Release`
 
-### Submit to App Store
+---
 
-1. Open `app/build/ios/archive/Runner.xcarchive` in Xcode → Organizer.
-2. Validate → Distribute App → App Store Connect → Upload.
-3. In App Store Connect, attach the new build to the prepared version.
-4. Fill in What's New, upload a screenshot set if missing, submit for review.
+## Web SaaS (Vite SPA → Vercel)
 
-## Web (PWA)
-
-The live PWA at `task.nself.org` is served from `web/task/` on Vercel. The
-Flutter web build target used there is produced with:
+**Auto-deployed:** Merges to `main` trigger Vercel deployment automatically.
 
 ```bash
-cd app
-flutter build web --release --pwa-strategy offline-first
+cd web/ntask
+pnpm install  # from web/ root for workspace packages
+pnpm build    # exits 0 = deploy-ready
 ```
 
-The `web/task` Next.js app includes the Flutter web output under `/app` so
-users can install it as a PWA on any device.
+Preview: `vercel deploy --token $VERCEL_TOKEN` from `web/ntask/`
+Production: Auto on merge to main via Vercel git integration
 
-## macOS desktop
+---
 
-```bash
-cd app
-flutter build macos --release
-```
+## Desktop (Tauri 2)
 
-Output: `app/build/macos/Build/Products/Release/ɳTask.app`
+**Status:** Desktop surface pending Epic E. Not yet released.
 
-For distribution:
-- Notarize with Apple notary service before zipping
-- Optionally package as `.dmg` with `create-dmg`
+---
 
-## Linux / Windows desktop
+## TV (React Native TV)
 
-```bash
-cd app
-flutter build linux --release     # on Linux host
-flutter build windows --release   # on Windows host
-```
+**Status:** TV surface pending Epic F. Not yet released.
 
-Ship the zipped build folder as a GitHub Release asset for the tagged version.
+---
 
-## Signing assets — where they live
+## Signing & Credentials
 
-- iOS distribution cert + provisioning profile: developer Mac Keychain (not in
-  repo). Export a backup `.p12` to the password manager only.
-- Android keystore: developer machine, backed up to the password manager. The
-  `app/android/key.properties` file is listed in `.gitignore` and must never be
-  committed.
-- macOS notarization credentials: stored in `xcrun notarytool store-credentials`
-  profile on the developer machine.
+- Android signing: EAS secrets (`ANDROID_KEYSTORE`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`)
+- iOS signing: EAS Apple credentials (`APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_API_KEY`)
+- All secrets in `~/.claude/vault.env` locally; GitHub Actions Secrets for CI
+- **Never commit** `.jks`, `.p12`, `.pem`, `.mobileprovision` files
 
-## Release checklist
+---
 
-Before shipping any platform build:
+## Store Details
 
-1. Run `flutter analyze` — must be clean.
-2. Run `flutter test` — must be clean.
-3. Run backend smoke: `cd ../backend && ./test/smoke.sh`.
-4. Manual sanity on the primary platform: login, create list, add task, tick
-   task, sync status shows green.
-5. Write release notes in `.releases/<version>.md` and update
-   `.github/wiki/Changelog.md`.
-6. Tag the release: `git tag v<version> && git push --tags`.
-7. Submit to the store. For Android and iOS, ramp rollout in stages.
+| Platform | App ID | Store |
+|---|---|---|
+| Android | `org.nself.tasks` | Google Play |
+| iOS | `org.nself.tasks` | App Store |
+| Web | `task.nself.org` | Vercel (unity-dev team) |
