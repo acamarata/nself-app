@@ -164,6 +164,258 @@ actions:
       - role: user
     comment: Proxies to hasura-auth GET /user/sessions. Returns active session list.
 
+  # ── L-S1: Invite lifecycle ──────────────────────────────────────────────────
+
+  - name: createListInvite
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-create'
+      timeout: 30
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S1-T1: Create a pending invite for an email address to join a list.
+      Rate-limited 20/hour per JWT (invite_limit zone). Sends invite email via
+      hasura-auth SMTP relay. Requires caller to be list owner or admin.
+
+  - name: acceptListInvite
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-accept'
+      timeout: 30
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S1-T2: Accept a pending invite by token. Creates np_list_members row,
+      links np_list_shares.shared_with_user_id, marks invite accepted.
+      Only the invitee (email match) may accept.
+
+  - name: declineListInvite
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-decline'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S1-T3: Decline a pending invite by token. Sets status=declined.
+      Only the invitee (email match) may decline.
+
+  - name: revokeListInvite
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-revoke'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S1-T4: Revoke a pending invite. Sets status=revoked.
+      Only list owner or admin may revoke.
+
+  # ── L-S2: Share links ───────────────────────────────────────────────────────
+
+  - name: createShareLink
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/share-create'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S2-T1: Generate a public share-link token for a list. Upserts
+      np_list_shares row with a random token and optional expires_at.
+      Returns the full shareable URL. Owner/admin only.
+
+  - name: revokeShareLink
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/share-revoke'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S2-T2: Revoke the share-link token for a list (sets token=NULL).
+      Existing sessions with the old token lose access. Owner/admin only.
+
+  # ── L-S3: Member management ─────────────────────────────────────────────────
+
+  - name: updateMemberRole
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/member-role-update'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S3-T1: Change a member's role (owner/admin/member).
+      Only list owner may change roles. Cannot demote the sole owner.
+
+  - name: removeMember
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/member-remove'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S3-T2: Remove a member from a list. Owner/admin may remove editors/viewers.
+      Cannot remove the sole owner.
+
+  - name: leaveList
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/list-leave'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S3-T3: Authenticated user leaves a shared list they did not create.
+      Blocked if the caller is the sole owner - must transferOwnership first.
+
+  - name: transferOwnership
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/list-transfer-ownership'
+      timeout: 15
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S3-T4: Atomic ownership transfer - demotes current owner to admin,
+      promotes target member to owner. Only the current owner may invoke.
+      Target must already be a list member.
+
+  # ── L-S4: Presence ──────────────────────────────────────────────────────────
+
+  - name: upsertPresence
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/presence-upsert'
+      timeout: 10
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S4-T1: Upsert a presence record (viewing/editing + editing_todo_id).
+      Called on heartbeat. Caller must be a list member or share recipient.
+
+  - name: removePresence
+    definition:
+      kind: synchronous
+      handler: '{{ACTION_HANDLER_URL}}/api/actions/presence-remove'
+      timeout: 10
+      request_transform:
+        method: POST
+        template_engine: Kriti
+        version: "2"
+        body:
+          action:
+            name: '{{$action.name}}'
+          session_variables: '{{$session_variables}}'
+          input: '{{$body.input}}'
+    permissions:
+      - role: user
+    comment: >
+      L-S4-T2: Remove the caller's presence record from a list (on disconnect/blur).
+
+
 custom_types:
   enums: []
   input_objects: []
@@ -229,5 +481,38 @@ custom_types:
           type: String
         - name: message
           type: String
+
+    - name: InviteResult
+      fields:
+        - name: success
+          type: Boolean!
+        - name: inviteId
+          type: String
+        - name: message
+          type: String
+
+    - name: ShareLinkResult
+      fields:
+        - name: success
+          type: Boolean!
+        - name: shareUrl
+          type: String
+        - name: token
+          type: String
+        - name: expiresAt
+          type: String
+
+    - name: MemberResult
+      fields:
+        - name: success
+          type: Boolean!
+        - name: message
+          type: String
+
+    - name: PresenceResult
+      fields:
+        - name: success
+          type: Boolean!
+
 
   scalars: []
