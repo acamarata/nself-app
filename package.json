@@ -23,6 +23,7 @@
     }
   },
   "scripts": {
-    "version-check": "bash scripts/check-version-lockstep.sh"
+    "version-check": "bash scripts/check-version-lockstep.sh",
+    "i18n:check": "tsx scripts/check-i18n-completeness.ts"
   }
 }

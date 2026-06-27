@@ -10,6 +10,15 @@
 const config = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  // Coverage gate: ≥60% lines (N-S3-T5). Branches threshold is lower because
+  // native-only branches (error catch paths, optional props) are hard to exercise
+  // in jsdom without a real device build.
+  coverageThreshold: {
+    global: {
+      lines: 60,
+      branches: 50,
+    },
+  },
   // pnpm stores packages under node_modules/.pnpm/<name>@<ver>/node_modules/<name>/.
   // The standard jest-expo pattern only matches node_modules/<name>/ and misses the
   // inner node_modules/ segment for pnpm packages. This pattern handles both layouts.

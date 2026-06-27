@@ -3,7 +3,8 @@
 # =============================================================================
 # docs/RELEASE.md was migrated to .github/wiki/Deployment.md merge in Epic I (2026-06-27).
 # Remove from tracking: git rm -r --cached docs/ && git commit -m "chore: remove docs/ clean-root violation"
-docs/
+# NOTE: Anchored to root (/docs/) so .github/docs/ is NOT excluded (it's tracked).
+/docs/
 
 # =============================================================================
 # FLUTTER / DART BUILD ARTIFACTS (legacy — app/ removed in RN migration)
