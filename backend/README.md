@@ -72,7 +72,7 @@ This directory contains everything needed to run a complete backend for your app
 cd backend
 
 # 2. Create your environment file
-cp .env.example .env
+cp backend/.env.example backend/.env.dev
 # Edit .env -- at minimum, change passwords for non-local environments
 
 # 3. Start the stack
@@ -95,12 +95,35 @@ That's it. Your backend is running:
 
 ---
 
+## App Surfaces
+
+The backend is consumed by multiple clients. All clients are configured via
+the server URL set at first login — no hardcoded IPs in source.
+
+| Surface | Location | Start command |
+|---|---|---|
+| Mobile (iOS/Android) | `apps/mobile/` | `make mobile-start` (from repo root) |
+| Web SaaS | `task.nself.org` | Vercel-hosted; see `web/ntask/` |
+| Desktop (planned) | — | Tauri 2 wrapping web app (future) |
+
+---
+
+## Bundle Configuration
+
+`backend/nself.yaml` is the canonical plugin manifest for this app.
+Edit it to add or remove plugins, then run `nself build` to apply changes.
+
+Active free plugins: auth, storage, cron, notify, notifications, jobs,
+search, feature-flags, audit-log, webhooks, invitations, tokens.
+
+---
+
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                    FRONTEND (Next.js)                         │
-│                    http://localhost:3000                       │
+│           App Surfaces (iOS/Android via Expo / Web)           │
+│           Backend URL configured at login (no hardcoded IPs)  │
 └───────────┬──────────────┬───────────────┬───────────────────┘
             │              │               │
             ▼              ▼               ▼
@@ -247,7 +270,7 @@ Mailhog is only started when using the `dev` profile (`make up` enables it by de
 All configuration is done through the `.env` file. Copy the example and customize:
 
 ```bash
-cp .env.example .env
+cp backend/.env.example backend/.env.dev
 ```
 
 #### Critical Security Settings
@@ -529,7 +552,7 @@ Prerequisites:
 # On your VPS:
 git clone your-repo
 cd your-repo/backend
-cp .env.example .env
+cp backend/.env.example backend/.env.dev
 
 # Edit .env:
 # - Set DOMAIN=yourdomain.com
