@@ -14,11 +14,11 @@
 #   - me: Self-referential (user can only access their own data)
 
 # ---------------------------------------------------------------------------
-# app_profiles table
+# np_profiles table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_profiles
+    name: np_profiles
   select_permissions:
     - role: user
       permission:
@@ -33,6 +33,7 @@
           - default_list_id
           - notification_settings
           - theme_preference
+          - source_account_id
           - created_at
           - updated_at
         filter:
@@ -62,11 +63,30 @@
             _eq: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_todos table
+# np_todos table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_todos
+    name: np_todos
+  object_relationships:
+    - name: list
+      using:
+        foreign_key_constraint_on: list_id
+  array_relationships:
+    - name: recurring_instances
+      using:
+        foreign_key_constraint_on:
+          column: parent_todo_id
+          table:
+            schema: public
+            name: np_recurring_instances
+    - name: todo_shares
+      using:
+        foreign_key_constraint_on:
+          column: todo_id
+          table:
+            schema: public
+            name: np_todo_shares
   insert_permissions:
     - role: user
       permission:
@@ -75,6 +95,7 @@
           - description
           - completed
           - is_public
+          - source_account_id
         check:
           user_id:
             _eq: X-Hasura-User-Id
@@ -90,6 +111,7 @@
           - description
           - completed
           - is_public
+          - source_account_id
           - created_at
           - updated_at
         filter:
@@ -129,11 +151,11 @@
             _eq: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_todo_shares table
+# np_todo_shares table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_todo_shares
+    name: np_todo_shares
   object_relationships:
     - name: todo
       using:
@@ -182,11 +204,11 @@
               _eq: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_notifications table
+# np_notifications table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_notifications
+    name: np_notifications
   select_permissions:
     - role: user
       permission:
@@ -199,6 +221,7 @@
           - data
           - read
           - action_url
+          - source_account_id
           - created_at
         filter:
           user_id:
@@ -211,14 +234,18 @@
         filter:
           user_id:
             _eq: X-Hasura-User-Id
-        check: {}
+        check: null
 
 # ---------------------------------------------------------------------------
-# app_recurring_instances table
+# np_recurring_instances table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_recurring_instances
+    name: np_recurring_instances
+  object_relationships:
+    - name: todo
+      using:
+        foreign_key_constraint_on: parent_todo_id
   select_permissions:
     - role: user
       permission:
@@ -229,15 +256,21 @@
           - completed
           - completed_at
           - created_at
-        filter: {}
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
   update_permissions:
     - role: user
       permission:
         columns:
           - completed
           - completed_at
-        filter: {}
-        check: {}
+        filter:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+        check: null
   insert_permissions:
     - role: user
       permission:
@@ -245,15 +278,17 @@
           - parent_todo_id
           - instance_date
           - completed
-        check: {}
-        set: {}
+        check:
+          todo:
+            user_id:
+              _eq: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_user_preferences table
+# np_user_preferences table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_user_preferences
+    name: np_user_preferences
   select_permissions:
     - role: user
       permission:
@@ -265,6 +300,7 @@
           - theme_preference
           - default_list_id
           - notification_settings
+          - source_account_id
           - created_at
           - updated_at
         filter:
@@ -282,7 +318,7 @@
         filter:
           user_id:
             _eq: X-Hasura-User-Id
-        check: {}
+        check: null
   insert_permissions:
     - role: user
       permission:
@@ -299,11 +335,11 @@
           user_id: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_lists table
+# np_lists table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_lists
+    name: np_lists
   object_relationships:
     - name: owner
       using:
@@ -315,28 +351,28 @@
           column: list_id
           table:
             schema: public
-            name: app_todos
+            name: np_todos
     - name: shares
       using:
         foreign_key_constraint_on:
           column: list_id
           table:
             schema: public
-            name: app_list_shares
+            name: np_list_shares
     - name: members
       using:
         foreign_key_constraint_on:
           column: list_id
           table:
             schema: public
-            name: app_list_members
+            name: np_list_members
     - name: presence
       using:
         foreign_key_constraint_on:
           column: list_id
           table:
             schema: public
-            name: app_list_presence
+            name: np_list_presence
   insert_permissions:
     - role: user
       permission:
@@ -363,6 +399,7 @@
           - icon
           - is_default
           - position
+          - source_account_id
           - created_at
           - updated_at
         filter:
@@ -393,11 +430,11 @@
             _eq: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_list_shares table
+# np_list_shares table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_list_shares
+    name: np_list_shares
   object_relationships:
     - name: list
       using:
@@ -455,11 +492,11 @@
                 _eq: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_list_presence table (real-time presence tracking)
+# np_list_presence table (real-time presence tracking)
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_list_presence
+    name: np_list_presence
   object_relationships:
     - name: list
       using:
@@ -515,11 +552,11 @@
             _eq: X-Hasura-User-Id
 
 # ---------------------------------------------------------------------------
-# app_list_members table
+# np_list_members table
 # ---------------------------------------------------------------------------
 - table:
     schema: public
-    name: app_list_members
+    name: np_list_members
   object_relationships:
     - name: list
       using:
@@ -576,10 +613,3 @@
           list:
             user_id:
               _eq: X-Hasura-User-Id
-
-# ---------------------------------------------------------------------------
-# np_mux_rules table
-# ---------------------------------------------------------------------------
-- table:
-    schema: public
-    name: np_mux_rules

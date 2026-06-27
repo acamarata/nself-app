@@ -2,11 +2,11 @@
 -- Rollback for activity log audit trail (T-0589).
 -- Idempotent (IF EXISTS guards).
 
-DROP POLICY IF EXISTS "activity_insert" ON public.app_activity;
-DROP POLICY IF EXISTS "activity_select" ON public.app_activity;
+DROP POLICY IF EXISTS "activity_insert" ON public.np_activity;
+DROP POLICY IF EXISTS "activity_select" ON public.np_activity;
 
-DROP INDEX IF EXISTS app_activity_created_at_idx;
-DROP INDEX IF EXISTS app_activity_actor_id_idx;
-DROP INDEX IF EXISTS app_activity_todo_id_idx;
+DROP INDEX IF EXISTS np_activity_created_at_idx;
+DROP INDEX IF EXISTS np_activity_actor_id_idx;
+DROP INDEX IF EXISTS np_activity_todo_id_idx;
 
-DROP TABLE IF EXISTS public.app_activity;
+DROP TABLE IF EXISTS public.np_activity;
