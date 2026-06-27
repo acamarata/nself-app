@@ -2,6 +2,8 @@
 // Triggered on app_todos INSERT and UPDATE (status/assigned_to/title/priority changes)
 // Inserts an activity record and creates a notification for the assignee (if different from actor)
 
+import { Sentry } from './sentry';
+
 interface HasuraEvent {
   id: string;
   created_at: string;
@@ -31,56 +33,63 @@ async function gql(query: string, variables: Record<string, unknown>): Promise<u
 }
 
 export async function handleTaskActivity(event: HasuraEvent): Promise<{ success: boolean }> {
-  const task = event.data.new || event.data.old;
-  if (!task) return { success: true };
+  try {
+    const task = event.data.new || event.data.old;
+    if (!task) return { success: true };
 
-  const actorId = event.session_variables?.['x-hasura-user-id'] || task['user_id'] as string;
-  const action = event.op === 'INSERT' ? 'created' : 'updated';
+    const actorId = event.session_variables?.['x-hasura-user-id'] || task['user_id'] as string;
+    const action = event.op === 'INSERT' ? 'created' : 'updated';
 
-  // Insert activity record
-  await gql(
-    `mutation LogActivity($todoId: uuid!, $actorId: uuid!, $action: String!, $meta: jsonb) {
-      insert_app_activity_one(object: {
-        todo_id: $todoId
-        actor_id: $actorId
-        action: $action
-        metadata: $meta
-      }) { id }
-    }`,
-    {
-      todoId: task['id'],
-      actorId,
-      action,
-      meta:
-        event.op === 'UPDATE'
-          ? { old: event.data.old, new: event.data.new }
-          : null,
-    },
-  );
-
-  // Notify assignee when task is newly assigned (and assignee ≠ actor)
-  const newAssignee = event.data.new?.['assigned_to_user_id'] as string | undefined;
-  const oldAssignee = event.data.old?.['assigned_to_user_id'] as string | undefined;
-  if (newAssignee && newAssignee !== actorId && newAssignee !== oldAssignee) {
+    // Insert activity record
     await gql(
-      `mutation Notify($userId: uuid!, $todoId: uuid!, $type: String!, $title: String!, $body: String!) {
-        insert_app_notifications_one(object: {
-          user_id: $userId
+      `mutation LogActivity($todoId: uuid!, $actorId: uuid!, $action: String!, $meta: jsonb) {
+        insert_app_activity_one(object: {
           todo_id: $todoId
-          type: $type
-          title: $title
-          body: $body
+          actor_id: $actorId
+          action: $action
+          metadata: $meta
         }) { id }
       }`,
       {
-        userId: newAssignee,
         todoId: task['id'],
-        type: 'task_assigned',
-        title: 'Task assigned to you',
-        body: `"${task['title']}" was assigned to you`,
+        actorId,
+        action,
+        meta:
+          event.op === 'UPDATE'
+            ? { old: event.data.old, new: event.data.new }
+            : null,
       },
     );
-  }
 
-  return { success: true };
+    // Notify assignee when task is newly assigned (and assignee ≠ actor)
+    const newAssignee = event.data.new?.['assigned_to_user_id'] as string | undefined;
+    const oldAssignee = event.data.old?.['assigned_to_user_id'] as string | undefined;
+    if (newAssignee && newAssignee !== actorId && newAssignee !== oldAssignee) {
+      await gql(
+        `mutation Notify($userId: uuid!, $todoId: uuid!, $type: String!, $title: String!, $body: String!) {
+          insert_app_notifications_one(object: {
+            user_id: $userId
+            todo_id: $todoId
+            type: $type
+            title: $title
+            body: $body
+          }) { id }
+        }`,
+        {
+          userId: newAssignee,
+          todoId: task['id'],
+          type: 'task_assigned',
+          title: 'Task assigned to you',
+          body: `"${task['title']}" was assigned to you`,
+        },
+      );
+    }
+
+    return { success: true };
+  } catch (err) {
+    Sentry.captureException(err, { tags: { function: 'task-activity' } });
+    throw err;
+  } finally {
+    await Sentry.flush(2000);
+  }
 }
