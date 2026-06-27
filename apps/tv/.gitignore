@@ -1,0 +1,24 @@
+# Environment files — never commit these
+.env.local
+.env*.local
+.env.dev
+.env.production
+.env.staging
+
+# Build artifacts
+dist/
+.expo/
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+google-services-key.json
+
+# Expo
+.expo-shared/
+
+# Node
+node_modules/

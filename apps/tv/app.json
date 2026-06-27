@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "ɳTask TV",
+    "slug": "ntask-tv",
+    "version": "1.1.4",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "orientation": "landscape",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#030712"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "isTV": true,
+      "bundleIdentifier": "org.nself.ntask.tv"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#030712"
+      },
+      "package": "org.nself.ntask.tv",
+      "isTV": true,
+      "intentFilters": [
+        {
+          "action": "android.intent.action.MAIN",
+          "category": [
+            "android.intent.category.LAUNCHER",
+            "android.intent.category.LEANBACK_LAUNCHER"
+          ]
+        }
+      ],
+      "banner": "./assets/android-tv-banner.png"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ntask-tv"
+      }
+    }
+  }
+}

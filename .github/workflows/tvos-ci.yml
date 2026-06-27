@@ -1,0 +1,57 @@
+name: tvOS CI
+
+# Replaces the android-tv-ci.yml tombstone (Epic F). Runs typecheck + lint + unit tests
+# for apps/tv on every push/PR touching the TV app directory.
+# Native build jobs (EAS tvOS IPA, Android TV APK) are in separate workflow files
+# triggered on tag push or workflow_dispatch once provisioning is complete.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/tv/**'
+      - '.github/workflows/tvos-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/tv/**'
+      - '.github/workflows/tvos-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Typecheck + Lint + Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/tv
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: '10.30.1'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies (workspace root)
+        working-directory: '.'
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
