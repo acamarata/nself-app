@@ -29,3 +29,13 @@ jobs:
         run: |
           nself version
           nself help
+  version-lockstep:
+    name: Version Lockstep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check version lockstep
+        run: bash scripts/check-version-lockstep.sh
