@@ -9,10 +9,10 @@ name: Mobile CI
 on:
   push:
     branches: [main]
-    paths: ['apps/mobile/**', '.github/workflows/flutter-ci.yml']
+    paths: ['apps/mobile/**', '.github/workflows/mobile-ci.yml']
   pull_request:
     branches: [main]
-    paths: ['apps/mobile/**', '.github/workflows/flutter-ci.yml']
+    paths: ['apps/mobile/**', '.github/workflows/mobile-ci.yml']
   workflow_dispatch:
 
 concurrency:
