@@ -183,7 +183,7 @@ async function handleRequest(
   const actionHandler = actionRoutes[url];
   if (actionHandler) {
     try {
-      const result = await actionHandler(body as HasuraActionPayload);
+      const result = await actionHandler(body as unknown as HasuraActionPayload);
       jsonResponse(res, 200, result);
     } catch (err) {
       const e = err as Error & { extensions?: Record<string, unknown> };
