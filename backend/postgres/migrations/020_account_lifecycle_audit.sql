@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_np_account_activity_action
 -- RLS: users can only read their own account activity
 ALTER TABLE public.np_account_activity ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "account_activity_select_own" ON public.np_account_activity;
 CREATE POLICY "account_activity_select_own"
   ON public.np_account_activity FOR SELECT
   USING (user_id = auth.uid());

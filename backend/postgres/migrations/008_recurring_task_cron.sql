@@ -1,12 +1,14 @@
--- Migration 008: Server-side recurring task instance creation via pg_cron
+-- Migration 008: Server-side recurring task instance creation
 -- T-2423: Moves recurring task reset logic from client-side (recurring-reset.ts)
--- to a server-side scheduled event that runs daily at 3:00 AM UTC.
+-- to a server-side function callable by Hasura cron triggers.
 --
--- Requires pg_cron extension (available in PostgreSQL 14+ with the pg_cron package).
--- nself installs pg_cron automatically when using the cron plugin, or it can be
--- enabled manually: `CREATE EXTENSION IF NOT EXISTS pg_cron;`
-
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- Scheduling strategy: Hasura cron triggers (hasura/metadata/cron_triggers.yaml)
+-- call public.create_recurring_instances() daily at 3:00 AM UTC via a GraphQL
+-- action. pg_cron is NOT required on standard postgres:16-alpine images. The
+-- pg_cron schedule block is guarded to be a no-op when the extension is absent.
+--
+-- The PL/pgSQL function below is ALWAYS created (it is the callable target).
+-- Only the cron.schedule() call is optional/guarded.
 
 -- Function: create recurring task instances for today
 -- Evaluates recurrence_rule patterns (daily, weekly:mon,wed,fri, monthly:15)
@@ -75,9 +77,25 @@ BEGIN
 END;
 $$;
 
--- Schedule the function to run daily at 3:00 AM UTC
-SELECT cron.schedule(
-  'ntask-create-recurring-instances',
-  '0 3 * * *',
-  'SELECT public.create_recurring_instances()'
-);
+-- pg_cron scheduling: only if the extension is already available in this PG build.
+-- On standard postgres:16-alpine this block is a no-op.
+-- Hasura cron trigger 'create-recurring-instances' (cron_triggers.yaml) is the
+-- authoritative scheduler and does not require pg_cron.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'pg_cron') THEN
+    EXECUTE 'CREATE EXTENSION IF NOT EXISTS pg_cron';
+    EXECUTE $inner$
+      SELECT cron.schedule(
+        'ntask-create-recurring-instances',
+        '0 3 * * *',
+        'SELECT public.create_recurring_instances()'
+      )
+    $inner$;
+  END IF;
+EXCEPTION
+  WHEN undefined_table    THEN NULL;
+  WHEN undefined_function THEN NULL;
+  WHEN others             THEN NULL;
+END;
+$$;

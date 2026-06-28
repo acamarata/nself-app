@@ -9,20 +9,21 @@
 -- NOTE: Most FKs were created with ON DELETE CASCADE already (per migrations 001-018).
 -- This migration audits and adds any missing CASCADE constraints.
 
--- np_profiles — user_id FK (should be CASCADE from init; add if missing)
+-- np_profiles — id FK to auth.users(id) (np_profiles.id IS the user id; ensure CASCADE)
+-- Note: np_profiles uses 'id' as its PK and the FK to auth.users, not a separate 'user_id'.
 DO $$
 BEGIN
-  -- Drop + recreate only if not already CASCADE
+  -- Drop + recreate only if the FK delete rule is not CASCADE
   IF EXISTS (
     SELECT 1 FROM information_schema.referential_constraints rc
     JOIN information_schema.table_constraints tc ON rc.constraint_name = tc.constraint_name
     WHERE tc.table_name = 'np_profiles'
       AND rc.delete_rule <> 'CASCADE'
   ) THEN
-    ALTER TABLE public.np_profiles DROP CONSTRAINT IF EXISTS np_profiles_user_id_fkey;
+    ALTER TABLE public.np_profiles DROP CONSTRAINT IF EXISTS np_profiles_id_fkey;
     ALTER TABLE public.np_profiles
-      ADD CONSTRAINT np_profiles_user_id_fkey
-        FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+      ADD CONSTRAINT np_profiles_id_fkey
+        FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
   END IF;
 END $$;
 

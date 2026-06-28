@@ -18,6 +18,7 @@ CREATE INDEX IF NOT EXISTS np_activity_created_at_idx ON public.np_activity(crea
 ALTER TABLE public.np_activity ENABLE ROW LEVEL SECURITY;
 
 -- List/todo owners can see activity on their todos
+DROP POLICY IF EXISTS "activity_select" ON public.np_activity;
 CREATE POLICY "activity_select" ON public.np_activity
   FOR SELECT USING (
     EXISTS (
@@ -34,5 +35,6 @@ CREATE POLICY "activity_select" ON public.np_activity
   );
 
 -- Only actors can insert their own activity
+DROP POLICY IF EXISTS "activity_insert" ON public.np_activity;
 CREATE POLICY "activity_insert" ON public.np_activity
   FOR INSERT WITH CHECK (actor_id = auth.uid());

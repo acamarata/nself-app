@@ -69,16 +69,18 @@ CREATE INDEX IF NOT EXISTS idx_np_lists_user_id_position
 -- ---------------------------------------------------------------------------
 
 -- Pattern: reminders to dispatch (cron every 5 min)
-CREATE INDEX IF NOT EXISTS idx_np_reminders_remind_at_dispatched
-  ON public.np_reminders (remind_at, dispatched)
-  WHERE dispatched = false;
+-- Column is 'sent' in the actual schema (migration 013 used 'sent', not 'dispatched')
+CREATE INDEX IF NOT EXISTS idx_np_reminders_remind_at_sent
+  ON public.np_reminders (remind_at, sent)
+  WHERE sent = false;
 
 -- ---------------------------------------------------------------------------
 -- np_todo_assignees indexes (if table exists — created in migration 015)
 -- ---------------------------------------------------------------------------
 
-CREATE INDEX IF NOT EXISTS idx_np_todo_assignees_user_id
-  ON public.np_todo_assignees (user_id);
+-- assignee_id is the user-facing column (user_id does not exist on this table)
+CREATE INDEX IF NOT EXISTS idx_np_todo_assignees_assignee_id_2
+  ON public.np_todo_assignees (assignee_id);
 
 -- ---------------------------------------------------------------------------
 -- Enable pg_stat_statements for N+1 detection (K-S4-T18)

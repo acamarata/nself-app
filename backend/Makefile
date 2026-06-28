@@ -19,7 +19,7 @@ COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.production
 
 # Default values (override via .env.dev)
 POSTGRES_USER ?= postgres
-POSTGRES_DB ?= ntask
+POSTGRES_DB ?= nself
 HASURA_ADMIN_SECRET ?= nself-admin-secret
 
 # ---------------------------------------------------------------------------
@@ -125,13 +125,15 @@ dr-test: ## Disaster recovery drill: restore latest backup to scratch DB and ver
 console: ## Open Hasura Console (requires hasura-cli)
 	cd hasura && hasura console --admin-secret $(HASURA_ADMIN_SECRET)
 
-.PHONY: migrate
-migrate: ## Apply all pending Hasura migrations
-	cd hasura && hasura migrate apply --database-name default --admin-secret $(HASURA_ADMIN_SECRET)
+.PHONY: db-migrate
+db-migrate: ## Apply postgres/init.sql + all postgres/migrations/*.sql (idempotent psql runner)
+	@bash scripts/db-migrate.sh
 
 .PHONY: migrate-status
-migrate-status: ## Show migration status
-	cd hasura && hasura migrate status --database-name default --admin-secret $(HASURA_ADMIN_SECRET)
+migrate-status: ## Show which migrations have been applied
+	@docker compose exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
+	  -c "SELECT filename, applied_at FROM public.schema_migrations ORDER BY filename;" \
+	  2>/dev/null || echo "(schema_migrations table not yet created — run make db-migrate)"
 
 .PHONY: metadata-apply
 metadata-apply: ## Apply Hasura metadata
@@ -199,12 +201,6 @@ bootstrap: ## One-command local dev setup (idempotent; safe to re-run)
 .PHONY: upgrade
 upgrade: ## Upgrade ntask: backup -> pull -> rebuild -> migrate -> health
 	@bash scripts/upgrade.sh
-
-.PHONY: migrate
-migrate: ## Apply pending Hasura migrations and metadata
-	cd hasura && hasura migrate apply --database-name default \
-	  --admin-secret $(HASURA_ADMIN_SECRET)
-	cd hasura && hasura metadata apply --admin-secret $(HASURA_ADMIN_SECRET)
 
 .PHONY: demo-seed
 demo-seed: ## Seed demo data (requires DEMO_SEED=1 to prevent accidents)
