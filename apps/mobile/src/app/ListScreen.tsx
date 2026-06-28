@@ -31,6 +31,7 @@ import { useNetworkState } from '../hooks/useNetworkState';
 import { enqueue, queueSize } from '../lib/offline-queue';
 import { generateIdempotencyKey } from '../lib/idempotency';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
+import { useTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'List'>;
 
@@ -57,6 +58,7 @@ const OPTIMISTIC_DEFAULTS = {
 } as const;
 
 export function ListScreen({ route, navigation }: Props) {
+  const { colors } = useTheme();
   const { listId, listTitle } = route.params;
   const { tasks, loading, error, refetch } = useTasks(listId);
   const { createTask, toggleTask, deleteTask } = useTaskMutations(listId);
@@ -195,19 +197,19 @@ export function ListScreen({ route, navigation }: Props) {
         keyExtractor={(t: DisplayTask) => t.id}
         estimatedItemSize={60}
         renderItem={renderTask}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} tintColor="#6366f1" />}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} tintColor={colors.primary} />}
       />
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back">
-          <Text style={styles.back}>‹ Back</Text>
+          <Text style={[styles.back, { color: colors.primary }]}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title} numberOfLines={1}>{listTitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{listTitle}</Text>
         <TouchableOpacity
           style={styles.membersBtn}
           onPress={() => navigation.navigate('ListMembers', {
@@ -232,12 +234,12 @@ export function ListScreen({ route, navigation }: Props) {
       </View>
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
         onPress={() => setModalVisible(true)}
         accessibilityLabel="Add task"
         accessibilityRole="button"
       >
-        <Text style={styles.fabText}>+</Text>
+        <Text style={[styles.fabText, { color: colors.textOnPrimary }]}>+</Text>
       </TouchableOpacity>
 
       <AddTaskModal
@@ -270,13 +272,13 @@ function useQueueAwareNetwork(onReconnect: () => void) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  back: { fontSize: 16, color: '#6366f1', width: 60 },
-  title: { fontSize: 17, fontWeight: '700', color: '#111827', flex: 1, textAlign: 'center' },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, borderBottomWidth: 1 },
+  back: { fontSize: 16, width: 60 },
+  title: { fontSize: 17, fontWeight: '700', flex: 1, textAlign: 'center' },
   membersBtn: { width: 60, alignItems: 'flex-end', justifyContent: 'center' },
   membersBtnText: { fontSize: 20 },
   body: { flex: 1 },
-  fab: { position: 'absolute', bottom: 32, right: 20, backgroundColor: '#6366f1', width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#6366f1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
-  fabText: { color: '#fff', fontSize: 28, lineHeight: 32 },
+  fab: { position: 'absolute', bottom: 32, right: 20, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
+  fabText: { fontSize: 28, lineHeight: 32 },
 });

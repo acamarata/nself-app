@@ -24,6 +24,8 @@ interface MarkDoneButtonTVProps {
   completed: boolean
   onSuccess?: () => void
   id?: string
+  /** Android TV: nativeID of the element below (typically the Back button). */
+  nextFocusDown?: string
 }
 
 export function MarkDoneButtonTV({
@@ -32,6 +34,7 @@ export function MarkDoneButtonTV({
   completed,
   onSuccess,
   id = 'mark-done-btn',
+  nextFocusDown,
 }: MarkDoneButtonTVProps) {
   const { t } = useTranslation('screens')
   const { markDone, loading } = useMarkDone()
@@ -57,6 +60,7 @@ export function MarkDoneButtonTV({
       id={id}
       onSelect={handleSelect}
       disabled={loading}
+      nextFocusDown={nextFocusDown}
       accessibilityLabel={`Mark "${taskTitle}" as done`}
       style={styles.button}
     >

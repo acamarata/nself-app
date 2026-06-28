@@ -27,6 +27,7 @@ import {
 } from '../components/seven-states';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
 import { projectCreateSchema } from '../lib/validation';
+import { useTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -38,6 +39,7 @@ function parseColor(hex: string): string {
 }
 
 export function HomeScreen({ navigation }: Props) {
+  const { colors } = useTheme();
   const [result, reexecuteQuery] = useQuery<ListsData>({
     query: GET_LISTS,
     requestPolicy: 'cache-and-network',
@@ -104,10 +106,10 @@ export function HomeScreen({ navigation }: Props) {
         data={lists}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} tintColor="#6366f1" />}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} tintColor={colors.primary} />}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, { backgroundColor: colors.surfaceElevated, shadowColor: colors.shadow }]}
             onPress={() => navigation.navigate('List', { listId: item.id, listTitle: item.title })}
             onLongPress={() => Alert.alert(item.title, undefined, [
               { text: 'Rename', onPress: () => openRename(item) },
@@ -119,10 +121,10 @@ export function HomeScreen({ navigation }: Props) {
           >
             <View style={[styles.colorDot, { backgroundColor: parseColor(item.color) }]} />
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              {item.description ? <Text style={styles.cardDesc} numberOfLines={1}>{item.description}</Text> : null}
+              <Text style={[styles.cardTitle, { color: colors.text }]}>{item.title}</Text>
+              {item.description ? <Text style={[styles.cardDesc, { color: colors.textTertiary }]} numberOfLines={1}>{item.description}</Text> : null}
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: colors.border }]}>›</Text>
           </TouchableOpacity>
         )}
       />
@@ -130,10 +132,10 @@ export function HomeScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>ɳTask</Text>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
+        <Text style={[styles.headerTitle, { color: colors.primary }]}>ɳTask</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
             onPress={() => navigation.navigate('Notifications')}
@@ -171,17 +173,22 @@ export function HomeScreen({ navigation }: Props) {
       </View>
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab} onPress={openCreate} accessibilityLabel="New list" accessibilityRole="button">
-        <Text style={styles.fabText}>+ New list</Text>
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
+        onPress={openCreate}
+        accessibilityLabel="New list"
+        accessibilityRole="button"
+      >
+        <Text style={[styles.fabText, { color: colors.textOnPrimary }]}>+ New list</Text>
       </TouchableOpacity>
 
       {/* Create / rename modal */}
       <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.overlay}>
-          <View style={styles.modal} accessibilityViewIsModal={true}>
-            <Text style={styles.modalTitle}>{editTarget ? 'Rename list' : 'New list'}</Text>
+          <View style={[styles.modal, { backgroundColor: colors.surfaceElevated }]} accessibilityViewIsModal={true}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{editTarget ? 'Rename list' : 'New list'}</Text>
             <TextInput
-              style={[styles.modalInput, !!modalError && styles.modalInputError]}
+              style={[styles.modalInput, { borderColor: modalError ? colors.danger : colors.border }]}
               value={modalTitle}
               onChangeText={(t) => { setModalTitle(t); setModalError(null); }}
               placeholder="List name"
@@ -189,13 +196,13 @@ export function HomeScreen({ navigation }: Props) {
               maxLength={100}
               accessibilityLabel="List name"
             />
-            {!!modalError && <Text style={styles.validationError}>{modalError}</Text>}
+            {!!modalError && <Text style={[styles.validationError, { color: colors.danger }]}>{modalError}</Text>}
             <View style={styles.modalActions}>
               <TouchableOpacity onPress={() => setModalVisible(false)} accessibilityRole="button" accessibilityLabel="Cancel">
-                <Text style={styles.modalCancel}>Cancel</Text>
+                <Text style={[styles.modalCancel, { color: colors.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSave} accessibilityRole="button" accessibilityLabel={editTarget ? 'Save list name' : 'Create list'}>
-                <Text style={styles.modalSave}>Save</Text>
+                <Text style={[styles.modalSave, { color: colors.primary }]}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -206,29 +213,28 @@ export function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#6366f1' },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16, borderBottomWidth: 1 },
+  headerTitle: { fontSize: 22, fontWeight: '800' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerIcon: { padding: 6 },
   headerIconText: { fontSize: 20 },
   body: { flex: 1 },
   listContent: { padding: 16, gap: 10 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 },
+  card: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 16, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 },
   colorDot: { width: 40, height: 40, borderRadius: 10, marginRight: 16 },
   cardContent: { flex: 1 },
-  cardTitle: { fontSize: 15, fontWeight: '600', color: '#111827' },
-  cardDesc: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
-  chevron: { fontSize: 22, color: '#d1d5db' },
-  fab: { position: 'absolute', bottom: 32, right: 20, backgroundColor: '#6366f1', paddingVertical: 14, paddingHorizontal: 24, borderRadius: 28, shadowColor: '#6366f1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
-  fabText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  cardTitle: { fontSize: 15, fontWeight: '600' },
+  cardDesc: { fontSize: 12, marginTop: 2 },
+  chevron: { fontSize: 22 },
+  fab: { position: 'absolute', bottom: 32, right: 20, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 28, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
+  fabText: { fontSize: 15, fontWeight: '700' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 32 },
-  modal: { backgroundColor: '#fff', borderRadius: 16, padding: 24 },
-  modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 16 },
-  modalInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 8 },
-  modalInputError: { borderColor: '#dc2626' },
-  validationError: { fontSize: 12, color: '#dc2626', marginBottom: 12 },
+  modal: { borderRadius: 16, padding: 24 },
+  modalTitle: { fontSize: 17, fontWeight: '700', marginBottom: 16 },
+  modalInput: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 8 },
+  validationError: { fontSize: 12, marginBottom: 12 },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 20, marginTop: 12 },
-  modalCancel: { fontSize: 15, color: '#6b7280' },
-  modalSave: { fontSize: 15, color: '#6366f1', fontWeight: '700' },
+  modalCancel: { fontSize: 15 },
+  modalSave: { fontSize: 15, fontWeight: '700' },
 });

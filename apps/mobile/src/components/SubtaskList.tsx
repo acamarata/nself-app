@@ -15,6 +15,7 @@ import { useQuery } from 'urql';
 import type { NpSubtask } from '../types';
 import { GET_SUBTASKS } from '../lib/hasura';
 import { useSubtaskMutations } from '../hooks/useTaskMutations';
+import { useTheme } from '../theme';
 
 interface SubtasksData {
   np_subtasks: NpSubtask[];
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function SubtaskList({ todoId }: Props) {
+  const { colors } = useTheme();
   const [result, reexecute] = useQuery<SubtasksData>({
     query: GET_SUBTASKS,
     variables: { todoId },
@@ -58,7 +60,7 @@ export function SubtaskList({ todoId }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionLabel}>
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
           SUBTASKS {subtasks.length > 0 ? `(${done}/${subtasks.length})` : ''}
         </Text>
         <TouchableOpacity
@@ -66,16 +68,16 @@ export function SubtaskList({ todoId }: Props) {
           accessibilityLabel={adding ? 'Cancel adding subtask' : 'Add subtask'}
           accessibilityRole="button"
         >
-          <Text style={styles.addBtn}>{adding ? 'Done' : '+ Add'}</Text>
+          <Text style={[styles.addBtn, { color: colors.primary }]}>{adding ? 'Done' : '+ Add'}</Text>
         </TouchableOpacity>
       </View>
 
       {result.fetching && subtasks.length === 0 && (
-        <ActivityIndicator size="small" color="#6366f1" style={{ marginVertical: 8 }} />
+        <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 8 }} />
       )}
 
       {subtasks.map((subtask) => (
-        <View key={subtask.id} style={styles.row}>
+        <View key={subtask.id} style={[styles.row, { borderBottomColor: colors.borderSubtle }]}>
           <TouchableOpacity
             onPress={() => handleToggle(subtask)}
             style={styles.checkbox}
@@ -83,11 +85,11 @@ export function SubtaskList({ todoId }: Props) {
             accessibilityState={{ checked: subtask.is_done }}
             accessibilityLabel={subtask.title}
           >
-            <View style={[styles.checkboxBox, subtask.is_done && styles.checkboxChecked]}>
-              {subtask.is_done && <Text style={styles.checkmark}>✓</Text>}
+            <View style={[styles.checkboxBox, { borderColor: colors.primary }, subtask.is_done && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+              {subtask.is_done && <Text style={[styles.checkmark, { color: colors.textOnPrimary }]}>✓</Text>}
             </View>
           </TouchableOpacity>
-          <Text style={[styles.subtaskTitle, subtask.is_done && styles.subtaskDone]} numberOfLines={2}>
+          <Text style={[styles.subtaskTitle, { color: colors.text }, subtask.is_done && { textDecorationLine: 'line-through', color: colors.textDisabled }]} numberOfLines={2}>
             {subtask.title}
           </Text>
           <TouchableOpacity
@@ -96,19 +98,19 @@ export function SubtaskList({ todoId }: Props) {
             accessibilityLabel={`Delete subtask ${subtask.title}`}
             accessibilityRole="button"
           >
-            <Text style={styles.deleteBtnText}>×</Text>
+            <Text style={[styles.deleteBtnText, { color: colors.border }]}>×</Text>
           </TouchableOpacity>
         </View>
       ))}
 
       {subtasks.length === 0 && !result.fetching && !adding && (
-        <Text style={styles.empty}>No subtasks yet.</Text>
+        <Text style={[styles.empty, { color: colors.textTertiary }]}>No subtasks yet.</Text>
       )}
 
       {adding && (
         <View style={styles.addRow}>
           <TextInput
-            style={styles.addInput}
+            style={[styles.addInput, { borderColor: colors.border, backgroundColor: colors.surfaceElevated }]}
             value={newTitle}
             onChangeText={setNewTitle}
             placeholder="Subtask title"
@@ -119,15 +121,15 @@ export function SubtaskList({ todoId }: Props) {
           />
           <TouchableOpacity
             onPress={handleAdd}
-            style={[styles.addSaveBtn, (!newTitle.trim() || creating) && styles.addSaveBtnDisabled]}
+            style={[styles.addSaveBtn, { backgroundColor: colors.primary }, (!newTitle.trim() || creating) && styles.addSaveBtnDisabled]}
             disabled={!newTitle.trim() || creating}
             accessibilityLabel="Save subtask"
             accessibilityRole="button"
           >
             {creating ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.textOnPrimary} />
             ) : (
-              <Text style={styles.addSaveBtnText}>Add</Text>
+              <Text style={[styles.addSaveBtnText, { color: colors.textOnPrimary }]}>Add</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -139,21 +141,19 @@ export function SubtaskList({ todoId }: Props) {
 const styles = StyleSheet.create({
   container: { marginTop: 8 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 },
-  addBtn: { fontSize: 14, color: '#6366f1', fontWeight: '600' },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  sectionLabel: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  addBtn: { fontSize: 14, fontWeight: '600' },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1 },
   checkbox: { marginRight: 10, padding: 2 },
-  checkboxBox: { width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: '#6366f1', alignItems: 'center', justifyContent: 'center' },
-  checkboxChecked: { backgroundColor: '#6366f1', borderColor: '#6366f1' },
-  checkmark: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  subtaskTitle: { flex: 1, fontSize: 14, color: '#111827' },
-  subtaskDone: { textDecorationLine: 'line-through', color: '#9ca3af' },
+  checkboxBox: { width: 20, height: 20, borderRadius: 4, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  checkmark: { fontSize: 12, fontWeight: '700' },
+  subtaskTitle: { flex: 1, fontSize: 14 },
   deleteBtn: { padding: 6 },
-  deleteBtnText: { fontSize: 18, color: '#d1d5db', fontWeight: '300' },
-  empty: { fontSize: 13, color: '#9ca3af', fontStyle: 'italic', paddingVertical: 4 },
+  deleteBtnText: { fontSize: 18, fontWeight: '300' },
+  empty: { fontSize: 13, fontStyle: 'italic', paddingVertical: 4 },
   addRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  addInput: { flex: 1, borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 10, fontSize: 14, backgroundColor: '#fff' },
-  addSaveBtn: { backgroundColor: '#6366f1', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10 },
-  addSaveBtnDisabled: { backgroundColor: '#c4b5fd' },
-  addSaveBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  addInput: { flex: 1, borderWidth: 1, borderRadius: 8, padding: 10, fontSize: 14 },
+  addSaveBtn: { borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10 },
+  addSaveBtnDisabled: { opacity: 0.5 },
+  addSaveBtnText: { fontWeight: '700', fontSize: 14 },
 });

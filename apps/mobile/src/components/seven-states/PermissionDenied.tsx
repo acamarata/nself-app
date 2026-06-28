@@ -8,17 +8,20 @@
 
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../../theme';
 
 interface Props {
   message?: string;
 }
 
 export function PermissionDenied({ message }: Props) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container} accessibilityRole="alert">
       <Text style={styles.icon}>🔒</Text>
-      <Text style={styles.title}>Access Required</Text>
-      <Text style={styles.message}>
+      <Text style={[styles.title, { color: colors.textSecondary }]}>Access Required</Text>
+      <Text style={[styles.message, { color: colors.textTertiary }]}>
         {message ?? 'Please reconnect to your nSelf server to access your tasks.'}
       </Text>
     </View>
@@ -40,11 +43,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
   },
   message: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
   },

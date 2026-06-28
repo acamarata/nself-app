@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { ThemeProvider } from '../theme';
 import { SettingsScreen } from '../app/SettingsScreen';
 
 jest.mock('../hooks/useSettings', () => ({
@@ -28,14 +29,18 @@ const mockNavigation = { goBack: jest.fn(), navigate: jest.fn() };
 describe('SettingsScreen', () => {
   it('renders server URL input', () => {
     const { getByDisplayValue } = render(
-      <SettingsScreen navigation={mockNavigation as any} route={{} as any} />,
+      <ThemeProvider>
+        <SettingsScreen navigation={mockNavigation as any} route={{} as any} />
+      </ThemeProvider>,
     );
     expect(getByDisplayValue('https://example.com')).toBeTruthy();
   });
 
   it('renders language options', () => {
     const { getByLabelText } = render(
-      <SettingsScreen navigation={mockNavigation as any} route={{} as any} />,
+      <ThemeProvider>
+        <SettingsScreen navigation={mockNavigation as any} route={{} as any} />
+      </ThemeProvider>,
     );
     expect(getByLabelText('English')).toBeTruthy();
     expect(getByLabelText('العربية')).toBeTruthy();
@@ -45,7 +50,9 @@ describe('SettingsScreen', () => {
 
   it('renders appearance options', () => {
     const { getByLabelText } = render(
-      <SettingsScreen navigation={mockNavigation as any} route={{} as any} />,
+      <ThemeProvider>
+        <SettingsScreen navigation={mockNavigation as any} route={{} as any} />
+      </ThemeProvider>,
     );
     expect(getByLabelText('System')).toBeTruthy();
     expect(getByLabelText('Light')).toBeTruthy();

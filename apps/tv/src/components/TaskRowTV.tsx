@@ -51,6 +51,8 @@ interface TaskRowTVProps {
   id: string
   nextFocusUp?: string
   nextFocusDown?: string
+  /** Android TV: nativeID of the element to the left of the main area (typically the sidebar). */
+  nextFocusLeft?: string
 }
 
 export function TaskRowTV({
@@ -61,6 +63,7 @@ export function TaskRowTV({
   id,
   nextFocusUp,
   nextFocusDown,
+  nextFocusLeft,
 }: TaskRowTVProps) {
   const { t } = useTranslation('screens')
   const markDoneId = `${id}-done`
@@ -72,8 +75,7 @@ export function TaskRowTV({
   if (dueBucket === 'today') {
     dueLabel = t('dashboard.today')
   } else if (dueBucket === 'tomorrow') {
-    // "Tomorrow" is not in screens.json but is a common pattern; add a fallback
-    dueLabel = 'Tomorrow'
+    dueLabel = t('dashboard.tomorrow')
   } else if (dueBucket === 'overdue') {
     const d = new Date(task.due_date!)
     const formatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -90,6 +92,7 @@ export function TaskRowTV({
         onSelect={onSelect}
         nextFocusUp={nextFocusUp}
         nextFocusDown={nextFocusDown}
+        nextFocusLeft={nextFocusLeft}
         nextFocusRight={task.completed ? undefined : markDoneId}
         accessibilityLabel={`${task.title}${dueLabel ? `, due ${dueLabel}` : ''}`}
         style={styles.mainArea}

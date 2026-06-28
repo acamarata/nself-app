@@ -6,6 +6,7 @@
  * Outputs: NavigationContainer with Login|Home|List|TaskDetail|Settings|Profile|Notifications screens,
  *          Sentry + OTel registered, ThemeProvider wrapping app, deep link handler registered.
  * Constraints: Shows Login if no access token; mirrors Flutter NTasksApp auth gate.
+ *   ErrorBoundary: top-level + authenticated-subtree boundaries report to Sentry.
  *   @nself/ui is web-only (Radix/shadcn); native loading spinner stays RN ActivityIndicator.
  *   @nself/observability wired at module level with @sentry/react-native SDK injection.
  *   Sentry.wrap(App) used as default export for native crash capture (JS + native threads).
@@ -33,6 +34,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { usePushToken } from '../hooks/usePushToken';
 import { createUrqlClient } from '../lib/api';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoginScreen } from './LoginScreen';
 import { HomeScreen } from './HomeScreen';
 import { ListScreen } from './ListScreen';
@@ -93,6 +95,14 @@ function getDeviceLocale(): Locale {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
+ * Sentry error reporter — shared onError callback for both ErrorBoundary instances.
+ * Captures the component stack alongside the error for easier diagnosis.
+ */
+function sentryOnError(err: Error, info: React.ErrorInfo) {
+  SentryRN.captureException(err, { extra: { componentStack: info.componentStack } });
+}
+
+/**
  * App-level offline-sync driver. Rendered inside UrqlProvider so useOfflineSync's
  * mutation hooks have a live client; drains the persisted mutation queue on reconnect.
  * Renders nothing.
@@ -127,21 +137,23 @@ function AuthenticatedApp({ serverUrl, accessToken }: { serverUrl: string; acces
   return (
     <UrqlProvider value={client}>
       <OfflineSyncDriver />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="List" component={ListScreen} />
-        <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Notifications" component={NotificationsScreen} />
-        <Stack.Screen name="ListMembers" component={ListMembersScreen} />
-        <Stack.Screen name="Account" component={AccountScreen} />
-        <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
-        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-        <Stack.Screen name="Sessions" component={SessionsScreen} />
-        <Stack.Screen name="MfaSetup" component={MfaSetupScreen} />
-        <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
-      </Stack.Navigator>
+      <ErrorBoundary onError={sentryOnError}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="List" component={ListScreen} />
+          <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="ListMembers" component={ListMembersScreen} />
+          <Stack.Screen name="Account" component={AccountScreen} />
+          <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
+          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+          <Stack.Screen name="Sessions" component={SessionsScreen} />
+          <Stack.Screen name="MfaSetup" component={MfaSetupScreen} />
+          <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+        </Stack.Navigator>
+      </ErrorBoundary>
     </UrqlProvider>
   );
 }
@@ -177,23 +189,25 @@ function App() {
   }
 
   return (
-    <ThemeProvider preference={themePreference} onPreferenceChange={handlePreferenceChange}>
-      <NselfI18nProvider locale={getDeviceLocale()}>
-        <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef}>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              {accessToken && serverUrl ? (
-                <Stack.Screen name="Home">
-                  {() => <AuthenticatedApp serverUrl={serverUrl} accessToken={accessToken} />}
-                </Stack.Screen>
-              ) : (
-                <Stack.Screen name="Login" component={LoginScreen} />
-              )}
-            </Stack.Navigator>
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </NselfI18nProvider>
-    </ThemeProvider>
+    <ErrorBoundary onError={sentryOnError}>
+      <ThemeProvider preference={themePreference} onPreferenceChange={handlePreferenceChange}>
+        <NselfI18nProvider locale={getDeviceLocale()}>
+          <SafeAreaProvider>
+            <NavigationContainer ref={navigationRef}>
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {accessToken && serverUrl ? (
+                  <Stack.Screen name="Home">
+                    {() => <AuthenticatedApp serverUrl={serverUrl} accessToken={accessToken} />}
+                  </Stack.Screen>
+                ) : (
+                  <Stack.Screen name="Login" component={LoginScreen} />
+                )}
+              </Stack.Navigator>
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </NselfI18nProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

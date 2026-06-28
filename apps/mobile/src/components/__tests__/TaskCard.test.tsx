@@ -15,7 +15,11 @@ jest.mock('../../i18n', () => ({
   getDeviceLocale: jest.fn(() => 'en'),
 }));
 
+import { ThemeProvider } from '../../theme';
 import { TaskCard } from '../TaskCard';
+
+/** Wraps TaskCard renders with ThemeProvider so useTheme() resolves. */
+const wrap = (ui: React.ReactElement) => render(<ThemeProvider>{ui}</ThemeProvider>);
 
 /** Minimal NpTask fixture — extend per test as needed */
 const baseTask: any = {
@@ -57,7 +61,7 @@ afterEach(() => {
 describe('TaskCard', () => {
   describe('title rendering', () => {
     it('renders the task title', () => {
-      const { getByText } = render(
+      const { getByText } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       expect(getByText('Buy groceries')).toBeTruthy();
@@ -65,7 +69,7 @@ describe('TaskCard', () => {
 
     it('renders with completed=true without crashing', () => {
       const task = { ...baseTask, completed: true };
-      const { getByText } = render(
+      const { getByText } = wrap(
         <TaskCard task={task} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       // Title should still be visible (with strikethrough style applied by the component)
@@ -74,7 +78,7 @@ describe('TaskCard', () => {
 
     it('title text element has line-through style when completed=true', () => {
       const task = { ...baseTask, completed: true };
-      const { getByText } = render(
+      const { getByText } = wrap(
         <TaskCard task={task} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       const titleEl = getByText('Buy groceries');
@@ -89,21 +93,21 @@ describe('TaskCard', () => {
 
   describe('pending state', () => {
     it('renders "Saving…" label when pending=true', () => {
-      const { getByText } = render(
+      const { getByText } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} pending />,
       );
       expect(getByText('Saving…')).toBeTruthy();
     });
 
     it('does not render "Saving…" when pending=false', () => {
-      const { queryByText } = render(
+      const { queryByText } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} pending={false} />,
       );
       expect(queryByText('Saving…')).toBeNull();
     });
 
     it('renders ActivityIndicator instead of checkbox when pending=true', () => {
-      const { UNSAFE_getByType } = render(
+      const { UNSAFE_getByType } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} pending />,
       );
       const { ActivityIndicator } = require('react-native');
@@ -114,7 +118,7 @@ describe('TaskCard', () => {
   describe('checkbox', () => {
     it('pressing checkbox calls onToggle(true) when task.completed=false', () => {
       const onToggle = jest.fn();
-      const { getByRole } = render(
+      const { getByRole } = wrap(
         <TaskCard task={baseTask} onToggle={onToggle} onDelete={noop} onPress={noop} />,
       );
       const checkbox = getByRole('checkbox');
@@ -125,7 +129,7 @@ describe('TaskCard', () => {
     it('pressing checkbox calls onToggle(false) when task.completed=true', () => {
       const onToggle = jest.fn();
       const task = { ...baseTask, completed: true };
-      const { getByRole } = render(
+      const { getByRole } = wrap(
         <TaskCard task={task} onToggle={onToggle} onDelete={noop} onPress={noop} />,
       );
       const checkbox = getByRole('checkbox');
@@ -137,7 +141,7 @@ describe('TaskCard', () => {
   describe('row press', () => {
     it('pressing the row calls onPress when pending=false', () => {
       const onPress = jest.fn();
-      const { getByLabelText } = render(
+      const { getByLabelText } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={onPress} pending={false} />,
       );
       fireEvent.press(getByLabelText('Buy groceries'));
@@ -148,7 +152,7 @@ describe('TaskCard', () => {
   describe('due date', () => {
     it('renders the ISO due date in LTR mode', () => {
       const task = { ...baseTask, due_date: '2026-12-31T00:00:00Z' };
-      const { getByText } = render(
+      const { getByText } = wrap(
         <TaskCard task={task} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       expect(getByText(/2026-12-31/)).toBeTruthy();
@@ -158,7 +162,7 @@ describe('TaskCard', () => {
       I18nManager.isRTL = true;
       const { formatHijriDate } = require('../../i18n');
       const task = { ...baseTask, due_date: '2026-12-31T00:00:00Z' };
-      const { getByText } = render(
+      const { getByText } = wrap(
         <TaskCard task={task} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       expect(formatHijriDate).toHaveBeenCalledWith('2026-12-31', 'ar');
@@ -166,7 +170,7 @@ describe('TaskCard', () => {
     });
 
     it('does not render a due date element when due_date is null', () => {
-      const { queryByText } = render(
+      const { queryByText } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       expect(queryByText(/Due:/)).toBeNull();
@@ -176,7 +180,7 @@ describe('TaskCard', () => {
   describe('priority dot', () => {
     it('renders priority dot when priority="high"', () => {
       const task = { ...baseTask, priority: 'high' };
-      const { UNSAFE_getAllByType } = render(
+      const { UNSAFE_getAllByType } = wrap(
         <TaskCard task={task} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       const { View } = require('react-native');
@@ -192,7 +196,7 @@ describe('TaskCard', () => {
     });
 
     it('does not render a colored priority dot when priority="none"', () => {
-      const { UNSAFE_getAllByType } = render(
+      const { UNSAFE_getAllByType } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       const { View } = require('react-native');
@@ -208,7 +212,7 @@ describe('TaskCard', () => {
 
     it('renders medium-priority dot (#f59e0b) when priority="medium"', () => {
       const task = { ...baseTask, priority: 'medium' };
-      const { UNSAFE_getAllByType } = render(
+      const { UNSAFE_getAllByType } = wrap(
         <TaskCard task={task} onToggle={noop} onDelete={noop} onPress={noop} />,
       );
       const { View } = require('react-native');
@@ -225,7 +229,7 @@ describe('TaskCard', () => {
 
   describe('accessibilityState', () => {
     it('sets accessibilityState.busy=true when pending=true', () => {
-      const { getByLabelText } = render(
+      const { getByLabelText } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} pending />,
       );
       const row = getByLabelText('Buy groceries');
@@ -233,7 +237,7 @@ describe('TaskCard', () => {
     });
 
     it('sets accessibilityState.busy=false when pending=false', () => {
-      const { getByLabelText } = render(
+      const { getByLabelText } = wrap(
         <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} pending={false} />,
       );
       const row = getByLabelText('Buy groceries');

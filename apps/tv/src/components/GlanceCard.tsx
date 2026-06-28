@@ -30,6 +30,8 @@ interface GlanceCardProps {
   onSelect: () => void
   nextFocusLeft?: string
   nextFocusRight?: string
+  /** tvOS UIFocusEngine: claim initial focus on screen mount. */
+  hasTVPreferredFocus?: boolean
 }
 
 const variantAccent: Record<GlanceVariant, string> = {
@@ -46,6 +48,7 @@ export function GlanceCard({
   onSelect,
   nextFocusLeft,
   nextFocusRight,
+  hasTVPreferredFocus,
 }: GlanceCardProps) {
   const { t } = useTranslation('screens')
 
@@ -59,6 +62,7 @@ export function GlanceCard({
       onSelect={onSelect}
       nextFocusLeft={nextFocusLeft}
       nextFocusRight={nextFocusRight}
+      hasTVPreferredFocus={hasTVPreferredFocus}
       accessibilityLabel={`${title}: ${tasks.length} tasks`}
       style={styles.card}
     >

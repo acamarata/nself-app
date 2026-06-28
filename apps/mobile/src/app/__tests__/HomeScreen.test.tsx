@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { ThemeProvider } from '../../theme';
 
 jest.mock('urql', () => ({
   useQuery: jest.fn(() => [{ data: null, fetching: false, error: undefined }, jest.fn()]),
@@ -71,10 +72,12 @@ const mockNavigation = {
 
 function renderScreen() {
   return render(
-    <HomeScreen
-      navigation={mockNavigation as never}
-      route={{ key: 'Home', name: 'Home' } as never}
-    />,
+    <ThemeProvider>
+      <HomeScreen
+        navigation={mockNavigation as never}
+        route={{ key: 'Home', name: 'Home' } as never}
+      />
+    </ThemeProvider>,
   );
 }
 

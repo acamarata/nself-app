@@ -13,6 +13,7 @@
 import React from 'react';
 import { I18nManager } from 'react-native';
 import { render } from '@testing-library/react-native';
+import { ThemeProvider } from '../../theme';
 
 jest.mock('../../i18n', () => ({
   formatHijriDate: jest.fn((_date: string, _locale: string) => '19 Dhul-Hijja 1447'),
@@ -20,6 +21,8 @@ jest.mock('../../i18n', () => ({
 
 import { TaskCard } from '../../components/TaskCard';
 import { formatHijriDate } from '../../i18n';
+
+const wrap = (ui: React.ReactElement) => render(<ThemeProvider>{ui}</ThemeProvider>);
 
 const formatHijriDateMock = formatHijriDate as jest.MockedFunction<typeof formatHijriDate>;
 
@@ -68,7 +71,7 @@ describe('TaskCard: LTR mode (isRTL = false)', () => {
   it('renders "Due: 2026-06-19" with the Due: prefix in LTR mode', () => {
     I18nManager.isRTL = false;
 
-    const { getByText } = render(
+    const { getByText } = wrap(
       <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
     );
 
@@ -78,7 +81,7 @@ describe('TaskCard: LTR mode (isRTL = false)', () => {
   it('does not call formatHijriDate in LTR mode', () => {
     I18nManager.isRTL = false;
 
-    render(
+    wrap(
       <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
     );
 
@@ -88,7 +91,7 @@ describe('TaskCard: LTR mode (isRTL = false)', () => {
   it('renders the Arabic task title in LTR mode', () => {
     I18nManager.isRTL = false;
 
-    const { getByText } = render(
+    const { getByText } = wrap(
       <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
     );
 
@@ -100,7 +103,7 @@ describe('TaskCard: RTL mode (isRTL = true)', () => {
   it('renders the Hijri date "19 Dhul-Hijja 1447" without "Due:" prefix in RTL mode', () => {
     I18nManager.isRTL = true;
 
-    const { getByText, queryByText } = render(
+    const { getByText, queryByText } = wrap(
       <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
     );
 
@@ -111,7 +114,7 @@ describe('TaskCard: RTL mode (isRTL = true)', () => {
   it('calls formatHijriDate with (isoDate, "ar") in RTL mode', () => {
     I18nManager.isRTL = true;
 
-    render(
+    wrap(
       <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
     );
 
@@ -121,7 +124,7 @@ describe('TaskCard: RTL mode (isRTL = true)', () => {
   it('renders the Arabic task title in RTL mode', () => {
     I18nManager.isRTL = true;
 
-    const { getByText } = render(
+    const { getByText } = wrap(
       <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
     );
 
@@ -131,7 +134,7 @@ describe('TaskCard: RTL mode (isRTL = true)', () => {
   it('RTL snapshot: toJSON() captures the full component tree in RTL mode', () => {
     I18nManager.isRTL = true;
 
-    const component = render(
+    const component = wrap(
       <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />,
     );
 

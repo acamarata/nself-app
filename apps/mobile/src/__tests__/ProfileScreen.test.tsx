@@ -4,6 +4,7 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { ThemeProvider } from '../theme';
 
 jest.mock('../hooks/useAuth', () => ({
   useAuth: () => ({
@@ -29,14 +30,18 @@ const mockNavigation = { goBack: jest.fn() };
 describe('ProfileScreen', () => {
   it('renders profile header', () => {
     const { getByText } = render(
-      <ProfileScreen navigation={mockNavigation as any} route={{} as any} />,
+      <ThemeProvider>
+        <ProfileScreen navigation={mockNavigation as any} route={{} as any} />
+      </ThemeProvider>,
     );
     expect(getByText('Profile')).toBeTruthy();
   });
 
   it('shows version from expo-constants', () => {
     const { getByText } = render(
-      <ProfileScreen navigation={mockNavigation as any} route={{} as any} />,
+      <ThemeProvider>
+        <ProfileScreen navigation={mockNavigation as any} route={{} as any} />
+      </ThemeProvider>,
     );
     expect(getByText('v1.1.4')).toBeTruthy();
   });

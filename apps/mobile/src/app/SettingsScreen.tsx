@@ -15,6 +15,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { useSettings, type AppLanguage, type AppAppearance } from '../hooks/useSettings';
 import { useNotificationPrefs } from '../hooks/useNotificationPrefs';
+import { useTheme, type ColorTokens } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -32,6 +33,7 @@ const APPEARANCES: { value: AppAppearance; label: string }[] = [
 ];
 
 export function SettingsScreen({ navigation }: Props) {
+  const { colors } = useTheme();
   const { serverUrl, setServerUrl, language, setLanguage, appearance, setAppearance } = useSettings();
   const { prefs, setMasterEnabled, setComments, setAssigned, setReminders } = useNotificationPrefs();
   const [urlDraft, setUrlDraft] = useState(serverUrl);
@@ -65,26 +67,29 @@ export function SettingsScreen({ navigation }: Props) {
     }
   }, [setLanguage]);
 
-  const urlStatusColor = urlStatus === 'ok' ? '#10B981' : urlStatus === 'fail' ? '#EF4444' : '#6366F1';
+  const urlStatusColor =
+    urlStatus === 'ok' ? colors.success :
+    urlStatus === 'fail' ? colors.danger :
+    colors.primary;
   const urlStatusLabel = urlStatus === 'testing' ? 'Testing…' : urlStatus === 'ok' ? '✓ Connected' : urlStatus === 'fail' ? '✗ Failed' : 'Test connection';
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back" accessibilityRole="button">
-          <Text style={styles.back}>‹ Back</Text>
+          <Text style={[styles.back, { color: colors.primary }]}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Settings</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         {/* Connection */}
-        <Text style={styles.sectionHeader}>Connection</Text>
-        <View style={styles.card}>
-          <Text style={styles.label}>Server URL</Text>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Connection</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Server URL</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.surface }]}
             value={urlDraft}
             onChangeText={(t) => { setUrlDraft(t); setUrlStatus('idle'); }}
             placeholder="https://your-server.example.com"
@@ -105,61 +110,77 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
 
         {/* Language */}
-        <Text style={styles.sectionHeader}>Language</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Language</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
           {LANGUAGES.map((lang) => (
             <TouchableOpacity
               key={lang.code}
-              style={[styles.radioRow, language === lang.code && styles.radioRowSelected]}
+              style={[styles.radioRow, { borderBottomColor: colors.borderSubtle }]}
               onPress={() => handleLanguageChange(lang.code)}
               accessibilityRole="radio"
               accessibilityState={{ checked: language === lang.code }}
               accessibilityLabel={lang.label}
             >
-              <View style={[styles.radioCircle, language === lang.code && styles.radioCircleSelected]} />
-              <Text style={[styles.radioLabel, language === lang.code && styles.radioLabelSelected]}>{lang.label}</Text>
+              <View style={[
+                styles.radioCircle,
+                { borderColor: colors.border, backgroundColor: colors.surfaceElevated },
+                language === lang.code && { borderColor: colors.primary, backgroundColor: colors.primary },
+              ]} />
+              <Text style={[
+                styles.radioLabel,
+                { color: colors.textSecondary },
+                language === lang.code && { color: colors.text, fontWeight: '600' },
+              ]}>{lang.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Appearance */}
-        <Text style={styles.sectionHeader}>Appearance</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
           {APPEARANCES.map((opt) => (
             <TouchableOpacity
               key={opt.value}
-              style={[styles.radioRow, appearance === opt.value && styles.radioRowSelected]}
+              style={[styles.radioRow, { borderBottomColor: colors.borderSubtle }]}
               onPress={() => setAppearance(opt.value)}
               accessibilityRole="radio"
               accessibilityState={{ checked: appearance === opt.value }}
               accessibilityLabel={opt.label}
             >
-              <View style={[styles.radioCircle, appearance === opt.value && styles.radioCircleSelected]} />
-              <Text style={[styles.radioLabel, appearance === opt.value && styles.radioLabelSelected]}>{opt.label}</Text>
+              <View style={[
+                styles.radioCircle,
+                { borderColor: colors.border, backgroundColor: colors.surfaceElevated },
+                appearance === opt.value && { borderColor: colors.primary, backgroundColor: colors.primary },
+              ]} />
+              <Text style={[
+                styles.radioLabel,
+                { color: colors.textSecondary },
+                appearance === opt.value && { color: colors.text, fontWeight: '600' },
+              ]}>{opt.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Notifications */}
-        <Text style={styles.sectionHeader}>Notifications</Text>
-        <View style={styles.card}>
-          <ToggleRow label="All notifications" value={prefs.masterEnabled} onChange={setMasterEnabled} />
-          <ToggleRow label="Comments on my tasks" value={prefs.comments} onChange={setComments} disabled={!prefs.masterEnabled} />
-          <ToggleRow label="Tasks assigned to me" value={prefs.assigned} onChange={setAssigned} disabled={!prefs.masterEnabled} />
-          <ToggleRow label="Task due reminders" value={prefs.reminders} onChange={setReminders} disabled={!prefs.masterEnabled} />
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Notifications</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <ToggleRow colors={colors} label="All notifications" value={prefs.masterEnabled} onChange={setMasterEnabled} />
+          <ToggleRow colors={colors} label="Comments on my tasks" value={prefs.comments} onChange={setComments} disabled={!prefs.masterEnabled} />
+          <ToggleRow colors={colors} label="Tasks assigned to me" value={prefs.assigned} onChange={setAssigned} disabled={!prefs.masterEnabled} />
+          <ToggleRow colors={colors} label="Task due reminders" value={prefs.reminders} onChange={setReminders} disabled={!prefs.masterEnabled} />
         </View>
 
         {/* Account */}
-        <Text style={styles.sectionHeader}>Account</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Account</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
           <TouchableOpacity
-            style={styles.navRow}
+            style={[styles.navRow, { borderBottomColor: colors.borderSubtle }]}
             onPress={() => navigation.navigate('Account')}
             accessibilityRole="button"
             accessibilityLabel="Account settings"
           >
-            <Text style={styles.navRowLabel}>Account & Security</Text>
-            <Text style={styles.navRowChevron}>›</Text>
+            <Text style={[styles.navRowLabel, { color: colors.textSecondary }]}>Account &amp; Security</Text>
+            <Text style={[styles.navRowChevron, { color: colors.textTertiary }]}>›</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -167,16 +188,24 @@ export function SettingsScreen({ navigation }: Props) {
   );
 }
 
-function ToggleRow({ label, value, onChange, disabled }: { label: string; value: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+function ToggleRow({
+  colors, label, value, onChange, disabled,
+}: {
+  colors: ColorTokens;
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
   return (
-    <View style={styles.toggleRow}>
-      <Text style={[styles.toggleLabel, disabled && styles.toggleLabelDisabled]}>{label}</Text>
+    <View style={[styles.toggleRow, { borderBottomColor: colors.borderSubtle }]}>
+      <Text style={[styles.toggleLabel, { color: disabled ? colors.textTertiary : colors.textSecondary }]}>{label}</Text>
       <Switch
         value={value}
         onValueChange={onChange}
         disabled={disabled}
-        trackColor={{ true: '#6366F1' }}
-        thumbColor={Platform.OS === 'android' ? (value ? '#6366F1' : '#F4F4F5') : undefined}
+        trackColor={{ true: colors.primary }}
+        thumbColor={Platform.OS === 'android' ? (value ? colors.primary : colors.surface) : undefined}
         accessibilityLabel={label}
       />
     </View>
@@ -184,27 +213,23 @@ function ToggleRow({ label, value, onChange, disabled }: { label: string; value:
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  back: { fontSize: 16, color: '#6366F1', width: 60 },
-  title: { fontSize: 17, fontWeight: '700', color: '#111827' },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, borderBottomWidth: 1 },
+  back: { fontSize: 16, width: 60 },
+  title: { fontSize: 17, fontWeight: '700' },
   body: { padding: 16, gap: 4 },
-  sectionHeader: { fontSize: 12, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 20, marginBottom: 8, marginStart: 4 },
-  card: { backgroundColor: '#FFF', borderRadius: 12, paddingVertical: 4, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 12, marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 12, fontSize: 14, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 8 },
+  sectionHeader: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 20, marginBottom: 8, marginStart: 4 },
+  card: { borderRadius: 12, paddingVertical: 4, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  label: { fontSize: 13, fontWeight: '600', marginTop: 12, marginBottom: 6 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 14, marginBottom: 8 },
   testBtn: { borderWidth: 1.5, borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginBottom: 12 },
   testBtnText: { fontSize: 14, fontWeight: '600' },
-  radioRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', gap: 12 },
-  radioRowSelected: { /* no extra style */ },
-  radioCircle: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#D1D5DB', backgroundColor: '#FFF' },
-  radioCircleSelected: { borderColor: '#6366F1', backgroundColor: '#6366F1' },
-  radioLabel: { fontSize: 15, color: '#374151' },
-  radioLabelSelected: { color: '#111827', fontWeight: '600' },
-  toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  toggleLabel: { fontSize: 15, color: '#374151', flex: 1 },
-  toggleLabelDisabled: { color: '#9CA3AF' },
-  navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  navRowLabel: { fontSize: 15, color: '#374151', flex: 1 },
-  navRowChevron: { fontSize: 20, color: '#9CA3AF' },
+  radioRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1, gap: 12 },
+  radioCircle: { width: 20, height: 20, borderRadius: 10, borderWidth: 2 },
+  radioLabel: { fontSize: 15 },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1 },
+  toggleLabel: { fontSize: 15, flex: 1 },
+  navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1 },
+  navRowLabel: { fontSize: 15, flex: 1 },
+  navRowChevron: { fontSize: 20 },
 });

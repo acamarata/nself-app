@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { ThemeProvider } from '../../theme';
 
 const mockAuthBase = () => ({
   signIn: jest.fn(),
@@ -28,10 +29,12 @@ const mockNavigation = { replace: jest.fn(), navigate: jest.fn(), goBack: jest.f
 
 function renderScreen() {
   return render(
-    <LoginScreen
-      navigation={mockNavigation as never}
-      route={{ key: 'Login', name: 'Login' } as never}
-    />,
+    <ThemeProvider>
+      <LoginScreen
+        navigation={mockNavigation as never}
+        route={{ key: 'Login', name: 'Login' } as never}
+      />
+    </ThemeProvider>,
   );
 }
 

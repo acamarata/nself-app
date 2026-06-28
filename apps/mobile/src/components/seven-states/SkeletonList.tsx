@@ -8,13 +8,15 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Animated, FlatList, StyleSheet, View } from 'react-native';
+import { useTheme } from '../../theme';
+import type { ColorTokens } from '../../theme';
 
 interface Props {
   rows?: number;
   rowHeight?: number;
 }
 
-function SkeletonRow({ index, pulse }: { index: number; pulse: Animated.Value }) {
+function SkeletonRow({ index, pulse, colors }: { index: number; pulse: Animated.Value; colors: ColorTokens }) {
   const opacity = pulse.interpolate({
     inputRange: [0, 1],
     outputRange: [0.3, 0.7],
@@ -32,16 +34,17 @@ function SkeletonRow({ index, pulse }: { index: number; pulse: Animated.Value })
 
   return (
     <Animated.View style={[styles.row, { opacity: adjustedOpacity }]}>
-      <View style={styles.checkbox} />
+      <View style={[styles.checkbox, { backgroundColor: colors.skeleton }]} />
       <View style={styles.content}>
-        <View style={[styles.textLine, { width: `${65 + (index % 3) * 10}%` }]} />
-        <View style={[styles.textLineSm, { width: `${30 + (index % 2) * 15}%` }]} />
+        <View style={[styles.textLine, { width: `${65 + (index % 3) * 10}%`, backgroundColor: colors.skeleton }]} />
+        <View style={[styles.textLineSm, { width: `${30 + (index % 2) * 15}%`, backgroundColor: colors.skeletonHighlight }]} />
       </View>
     </Animated.View>
   );
 }
 
 export function SkeletonList({ rows = 10, rowHeight = 60 }: Props) {
+  const { colors } = useTheme();
   const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export function SkeletonList({ rows = 10, rowHeight = 60 }: Props) {
       scrollEnabled={false}
       renderItem={({ item }) => (
         <View style={{ height: rowHeight }}>
-          <SkeletonRow index={item} pulse={pulse} />
+          <SkeletonRow index={item} pulse={pulse} colors={colors} />
         </View>
       )}
       accessibilityLabel="Loading tasks"
@@ -85,7 +88,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 4,
-    backgroundColor: '#d1d5db',
   },
   content: {
     flex: 1,
@@ -94,11 +96,9 @@ const styles = StyleSheet.create({
   textLine: {
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#d1d5db',
   },
   textLineSm: {
     height: 9,
     borderRadius: 4,
-    backgroundColor: '#e5e7eb',
   },
 });

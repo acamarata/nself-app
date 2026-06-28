@@ -22,7 +22,9 @@
     "errorTitle": "Failed to load tasks",
     "retryButton": "Retry",
     "viewTasks": "View tasks",
-    "menuHint": "Menu"
+    "menuHint": "Menu",
+    "tomorrow": "Tomorrow",
+    "noLists": "No lists found. Add lists in the ɳTask mobile app."
   },
   "listView": {
     "title": "Tasks",

@@ -7,6 +7,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../../theme';
 
 interface Props {
   retryAfter?: number;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function RateLimitedCard({ retryAfter = 30, onRetry }: Props) {
+  const { colors } = useTheme();
   const [countdown, setCountdown] = useState(retryAfter);
 
   useEffect(() => {
@@ -28,8 +30,8 @@ export function RateLimitedCard({ retryAfter = 30, onRetry }: Props) {
   return (
     <View style={styles.container} accessibilityRole="alert">
       <Text style={styles.icon}>⏱️</Text>
-      <Text style={styles.title}>Too Many Requests</Text>
-      <Text style={styles.message}>Retrying in {countdown}s</Text>
+      <Text style={[styles.title, { color: colors.warning }]}>Too Many Requests</Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>Retrying in {countdown}s</Text>
     </View>
   );
 }
@@ -49,10 +51,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#92400e',
   },
   message: {
     fontSize: 14,
-    color: '#374151',
   },
 });

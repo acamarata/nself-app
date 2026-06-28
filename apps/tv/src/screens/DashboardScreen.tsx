@@ -96,6 +96,17 @@ export function DashboardScreen({ navigation }: Props) {
     )
   }
 
+  // Empty-lists guard — shown after load completes with zero lists
+  if (lists.length === 0 && !listsLoading && !listsError) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.emptyText}>
+          {t('dashboard.noLists', 'No lists found. Add lists in the ɳTask mobile app.')}
+        </Text>
+      </View>
+    )
+  }
+
   const selectedListTitle = lists.find((l) => l.id === selectedListId)?.title ?? ''
 
   return (
@@ -113,12 +124,13 @@ export function DashboardScreen({ navigation }: Props) {
 
       {/* Body */}
       <View style={styles.body}>
-        {/* Sidebar */}
+        {/* Sidebar — right-arrow bridges to card-today (initial focus anchor) */}
         <ListSidebarTV
           lists={lists}
           selectedListId={selectedListId}
           onSelectList={setSelectedListId}
           idPrefix="sidebar"
+          nextFocusRight="card-today"
         />
 
         {/* Three-column glance area */}
@@ -138,6 +150,7 @@ export function DashboardScreen({ navigation }: Props) {
             title={t('dashboard.today')}
             tasks={todayTasks}
             onSelect={() => handleSelectGlanceCard('today')}
+            hasTVPreferredFocus
             nextFocusLeft="card-overdue"
             nextFocusRight="card-upcoming"
           />
@@ -206,6 +219,12 @@ const styles = StyleSheet.create({
     fontSize: tvTheme.typeScale.body,
     color: tvTheme.colors.textSecondary,
     marginTop: tvTheme.spacing.md,
+  },
+  emptyText: {
+    fontSize: tvTheme.typeScale.body,
+    color: tvTheme.colors.textPrimary,
+    textAlign: 'center',
+    paddingHorizontal: tvTheme.spacing.xl,
   },
   errorText: {
     fontSize: tvTheme.typeScale.heading3,

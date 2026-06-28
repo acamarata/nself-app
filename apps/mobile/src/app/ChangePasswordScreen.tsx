@@ -13,12 +13,14 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { useAccountMutations } from '../hooks/useAccount';
+import { useTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChangePassword'>;
 
 const MIN_LENGTH = 8;
 
 export function ChangePasswordScreen({ navigation }: Props) {
+  const { colors } = useTheme();
   const { changePassword } = useAccountMutations();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -53,23 +55,24 @@ export function ChangePasswordScreen({ navigation }: Props) {
   }, [canSubmit, changePassword, currentPassword, newPassword, navigation]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back" accessibilityRole="button">
-          <Text style={styles.back}>‹ Back</Text>
+          <Text style={[styles.back, { color: colors.primary }]}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Change Password</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Change Password</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
           <PasswordField
             label="Current password"
             value={currentPassword}
             onChangeText={(t) => { setCurrentPassword(t); setError(null); }}
             placeholder="Enter current password"
             accessibilityLabel="Current password"
+            colors={colors}
           />
           <PasswordField
             label="New password"
@@ -79,6 +82,7 @@ export function ChangePasswordScreen({ navigation }: Props) {
             accessibilityLabel="New password"
             hint={newTooShort ? `Minimum ${MIN_LENGTH} characters` : undefined}
             hintError
+            colors={colors}
           />
           <PasswordField
             label="Confirm new password"
@@ -89,13 +93,14 @@ export function ChangePasswordScreen({ navigation }: Props) {
             hint={mismatch ? 'Passwords do not match' : undefined}
             hintError
             last
+            colors={colors}
           />
         </View>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error ? <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text> : null}
 
         <TouchableOpacity
-          style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
+          style={[styles.submitBtn, { backgroundColor: colors.primary }, !canSubmit && styles.submitBtnDisabled]}
           onPress={handleSubmit}
           disabled={!canSubmit}
           accessibilityLabel="Update password"
@@ -103,9 +108,9 @@ export function ChangePasswordScreen({ navigation }: Props) {
           accessibilityState={{ disabled: !canSubmit }}
         >
           {loading ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color={colors.textOnPrimary} />
           ) : (
-            <Text style={styles.submitBtnText}>Update password</Text>
+            <Text style={[styles.submitBtnText, { color: colors.textOnPrimary }]}>Update password</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -126,14 +131,15 @@ interface PasswordFieldProps {
   hint?: string;
   hintError?: boolean;
   last?: boolean;
+  colors: ReturnType<typeof useTheme>['colors'];
 }
 
-function PasswordField({ label, value, onChangeText, placeholder, accessibilityLabel, hint, hintError, last }: PasswordFieldProps) {
+function PasswordField({ label, value, onChangeText, placeholder, accessibilityLabel, hint, hintError, last, colors }: PasswordFieldProps) {
   return (
-    <View style={[styles.fieldWrap, !last && styles.fieldBorder]}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+    <View style={[styles.fieldWrap, !last && { borderBottomWidth: 1, borderBottomColor: colors.borderSubtle }]}>
+      <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{label}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -142,7 +148,7 @@ function PasswordField({ label, value, onChangeText, placeholder, accessibilityL
         autoCorrect={false}
         accessibilityLabel={accessibilityLabel}
       />
-      {hint ? <Text style={[styles.hintText, hintError && styles.hintError]}>{hint}</Text> : null}
+      {hint ? <Text style={[styles.hintText, { color: hintError ? colors.danger : colors.textSecondary }]}>{hint}</Text> : null}
     </View>
   );
 }
@@ -152,20 +158,18 @@ function PasswordField({ label, value, onChangeText, placeholder, accessibilityL
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
-  container:         { flex: 1, backgroundColor: '#F9FAFB' },
-  header:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  back:              { fontSize: 16, color: '#6366F1', width: 60 },
-  title:             { fontSize: 17, fontWeight: '700', color: '#111827' },
+  container:         { flex: 1 },
+  header:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, borderBottomWidth: 1 },
+  back:              { fontSize: 16, width: 60 },
+  title:             { fontSize: 17, fontWeight: '700' },
   body:              { padding: 16, gap: 16 },
-  card:              { backgroundColor: '#FFF', borderRadius: 12, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  card:              { borderRadius: 12, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
   fieldWrap:         { paddingVertical: 14 },
-  fieldBorder:       { borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  fieldLabel:        { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
-  input:             { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 12, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB' },
-  hintText:          { fontSize: 12, color: '#6B7280', marginTop: 4 },
-  hintError:         { color: '#DC2626' },
-  errorText:         { fontSize: 13, color: '#DC2626' },
-  submitBtn:         { backgroundColor: '#6366F1', borderRadius: 10, paddingVertical: 15, alignItems: 'center' },
-  submitBtnDisabled: { backgroundColor: '#A5B4FC' },
-  submitBtnText:     { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  fieldLabel:        { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  input:             { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 15 },
+  hintText:          { fontSize: 12, marginTop: 4 },
+  errorText:         { fontSize: 13 },
+  submitBtn:         { borderRadius: 10, paddingVertical: 15, alignItems: 'center' },
+  submitBtnDisabled: { opacity: 0.5 },
+  submitBtnText:     { fontSize: 16, fontWeight: '700' },
 });

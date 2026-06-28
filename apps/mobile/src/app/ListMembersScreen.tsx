@@ -37,10 +37,12 @@ import { PresenceAvatars } from '../components/collab/PresenceAvatars';
 // InviteModal and ShareLinkSheet are Epic L wave 2 components
 import { InviteModal } from '../components/collab/InviteModal';
 import { ShareLinkSheet } from '../components/collab/ShareLinkSheet';
+import { useTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ListMembers'>;
 
 export function ListMembersScreen({ route, navigation }: Props) {
+  const { colors } = useTheme();
   const { listId, listTitle, currentUserId, isOwner } = route.params;
 
   const { members, fetching: membersFetching, error: membersError, refetch: refetchMembers } = useListMembers(listId);
@@ -175,10 +177,10 @@ export function ListMembersScreen({ route, navigation }: Props) {
         sections={sections}
         keyExtractor={(item) => (item as CollabItem).id}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={membersFetching || invitesFetching} onRefresh={refetch} tintColor="#6366f1" />}
+        refreshControl={<RefreshControl refreshing={membersFetching || invitesFetching} onRefresh={refetch} tintColor={colors.primary} />}
         renderSectionHeader={({ section }) => (
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
+          <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>{section.title}</Text>
           </View>
         )}
         renderItem={({ item, section }) => {
@@ -218,18 +220,18 @@ export function ListMembersScreen({ route, navigation }: Props) {
   // ---------------------------------------------------------------------------
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back" accessibilityRole="button" style={styles.backBtn}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={[styles.backText, { color: colors.primary }]}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Members</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>Members</Text>
         <TouchableOpacity onPress={() => setInviteVisible(true)} accessibilityLabel="Invite member" accessibilityRole="button">
-          <Text style={styles.inviteBtn}>Invite</Text>
+          <Text style={[styles.inviteBtn, { color: colors.primary }]}>Invite</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.subHeader}>
+      <View style={[styles.subHeader, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <PresenceAvatars
           presenceUsers={presenceUsers.map((p) => ({
             userId: p.user_id,
@@ -240,7 +242,7 @@ export function ListMembersScreen({ route, navigation }: Props) {
           maxVisible={4}
         />
         <TouchableOpacity onPress={() => setShareVisible(true)} accessibilityLabel="Share list link" accessibilityRole="button">
-          <Text style={styles.shareLinkText}>🔗 Share link</Text>
+          <Text style={[styles.shareLinkText, { color: colors.primary }]}>🔗 Share link</Text>
         </TouchableOpacity>
       </View>
 
@@ -249,8 +251,13 @@ export function ListMembersScreen({ route, navigation }: Props) {
       <View style={styles.body}>{renderBody()}</View>
 
       {!isOwner && (
-        <TouchableOpacity style={styles.leaveBtn} onPress={handleLeave} accessibilityLabel="Leave this list" accessibilityRole="button">
-          <Text style={styles.leaveBtnText}>Leave list</Text>
+        <TouchableOpacity
+          style={[styles.leaveBtn, { borderColor: colors.danger, backgroundColor: colors.surfaceElevated }]}
+          onPress={handleLeave}
+          accessibilityLabel="Leave this list"
+          accessibilityRole="button"
+        >
+          <Text style={[styles.leaveBtnText, { color: colors.danger }]}>Leave list</Text>
         </TouchableOpacity>
       )}
 
@@ -261,18 +268,18 @@ export function ListMembersScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 12, borderBottomWidth: 1 },
   backBtn: { minWidth: 60 },
-  backText: { fontSize: 16, color: '#6366f1' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
-  inviteBtn: { fontSize: 15, color: '#6366f1', fontWeight: '600', minWidth: 60, textAlign: 'right' },
-  subHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  shareLinkText: { fontSize: 14, color: '#6366f1', fontWeight: '500' },
+  backText: { fontSize: 16 },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
+  inviteBtn: { fontSize: 15, fontWeight: '600', minWidth: 60, textAlign: 'right' },
+  subHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1 },
+  shareLinkText: { fontSize: 14, fontWeight: '500' },
   body: { flex: 1 },
   listContent: { paddingBottom: 32 },
-  sectionHeader: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 6, backgroundColor: '#f9fafb' },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 },
-  leaveBtn: { margin: 16, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#fca5a5', alignItems: 'center', backgroundColor: '#fff' },
-  leaveBtnText: { fontSize: 15, fontWeight: '600', color: '#ef4444' },
+  sectionHeader: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 6 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  leaveBtn: { margin: 16, padding: 14, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
+  leaveBtnText: { fontSize: 15, fontWeight: '600' },
 });

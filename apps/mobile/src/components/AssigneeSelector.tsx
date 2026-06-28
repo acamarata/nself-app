@@ -11,6 +11,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useQuery } from 'urql';
 import { GET_PROFILE } from '../lib/hasura';
 import type { NpProfile } from '../types';
+import { useTheme } from '../theme';
 
 interface ProfileData {
   np_profiles_by_pk: Pick<NpProfile, 'id' | 'display_name' | 'avatar_url'> | null;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function AssigneeSelector({ assigneeId, onChange, readonly = false }: Props) {
+  const { colors } = useTheme();
   const [result] = useQuery<ProfileData>({
     query: GET_PROFILE,
     variables: { userId: assigneeId ?? '' },
@@ -45,16 +47,16 @@ export function AssigneeSelector({ assigneeId, onChange, readonly = false }: Pro
 
   return (
     <View style={styles.row}>
-      <Text style={styles.label}>Assignee</Text>
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Assignee</Text>
       <TouchableOpacity
-        style={styles.value}
+        style={[styles.value, { backgroundColor: colors.borderSubtle }]}
         onPress={handlePress}
         disabled={readonly}
         accessibilityLabel={`Assignee: ${displayName}`}
         accessibilityRole={readonly ? 'text' : 'button'}
       >
-        <Text style={styles.valueText}>{displayName}</Text>
-        {!readonly && assigneeId && <Text style={styles.clearIcon}> ×</Text>}
+        <Text style={[styles.valueText, { color: colors.textSecondary }]}>{displayName}</Text>
+        {!readonly && assigneeId && <Text style={[styles.clearIcon, { color: colors.textTertiary }]}> ×</Text>}
       </TouchableOpacity>
     </View>
   );
@@ -62,8 +64,8 @@ export function AssigneeSelector({ assigneeId, onChange, readonly = false }: Pro
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
-  label: { fontSize: 14, color: '#374151', fontWeight: '500' },
-  value: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#f3f4f6', borderRadius: 8 },
-  valueText: { fontSize: 14, color: '#6b7280' },
-  clearIcon: { fontSize: 16, color: '#9ca3af', marginLeft: 2 },
+  label: { fontSize: 14, fontWeight: '500' },
+  value: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  valueText: { fontSize: 14 },
+  clearIcon: { fontSize: 16, marginLeft: 2 },
 });

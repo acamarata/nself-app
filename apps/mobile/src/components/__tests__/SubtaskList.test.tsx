@@ -4,6 +4,7 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { ThemeProvider } from '../../theme';
 
 jest.mock('urql', () => ({
   useQuery: () => [{ data: { np_subtasks: [] }, fetching: false, error: null }, jest.fn()],
@@ -14,7 +15,11 @@ import { SubtaskList } from '../SubtaskList';
 
 describe('SubtaskList', () => {
   it('renders empty state', () => {
-    const { getByText } = render(<SubtaskList todoId="test-id" />);
+    const { getByText } = render(
+      <ThemeProvider>
+        <SubtaskList todoId="test-id" />
+      </ThemeProvider>,
+    );
     expect(getByText('No subtasks yet.')).toBeTruthy();
   });
 });

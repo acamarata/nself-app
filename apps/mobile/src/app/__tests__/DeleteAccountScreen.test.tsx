@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { ThemeProvider } from '../../theme';
 
 const mockDeleteAccount = jest.fn();
 
@@ -24,10 +25,12 @@ import { DeleteAccountScreen } from '../DeleteAccountScreen';
 
 function renderScreen() {
   return render(
-    <DeleteAccountScreen
-      navigation={mockNavigation as never}
-      route={{ key: 'DeleteAccount', name: 'DeleteAccount' } as never}
-    />,
+    <ThemeProvider>
+      <DeleteAccountScreen
+        navigation={mockNavigation as never}
+        route={{ key: 'DeleteAccount', name: 'DeleteAccount' } as never}
+      />
+    </ThemeProvider>,
   );
 }
 

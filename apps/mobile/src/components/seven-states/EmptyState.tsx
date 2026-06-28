@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../theme';
 
 interface Props {
   icon?: string;
@@ -17,14 +18,21 @@ interface Props {
 }
 
 export function EmptyState({ icon = '📋', title, hint, actionLabel, onAction }: Props) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container} accessibilityRole="text">
       <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.title}>{title}</Text>
-      {!!hint && <Text style={styles.hint}>{hint}</Text>}
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      {!!hint && <Text style={[styles.hint, { color: colors.textSecondary }]}>{hint}</Text>}
       {!!actionLabel && !!onAction && (
-        <TouchableOpacity style={styles.button} onPress={onAction} accessibilityRole="button" accessibilityLabel={actionLabel}>
-          <Text style={styles.buttonText}>{actionLabel}</Text>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.primary }]}
+          onPress={onAction}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+        >
+          <Text style={[styles.buttonText, { color: colors.textOnPrimary }]}>{actionLabel}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -46,24 +54,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
     textAlign: 'center',
   },
   hint: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
   },
   button: {
     marginTop: 16,
-    backgroundColor: '#6366f1',
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#fff',
     fontWeight: '600',
     fontSize: 14,
   },

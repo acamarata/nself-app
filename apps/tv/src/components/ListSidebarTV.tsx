@@ -24,6 +24,12 @@ interface ListSidebarTVProps {
   onSelectList: (listId: string) => void
   /** Focus id prefix — each item gets id `${idPrefix}-${index}` */
   idPrefix?: string
+  /**
+   * Optional nativeID to focus when the user presses right from any sidebar item.
+   * Used by DashboardScreen to bridge sidebar → GlanceCard "card-today", and by
+   * ListViewScreen to bridge sidebar → first task row "lv-row-0".
+   */
+  nextFocusRight?: string
 }
 
 export function ListSidebarTV({
@@ -31,6 +37,7 @@ export function ListSidebarTV({
   selectedListId,
   onSelectList,
   idPrefix = 'sidebar',
+  nextFocusRight,
 }: ListSidebarTVProps) {
   const { t } = useTranslation('screens')
 
@@ -54,6 +61,7 @@ export function ListSidebarTV({
               onSelect={() => onSelectList(list.id)}
               nextFocusUp={nextUp}
               nextFocusDown={nextDown}
+              nextFocusRight={nextFocusRight}
               accessibilityLabel={list.title}
               style={[
                 styles.item,
@@ -111,7 +119,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   itemSelected: {
-    backgroundColor: tvTheme.colors.brand + '22', // 13% opacity brand tint
+    backgroundColor: tvTheme.colors.brand + tvTheme.opacity.tint,
   },
   itemContent: {
     flexDirection: 'row',

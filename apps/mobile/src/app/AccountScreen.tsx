@@ -14,6 +14,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { useAccountMutations } from '../hooks/useAccount';
+import { useTheme, type ColorTokens } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Account'>;
 
@@ -23,6 +24,7 @@ type ExportStatus = 'idle' | 'loading' | 'done' | 'error';
 const MFA_PLACEHOLDER = false;
 
 export function AccountScreen({ navigation }: Props) {
+  const { colors } = useTheme();
   const { requestDataExport } = useAccountMutations();
   const [exportStatus, setExportStatus] = useState<ExportStatus>('idle');
   const [exportError, setExportError] = useState<string | null>(null);
@@ -48,47 +50,47 @@ export function AccountScreen({ navigation }: Props) {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back" accessibilityRole="button">
-          <Text style={styles.back}>‹ Back</Text>
+          <Text style={[styles.back, { color: colors.primary }]}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Account</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Account</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
         {/* Security */}
-        <Text style={styles.sectionHeader}>Security</Text>
-        <View style={styles.card}>
-          <NavRow label="Change email" onPress={() => navigation.navigate('ChangeEmail')} />
-          <NavRow label="Change password" onPress={() => navigation.navigate('ChangePassword')} />
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Security</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <NavRow colors={colors} label="Change email" onPress={() => navigation.navigate('ChangeEmail')} />
+          <NavRow colors={colors} label="Change password" onPress={() => navigation.navigate('ChangePassword')} />
           <View style={styles.toggleRow}>
             <View style={styles.toggleInfo}>
-              <Text style={styles.rowLabel}>Two-factor authentication</Text>
-              <Text style={styles.rowSub}>{mfaEnabled ? 'Enabled' : 'Disabled'}</Text>
+              <Text style={[styles.rowLabel, { color: colors.text }]}>Two-factor authentication</Text>
+              <Text style={[styles.rowSub, { color: colors.textSecondary }]}>{mfaEnabled ? 'Enabled' : 'Disabled'}</Text>
             </View>
             <Switch
               value={mfaEnabled}
               onValueChange={() => {
                 // MFA setup flow will be wired up in a follow-on ticket (MFA modal)
               }}
-              trackColor={{ true: '#6366F1' }}
-              thumbColor={Platform.OS === 'android' ? (mfaEnabled ? '#6366F1' : '#F4F4F5') : undefined}
+              trackColor={{ true: colors.primary }}
+              thumbColor={Platform.OS === 'android' ? (mfaEnabled ? colors.primary : colors.surface) : undefined}
               accessibilityLabel="Two-factor authentication"
             />
           </View>
         </View>
 
         {/* Sessions */}
-        <Text style={styles.sectionHeader}>Sessions</Text>
-        <View style={styles.card}>
-          <NavRow label="Active sessions" onPress={() => navigation.navigate('Sessions')} />
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Sessions</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <NavRow colors={colors} label="Active sessions" onPress={() => navigation.navigate('Sessions')} />
         </View>
 
         {/* Data */}
-        <Text style={styles.sectionHeader}>Data</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Data</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
           <TouchableOpacity
             style={styles.dataRow}
             onPress={handleDataExport}
@@ -97,46 +99,46 @@ export function AccountScreen({ navigation }: Props) {
             accessibilityRole="button"
           >
             <View style={styles.dataInfo}>
-              <Text style={[styles.rowLabel, exportStatus === 'done' && styles.rowLabelMuted]}>
+              <Text style={[styles.rowLabel, { color: exportStatus === 'done' ? colors.textSecondary : colors.text }]}>
                 Export my data
               </Text>
-              <Text style={styles.rowSub}>
+              <Text style={[styles.rowSub, { color: colors.textSecondary }]}>
                 {exportStatus === 'done'
                   ? 'Request received — check your email'
                   : 'Receive a copy of all your tasks and lists'}
               </Text>
               {exportStatus === 'error' && exportError ? (
-                <Text style={styles.errorText}>{exportError}</Text>
+                <Text style={[styles.errorText, { color: colors.danger }]}>{exportError}</Text>
               ) : null}
             </View>
             {exportStatus === 'loading' ? (
-              <ActivityIndicator size="small" color="#6366F1" />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : exportStatus === 'done' ? (
-              <Text style={styles.doneCheck}>✓</Text>
+              <Text style={[styles.doneCheck, { color: colors.success }]}>✓</Text>
             ) : (
-              <Text style={styles.chevron}>›</Text>
+              <Text style={[styles.chevron, { color: colors.textTertiary }]}>›</Text>
             )}
           </TouchableOpacity>
         </View>
 
         {/* Legal */}
-        <Text style={styles.sectionHeader}>Legal</Text>
-        <View style={styles.card}>
-          <NavRow label="Privacy policy"       onPress={() => openUrl('https://nself.org/privacy')} />
-          <NavRow label="Terms of service"     onPress={() => openUrl('https://nself.org/terms')} />
-          <NavRow label="Acceptable use policy" onPress={() => openUrl('https://nself.org/aup')} last />
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <NavRow colors={colors} label="Privacy policy"        onPress={() => openUrl('https://nself.org/privacy')} />
+          <NavRow colors={colors} label="Terms of service"      onPress={() => openUrl('https://nself.org/terms')} />
+          <NavRow colors={colors} label="Acceptable use policy" onPress={() => openUrl('https://nself.org/aup')} last />
         </View>
 
         {/* Danger zone */}
-        <Text style={styles.sectionHeader}>Danger zone</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Danger zone</Text>
+        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
           <TouchableOpacity
             style={styles.deleteRow}
             onPress={() => navigation.navigate('DeleteAccount')}
             accessibilityLabel="Delete account"
             accessibilityRole="button"
           >
-            <Text style={styles.deleteLabel}>Delete account</Text>
+            <Text style={[styles.deleteLabel, { color: colors.danger }]}>Delete account</Text>
           </TouchableOpacity>
         </View>
 
@@ -150,16 +152,16 @@ export function AccountScreen({ navigation }: Props) {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function NavRow({ label, onPress, last }: { label: string; onPress: () => void; last?: boolean }) {
+function NavRow({ colors, label, onPress, last }: { colors: ColorTokens; label: string; onPress: () => void; last?: boolean }) {
   return (
     <TouchableOpacity
-      style={[styles.navRow, last && styles.navRowLast]}
+      style={[styles.navRow, { borderBottomColor: colors.borderSubtle }, last && styles.navRowLast]}
       onPress={onPress}
       accessibilityLabel={label}
       accessibilityRole="button"
     >
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.chevron}>›</Text>
+      <Text style={[styles.rowLabel, { color: colors.text }]}>{label}</Text>
+      <Text style={[styles.chevron, { color: colors.textTertiary }]}>›</Text>
     </TouchableOpacity>
   );
 }
@@ -169,25 +171,24 @@ function NavRow({ label, onPress, last }: { label: string; onPress: () => void; 
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#F9FAFB' },
-  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  back:           { fontSize: 16, color: '#6366F1', width: 60 },
-  title:          { fontSize: 17, fontWeight: '700', color: '#111827' },
-  body:           { padding: 16, gap: 4 },
-  sectionHeader:  { fontSize: 12, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 20, marginBottom: 8, marginStart: 4 },
-  card:           { backgroundColor: '#FFF', borderRadius: 12, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
-  navRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  navRowLast:     { borderBottomWidth: 0 },
-  toggleRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
-  toggleInfo:     { flex: 1 },
-  dataRow:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14 },
-  dataInfo:       { flex: 1, gap: 2 },
-  deleteRow:      { paddingVertical: 14 },
-  rowLabel:       { fontSize: 15, color: '#111827' },
-  rowLabelMuted:  { color: '#6B7280' },
-  rowSub:         { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  chevron:        { fontSize: 20, color: '#9CA3AF' },
-  doneCheck:      { fontSize: 16, color: '#10B981', fontWeight: '700' },
-  deleteLabel:    { fontSize: 15, color: '#DC2626', fontWeight: '600' },
-  errorText:      { fontSize: 12, color: '#DC2626', marginTop: 4 },
+  container:     { flex: 1 },
+  header:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, borderBottomWidth: 1 },
+  back:          { fontSize: 16, width: 60 },
+  title:         { fontSize: 17, fontWeight: '700' },
+  body:          { padding: 16, gap: 4 },
+  sectionHeader: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 20, marginBottom: 8, marginStart: 4 },
+  card:          { borderRadius: 12, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  navRow:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1 },
+  navRowLast:    { borderBottomWidth: 0 },
+  toggleRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
+  toggleInfo:    { flex: 1 },
+  dataRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14 },
+  dataInfo:      { flex: 1, gap: 2 },
+  deleteRow:     { paddingVertical: 14 },
+  rowLabel:      { fontSize: 15 },
+  rowSub:        { fontSize: 12, marginTop: 2 },
+  chevron:       { fontSize: 20 },
+  doneCheck:     { fontSize: 16, fontWeight: '700' },
+  deleteLabel:   { fontSize: 15, fontWeight: '600' },
+  errorText:     { fontSize: 12, marginTop: 4 },
 });
