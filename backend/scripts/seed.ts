@@ -1,26 +1,46 @@
-import { createClient } from '@supabase/supabase-js';
+// Purpose: Seed local ɳTask backend with demo users, lists, todos, and shares.
+//   Talks to the real nSelf stack — nSelf Auth (hasura-auth) for user accounts
+//   and Hasura GraphQL (admin) for np_* table data. No Supabase.
+// Inputs: backend/.env.dev (HASURA_GRAPHQL_ADMIN_SECRET; optional URL overrides).
+// Outputs: np_lists / np_todos / np_list_shares rows + auth users; logs a summary.
+// Constraints:
+//   - Idempotent: re-running reuses existing users/lists/todos/shares (query-then-insert).
+//   - Admin-only: uses x-hasura-admin-secret, so it bypasses row permissions. Never
+//     run against a non-local backend.
+//   - Requires Node 18+ (global fetch).
+// SPORT: backend seed tooling (np_lists, np_todos, np_list_shares).
+
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
-dotenv.config({ path: resolve(__dirname, '../.env') });
+dotenv.config({ path: resolve(__dirname, '../.env.dev') });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// ── Connection config (host-side defaults; container hostnames overridden) ───
+const HASURA_URL =
+  process.env.HASURA_GRAPHQL_URL_HOST || 'http://localhost:8080/v1/graphql';
+const AUTH_URL =
+  process.env.AUTH_SERVER_URL || process.env.NSELF_AUTH_URL || 'http://localhost:4000';
+const ADMIN_SECRET =
+  process.env.HASURA_GRAPHQL_ADMIN_SECRET || process.env.HASURA_ADMIN_SECRET || '';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase credentials in environment variables');
+if (!ADMIN_SECRET) {
+  console.error(
+    'Missing HASURA_GRAPHQL_ADMIN_SECRET in backend/.env.dev — cannot seed.'
+  );
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+// ── Seed data ────────────────────────────────────────────────────────────────
 const SEED_USERS = [
   { email: 'owner@nself.org', password: 'password', displayName: 'System Owner', role: 'owner' },
   { email: 'admin@nself.org', password: 'password', displayName: 'Administrator', role: 'admin' },
   { email: 'user@nself.org', password: 'password', displayName: 'Demo User', role: 'user' },
 ];
 
-const SAMPLE_LISTS: Record<string, { title: string; description: string; color: string; is_default: boolean }[]> = {
+const SAMPLE_LISTS: Record<
+  string,
+  { title: string; description: string; color: string; is_default: boolean }[]
+> = {
   'owner@nself.org': [
     { title: 'Getting Started', description: 'Welcome tasks and initial setup', color: '#6366f1', is_default: true },
     { title: 'Work Tasks', description: 'System administration and configuration', color: '#8b5cf6', is_default: false },
@@ -72,95 +92,124 @@ const SAMPLE_TODOS: Record<string, Record<string, { title: string; completed: bo
   },
 };
 
-async function createOrGetUser(email: string, password: string, displayName: string): Promise<string | null> {
-  const { data: existing } = await supabase.auth.admin.listUsers();
-  const found = existing?.users?.find(u => u.email === email);
-  if (found) {
-    console.log(`  User ${email} already exists`);
-    return found.id;
-  }
+// Owner shares lists with the other seed users, exercising np_list_shares.
+const SAMPLE_SHARES: {
+  ownerEmail: string;
+  listTitle: string;
+  withEmail: string;
+  permission: 'owner' | 'editor' | 'viewer';
+}[] = [
+  { ownerEmail: 'owner@nself.org', listTitle: 'Getting Started', withEmail: 'admin@nself.org', permission: 'editor' },
+  { ownerEmail: 'owner@nself.org', listTitle: 'Getting Started', withEmail: 'user@nself.org', permission: 'viewer' },
+];
 
-  const { data, error } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { display_name: displayName },
+// ── Hasura GraphQL (admin) helper ────────────────────────────────────────────
+async function gql<T = any>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+  const res = await fetch(HASURA_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-hasura-admin-secret': ADMIN_SECRET,
+    },
+    body: JSON.stringify({ query, variables }),
   });
 
-  if (error) {
-    console.error(`  Error creating ${email}:`, error.message);
-    return null;
+  const json = await res.json();
+  if (json.errors) {
+    throw new Error(json.errors.map((e: { message: string }) => e.message).join('; '));
   }
-
-  console.log(`  Created ${email}`);
-  return data.user.id;
+  return json.data as T;
 }
 
-async function assignRole(userId: string, roleName: string, assignedBy?: string) {
-  const { data: role } = await supabase
-    .from('app_roles')
-    .select('id')
-    .eq('name', roleName)
-    .maybeSingle();
+// ── nSelf Auth (hasura-auth) helpers ─────────────────────────────────────────
+/**
+ * Create the user via /signup/email-password, or sign in if it already exists.
+ * Returns the user's UUID, or null on failure.
+ */
+async function createOrGetUser(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<string | null> {
+  // Attempt signup first.
+  const signupRes = await fetch(`${AUTH_URL}/signup/email-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, options: { displayName } }),
+  });
 
-  if (!role) {
-    console.error(`  Role '${roleName}' not found. Run RBAC migration first.`);
-    return;
+  if (signupRes.ok) {
+    const data = await signupRes.json().catch(() => null);
+    const id = data?.session?.user?.id;
+    if (id) {
+      console.log(`  Created ${email}`);
+      return id;
+    }
+    // Email verification may suppress the session — fall through to signin.
   }
 
-  const { error } = await supabase
-    .from('app_user_roles')
-    .upsert(
-      { user_id: userId, role_id: role.id, assigned_by: assignedBy || null },
-      { onConflict: 'user_id,role_id' }
-    );
+  // Already exists (or no session returned) — sign in to resolve the id.
+  const signinRes = await fetch(`${AUTH_URL}/signin/email-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
 
-  if (error) {
-    console.error(`  Error assigning role ${roleName}:`, error.message);
-  } else {
-    console.log(`  Assigned role: ${roleName}`);
+  if (signinRes.ok) {
+    const data = await signinRes.json().catch(() => null);
+    const id = data?.session?.user?.id;
+    if (id) {
+      console.log(`  User ${email} already exists`);
+      return id;
+    }
   }
+
+  const err = await signinRes.text().catch(() => signinRes.statusText);
+  console.error(`  Error resolving user ${email}: ${err}`);
+  return null;
 }
 
+// ── Seeding routines ─────────────────────────────────────────────────────────
 async function seedLists(userId: string, email: string): Promise<Record<string, string>> {
   const lists = SAMPLE_LISTS[email];
   if (!lists || lists.length === 0) return {};
 
   const listMap: Record<string, string> = {};
 
-  for (const list of lists) {
-    const { data: existing } = await supabase
-      .from('app_lists')
-      .select('id, title')
-      .eq('user_id', userId)
-      .eq('title', list.title)
-      .maybeSingle();
+  for (let i = 0; i < lists.length; i++) {
+    const list = lists[i];
 
-    if (existing) {
+    const existing = await gql<{ np_lists: { id: string }[] }>(
+      `query ($uid: uuid!, $title: String!) {
+        np_lists(where: { user_id: { _eq: $uid }, title: { _eq: $title } }, limit: 1) { id }
+      }`,
+      { uid: userId, title: list.title }
+    );
+
+    if (existing.np_lists.length > 0) {
       console.log(`  List "${list.title}" already exists`);
-      listMap[list.title] = existing.id;
+      listMap[list.title] = existing.np_lists[0].id;
       continue;
     }
 
-    const { data, error } = await supabase
-      .from('app_lists')
-      .insert({
-        user_id: userId,
-        title: list.title,
-        description: list.description,
-        color: list.color,
-        is_default: list.is_default,
-        position: Date.now(),
-      })
-      .select()
-      .single();
+    const inserted = await gql<{ insert_np_lists_one: { id: string } }>(
+      `mutation ($obj: np_lists_insert_input!) {
+        insert_np_lists_one(object: $obj) { id }
+      }`,
+      {
+        obj: {
+          user_id: userId,
+          title: list.title,
+          description: list.description,
+          color: list.color,
+          is_default: list.is_default,
+          position: i,
+        },
+      }
+    );
 
-    if (error) {
-      console.error(`  Error creating list "${list.title}":`, error.message);
-    } else {
-      console.log(`  Created list: ${list.title}`);
-      listMap[list.title] = data.id;
-    }
+    console.log(`  Created list: ${list.title}`);
+    listMap[list.title] = inserted.insert_np_lists_one.id;
   }
 
   return listMap;
@@ -179,25 +228,40 @@ async function seedTodos(userId: string, email: string, listMap: Record<string, 
       continue;
     }
 
-    const todosToInsert = todos.map(t => ({
-      user_id: userId,
-      list_id: listId,
-      title: t.title,
-      completed: t.completed,
-      position: Date.now(),
-    }));
+    // Skip titles that already exist in this list (idempotent re-run).
+    const existing = await gql<{ np_todos: { title: string }[] }>(
+      `query ($listId: uuid!) {
+        np_todos(where: { list_id: { _eq: $listId } }) { title }
+      }`,
+      { listId }
+    );
+    const existingTitles = new Set(existing.np_todos.map((t) => t.title));
 
-    const { error } = await supabase.from('app_todos').insert(todosToInsert);
-    if (error) {
-      if (error.message.includes('duplicate')) {
-        console.log(`  Todos already exist in "${listTitle}"`);
-      } else {
-        console.error(`  Error seeding todos in "${listTitle}":`, error.message);
-      }
-    } else {
-      console.log(`  Seeded ${todos.length} todos in "${listTitle}"`);
-      totalTodos += todos.length;
+    const objects = todos
+      .filter((t) => !existingTitles.has(t.title))
+      .map((t, i) => ({
+        user_id: userId,
+        list_id: listId,
+        title: t.title,
+        completed: t.completed,
+        position: i,
+      }));
+
+    if (objects.length === 0) {
+      console.log(`  Todos already exist in "${listTitle}"`);
+      continue;
     }
+
+    const inserted = await gql<{ insert_np_todos: { affected_rows: number } }>(
+      `mutation ($objs: [np_todos_insert_input!]!) {
+        insert_np_todos(objects: $objs) { affected_rows }
+      }`,
+      { objs: objects }
+    );
+
+    const n = inserted.insert_np_todos.affected_rows;
+    console.log(`  Seeded ${n} todos in "${listTitle}"`);
+    totalTodos += n;
   }
 
   if (totalTodos > 0) {
@@ -205,19 +269,63 @@ async function seedTodos(userId: string, email: string, listMap: Record<string, 
   }
 }
 
-async function seedDatabase() {
-  const env = process.env.NEXT_PUBLIC_ENVIRONMENT || 'local';
-  const backend = process.env.NEXT_PUBLIC_BACKEND_PROVIDER || 'bolt';
+async function seedShares(
+  userIds: Record<string, string>,
+  listMaps: Record<string, Record<string, string>>
+) {
+  for (const share of SAMPLE_SHARES) {
+    const invitedBy = userIds[share.ownerEmail];
+    const targetUserId = userIds[share.withEmail];
+    const listId = listMaps[share.ownerEmail]?.[share.listTitle];
 
-  console.log(`\nSeeding database...`);
-  console.log(`  Environment: ${env}`);
-  console.log(`  Backend: ${backend}\n`);
+    if (!invitedBy || !targetUserId || !listId) {
+      console.log(
+        `  Skipping share of "${share.listTitle}" → ${share.withEmail} (missing user or list)`
+      );
+      continue;
+    }
 
-  if (backend !== 'supabase' && backend !== 'bolt') {
-    console.log('Seeding is only supported for Supabase-backed environments.');
-    console.log('For nSelf/Nhost, use the Hasura seed scripts in backend/.\n');
-    return;
+    // UNIQUE(list_id, shared_with_email) — check before inserting.
+    const existing = await gql<{ np_list_shares: { id: string }[] }>(
+      `query ($listId: uuid!, $email: String!) {
+        np_list_shares(
+          where: { list_id: { _eq: $listId }, shared_with_email: { _eq: $email } }
+          limit: 1
+        ) { id }
+      }`,
+      { listId, email: share.withEmail }
+    );
+
+    if (existing.np_list_shares.length > 0) {
+      console.log(`  Share "${share.listTitle}" → ${share.withEmail} already exists`);
+      continue;
+    }
+
+    await gql(
+      `mutation ($obj: np_list_shares_insert_input!) {
+        insert_np_list_shares_one(object: $obj) { id }
+      }`,
+      {
+        obj: {
+          list_id: listId,
+          shared_with_user_id: targetUserId,
+          shared_with_email: share.withEmail,
+          permission: share.permission,
+          invited_by: invitedBy,
+          accepted_at: new Date().toISOString(),
+        },
+      }
+    );
+
+    console.log(`  Shared "${share.listTitle}" → ${share.withEmail} (${share.permission})`);
   }
+}
+
+// ── Orchestration ────────────────────────────────────────────────────────────
+async function seedDatabase() {
+  console.log('\nSeeding ɳTask backend (Hasura + nSelf Auth)...');
+  console.log(`  Hasura: ${HASURA_URL}`);
+  console.log(`  Auth:   ${AUTH_URL}\n`);
 
   const userIds: Record<string, string> = {};
 
@@ -225,16 +333,6 @@ async function seedDatabase() {
   for (const user of SEED_USERS) {
     const id = await createOrGetUser(user.email, user.password, user.displayName);
     if (id) userIds[user.email] = id;
-  }
-
-  const ownerUserId = userIds['owner@nself.org'];
-
-  console.log('\nAssigning roles...');
-  for (const user of SEED_USERS) {
-    const userId = userIds[user.email];
-    if (!userId) continue;
-    console.log(`  ${user.email}:`);
-    await assignRole(userId, user.role, user.email === 'owner@nself.org' ? undefined : ownerUserId);
   }
 
   console.log('\nSeeding lists...');
@@ -254,6 +352,9 @@ async function seedDatabase() {
     await seedTodos(userId, user.email, listMaps[user.email] || {});
   }
 
+  console.log('\nSeeding shares...');
+  await seedShares(userIds, listMaps);
+
   console.log('\n--- Seed Complete ---\n');
   console.log('Default credentials:');
   for (const user of SEED_USERS) {
@@ -262,9 +363,9 @@ async function seedDatabase() {
   console.log('');
 }
 
-seedDatabase().then(() => {
-  process.exit(0);
-}).catch((error) => {
-  console.error('Seed error:', error);
-  process.exit(1);
-});
+seedDatabase()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error('Seed error:', error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
