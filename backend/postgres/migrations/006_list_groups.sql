@@ -22,23 +22,27 @@ ALTER TABLE public.np_lists
 -- RLS for np_list_groups
 ALTER TABLE public.np_list_groups ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own groups" ON public.np_list_groups;
 CREATE POLICY "Users can view their own groups"
   ON public.np_list_groups FOR SELECT
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can create their own groups" ON public.np_list_groups;
 CREATE POLICY "Users can create their own groups"
   ON public.np_list_groups FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own groups" ON public.np_list_groups;
 CREATE POLICY "Users can update their own groups"
   ON public.np_list_groups FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own groups" ON public.np_list_groups;
 CREATE POLICY "Users can delete their own groups"
   ON public.np_list_groups FOR DELETE
   USING (auth.uid() = user_id);
 
--- Updated_at trigger for np_list_groups
+-- Updated_at trigger for np_list_groups (idempotent)
 CREATE OR REPLACE FUNCTION update_np_list_groups_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
@@ -47,6 +51,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS set_np_list_groups_updated_at ON public.np_list_groups;
 CREATE TRIGGER set_np_list_groups_updated_at
   BEFORE UPDATE ON public.np_list_groups
   FOR EACH ROW EXECUTE FUNCTION update_np_list_groups_updated_at();

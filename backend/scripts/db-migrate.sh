@@ -1,0 +1,161 @@
+#!/bin/bash
+# db-migrate.sh — Apply ɳTasks PostgreSQL schema + migrations idempotently
+#
+# Purpose:
+#   Applies postgres/init.sql (base schema) then postgres/migrations/*.sql (in
+#   numeric order) against the running Postgres container. Tracks applied files
+#   in a schema_migrations table so re-runs are safe.
+#
+# Usage:
+#   bash scripts/db-migrate.sh            # normal run
+#   POSTGRES_DB=nself bash scripts/db-migrate.sh
+#
+# Inputs:
+#   POSTGRES_USER  (default: postgres)
+#   POSTGRES_DB    (default: nself)
+#   POSTGRES_CONTAINER (default: backend_postgres)
+#
+# Constraints:
+#   - Requires docker compose stack to be UP (postgres container running)
+#   - Runs as the postgres superuser inside the container (no pg_cron needed)
+#   - All migration SQL must be idempotent (CREATE IF NOT EXISTS, DROP IF EXISTS, etc.)
+
+set -euo pipefail
+
+BACKEND_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PG_USER="${POSTGRES_USER:-postgres}"
+PG_DB="${POSTGRES_DB:-nself}"
+PG_CONTAINER="${POSTGRES_CONTAINER:-backend_postgres}"
+INIT_SQL="$BACKEND_DIR/postgres/init.sql"
+MIGRATIONS_DIR="$BACKEND_DIR/postgres/migrations"
+
+# ---- helpers ----------------------------------------------------------------
+
+psql_exec() {
+  docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -v ON_ERROR_STOP=1 "$@"
+}
+
+psql_file() {
+  local file="$1"
+  docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" \
+    -v ON_ERROR_STOP=1 \
+    --single-transaction \
+    -f /dev/stdin < "$file"
+}
+
+log() { echo "[db-migrate] $*"; }
+ok()  { echo "[db-migrate] [ok] $*"; }
+err() { echo "[db-migrate] [ERROR] $*" >&2; exit 1; }
+
+# ---- wait for postgres -------------------------------------------------------
+
+log "Waiting for PostgreSQL to accept connections..."
+WAIT=0
+until docker exec "$PG_CONTAINER" pg_isready -U "$PG_USER" -q 2>/dev/null; do
+  WAIT=$((WAIT + 1))
+  [ "$WAIT" -ge 30 ] && err "PostgreSQL did not become ready after 30s. Is the stack up?"
+  sleep 1
+done
+ok "PostgreSQL ready."
+
+# ---- ensure tracking table --------------------------------------------------
+
+log "Ensuring schema_migrations tracking table..."
+psql_exec -c "
+CREATE TABLE IF NOT EXISTS public.schema_migrations (
+  filename   TEXT        PRIMARY KEY,
+  applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+" > /dev/null
+
+# ---- apply auth.uid() helper (must precede all RLS policies) ----------------
+# This function is not in the docker init/ scripts; we inject it here so that
+# RLS policies in init.sql and all migrations can call auth.uid() correctly.
+
+log "Ensuring auth.uid() helper function..."
+psql_exec -c "
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.uid()
+RETURNS uuid LANGUAGE sql STABLE AS \$\$
+  SELECT NULLIF(
+    current_setting('hasura.user', true)::json ->> 'x-hasura-user-id',
+    ''
+  )::uuid
+\$\$;
+GRANT EXECUTE ON FUNCTION auth.uid() TO PUBLIC;
+" > /dev/null
+ok "auth.uid() ready."
+
+# ---- apply init.sql (base schema) -------------------------------------------
+# init.sql defines the foundational np_* tables. The nSelf docker init/
+# directory (postgres/init/*.sql) handles schema + extension setup on first
+# container launch. init.sql defines the APPLICATION tables and is also
+# idempotent (all CREATE IF NOT EXISTS). We skip it when the base tables are
+# already present (Docker init/ already ran them) to avoid FK-constraint
+# ordering errors. We apply it only on a truly empty DB (fresh install without
+# the nSelf init/ scripts having run, e.g. a bare postgres container in CI).
+
+TABLES_EXIST=$(psql_exec -tAc \
+  "SELECT COUNT(*) FROM pg_tables WHERE schemaname='public' AND tablename='np_profiles';" \
+  2>/dev/null || echo "0")
+TABLES_EXIST="${TABLES_EXIST// /}"
+
+if [ "$TABLES_EXIST" = "0" ] && [ -f "$INIT_SQL" ]; then
+  log "np_profiles not found — applying postgres/init.sql (fresh DB)..."
+  # init.sql uses \c nself — connect without -d and let \c handle the switch
+  docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -v ON_ERROR_STOP=1 < "$INIT_SQL" \
+    || err "postgres/init.sql failed. Check the output above."
+  ok "postgres/init.sql applied."
+else
+  log "Base tables already present (init/ scripts ran) — skipping postgres/init.sql."
+fi
+
+# ---- apply numbered migrations in order ------------------------------------
+
+shopt -s nullglob
+MIGRATION_FILES=("$MIGRATIONS_DIR"/[0-9][0-9][0-9]_*.sql)
+shopt -u nullglob
+
+if [ "${#MIGRATION_FILES[@]}" -eq 0 ]; then
+  log "No migration files found in $MIGRATIONS_DIR — nothing to apply."
+  exit 0
+fi
+
+APPLIED=0
+SKIPPED=0
+FAILED=0
+
+for FILEPATH in "${MIGRATION_FILES[@]}"; do
+  FILENAME="$(basename "$FILEPATH")"
+
+  # Skip down migrations
+  if [[ "$FILENAME" == *.down.sql ]]; then
+    continue
+  fi
+
+  # Check if already applied
+  ALREADY=$(psql_exec -tAc "SELECT COUNT(*) FROM public.schema_migrations WHERE filename = '$FILENAME'" 2>/dev/null || echo "0")
+  ALREADY="${ALREADY// /}"  # trim whitespace
+
+  if [ "$ALREADY" != "0" ]; then
+    SKIPPED=$((SKIPPED + 1))
+    continue
+  fi
+
+  log "Applying $FILENAME ..."
+  if psql_file "$FILEPATH"; then
+    psql_exec -c "INSERT INTO public.schema_migrations (filename) VALUES ('$FILENAME') ON CONFLICT DO NOTHING;" > /dev/null
+    ok "$FILENAME applied."
+    APPLIED=$((APPLIED + 1))
+  else
+    FAILED=$((FAILED + 1))
+    err "Migration $FILENAME FAILED. Stack left at last good state. Fix the SQL and re-run."
+  fi
+done
+
+echo ""
+log "Migration run complete: ${APPLIED} applied, ${SKIPPED} already applied, ${FAILED} failed."
+
+if [ "$FAILED" -gt 0 ]; then
+  exit 1
+fi

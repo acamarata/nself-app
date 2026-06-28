@@ -81,14 +81,20 @@ CREATE POLICY todo_assignees_delete_policy ON public.np_todo_assignees
     )
   );
 
--- Backfill from deprecated single-assignee column
-INSERT INTO public.np_todo_assignees (todo_id, assignee_id, assigned_by, assigned_at, source_account_id)
-SELECT
-  id,
-  assigned_to_user_id,
-  user_id,
-  created_at,
-  source_account_id
-FROM public.np_todos
-WHERE assigned_to_user_id IS NOT NULL
-ON CONFLICT (todo_id, assignee_id) DO NOTHING;
+-- Backfill from deprecated single-assignee column (guard: column may not exist)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'np_todos'
+      AND column_name = 'assigned_to_user_id'
+  ) THEN
+    INSERT INTO public.np_todo_assignees (todo_id, assignee_id, assigned_by, assigned_at, source_account_id)
+    SELECT id, assigned_to_user_id, user_id, created_at, source_account_id
+    FROM public.np_todos
+    WHERE assigned_to_user_id IS NOT NULL
+    ON CONFLICT (todo_id, assignee_id) DO NOTHING;
+  END IF;
+END;
+$$;

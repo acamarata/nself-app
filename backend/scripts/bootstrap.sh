@@ -86,6 +86,14 @@ done
 echo "[ok] Hasura is healthy"
 
 # ---------------------------------------------------------------------------
+# Apply PostgreSQL schema + migrations
+# ---------------------------------------------------------------------------
+echo ""
+echo "==> Applying database schema and migrations..."
+bash "$BACKEND_DIR/scripts/db-migrate.sh"
+echo "[ok] Database migrations complete"
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 echo ""

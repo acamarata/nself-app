@@ -3,7 +3,18 @@
 -- Typed columns allow DB-level validation and efficient cron dispatch queries.
 -- Constraint: until_date and count_limit are mutually exclusive.
 
-CREATE TYPE IF NOT EXISTS public.rrule_frequency AS ENUM ('daily', 'weekly', 'monthly', 'yearly');
+-- PostgreSQL does not support CREATE TYPE IF NOT EXISTS; guard with a DO-block.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public' AND t.typname = 'rrule_frequency'
+  ) THEN
+    EXECUTE 'CREATE TYPE public.rrule_frequency AS ENUM (''daily'', ''weekly'', ''monthly'', ''yearly'')';
+  END IF;
+END;
+$$;
 
 CREATE TABLE IF NOT EXISTS public.np_recurring_rules (
   id                UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
