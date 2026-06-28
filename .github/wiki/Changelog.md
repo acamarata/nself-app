@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.2.0 — 2026-06-28
+
+ɳTask's biggest release: a complete, multi-surface task manager — free, self-hostable, and FOSS.
+
+### New surfaces
+- **Desktop** (Tauri 2) — Windows/macOS/Linux, wraps the web app, native menu/tray/auto-updater/deep-links.
+- **TV** (react-native-tvos) — Apple TV / Android TV / Fire TV read-focused dashboard with D-pad focus navigation.
+
+### Features (all surfaces)
+- Subtasks, comments, tags, attachments, reminders, recurring tasks, full-text search, filters, sort, saved views.
+- **Collaboration** — list sharing, email invites, roles, share-links, real-time presence, transfer ownership.
+- **Account & privacy** — in-app account deletion, GDPR data export, MFA, session management, change email/password.
+- Dark mode (app-wide), i18n (en/ar/fr/es) + RTL, offline-first with sync, command palette, keyboard shortcuts, PWA.
+
+### Backend / self-host
+- Canonical `np_*` schema with RLS + multi-app isolation; Hasura allow-list, rate limiting, SSRF guard, cron triggers, backup/DR.
+- One-command self-host (`make bootstrap`); free plugins only (auth/storage/cron/notify); `nself.yaml` bundle manifest.
+
+### Quality
+- Mobile 73% / web 60%+ test coverage; cross-surface a11y (WCAG AA) + i18n CI gates; all surfaces build/test green.
+
+
+
 All notable changes to ɳTasks will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

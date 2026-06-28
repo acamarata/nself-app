@@ -3,6 +3,7 @@
 exports[`TaskCard: RTL mode (isRTL = true) RTL snapshot: toJSON() captures the full component tree in RTL mode 1`] = `
 <View
   accessibilityLabel="اجتماع فريق العمل"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": false,
@@ -33,7 +34,7 @@ exports[`TaskCard: RTL mode (isRTL = true) RTL snapshot: toJSON() captures the f
   style={
     {
       "alignItems": "center",
-      "borderBottomColor": "#f3f4f6",
+      "borderBottomColor": "#F3F4F6",
       "borderBottomWidth": 1,
       "flexDirection": "row",
       "opacity": 1,
@@ -107,12 +108,14 @@ exports[`TaskCard: RTL mode (isRTL = true) RTL snapshot: toJSON() captures the f
           [
             {
               "alignItems": "center",
-              "borderColor": "#6366f1",
               "borderRadius": 4,
               "borderWidth": 2,
               "height": 22,
               "justifyContent": "center",
               "width": 22,
+            },
+            {
+              "borderColor": "#6366F1",
             },
             false,
           ]
@@ -132,8 +135,10 @@ exports[`TaskCard: RTL mode (isRTL = true) RTL snapshot: toJSON() captures the f
       style={
         [
           {
-            "color": "#111827",
             "fontSize": 15,
+          },
+          {
+            "color": "#111827",
           },
           false,
           false,
@@ -144,11 +149,15 @@ exports[`TaskCard: RTL mode (isRTL = true) RTL snapshot: toJSON() captures the f
     </Text>
     <Text
       style={
-        {
-          "color": "#6b7280",
-          "fontSize": 12,
-          "marginTop": 2,
-        }
+        [
+          {
+            "fontSize": 12,
+            "marginTop": 2,
+          },
+          {
+            "color": "#4B5563",
+          },
+        ]
       }
     >
       19 Dhul-Hijja 1447

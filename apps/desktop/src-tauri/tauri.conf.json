@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ɳTask",
+  "productName": "\u0273Task",
   "identifier": "org.nself.ntask",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "build": {
     "frontendDist": "../../../../web/ntask/dist",
     "devUrl": "http://localhost:3017",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "ɳTask",
+        "title": "\u0273Task",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
@@ -27,7 +27,7 @@
       },
       {
         "label": "settings",
-        "title": "ɳTask Settings",
+        "title": "\u0273Task Settings",
         "url": "/settings",
         "width": 800,
         "height": 600,
@@ -55,8 +55,14 @@
       "dialog": true
     },
     "deep-link": {
-      "desktop": { "schemes": ["ntask"] },
-      "mobile": { "scheme": "ntask" }
+      "desktop": {
+        "schemes": [
+          "ntask"
+        ]
+      },
+      "mobile": {
+        "scheme": "ntask"
+      }
     }
   },
   "bundle": {
@@ -80,7 +86,9 @@
       "entitlements": "entitlements.plist"
     },
     "windows": {
-      "webviewInstallMode": { "type": "downloadBootstrapper" },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
       "wix": {},
       "nsis": {}
     },
