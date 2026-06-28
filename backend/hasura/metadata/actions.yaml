@@ -7,8 +7,13 @@
 # J-S2 aux: listSessions, revokeSession, enableMfa, disableMfa
 #
 # ACTION_HANDLER_URL resolves to the functions service (see docker-compose.yml).
-# Local dev: http://functions:3000
+# Local dev: http://functions:3001
 # Staging/prod: set via HASURA_ACTION_HANDLER_URL env var in nself.yaml
+#
+# request_transform is intentionally OMITTED: the default Hasura action payload
+# {action: {name}, input, session_variables} is already the shape that server.ts
+# handlers expect. Adding a request_transform with object-body notation causes a
+# v2 schema validation error; Kriti string templates work but add no value here.
 
 actions:
   - name: deleteMyAccount
@@ -16,15 +21,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/delete-account'
       timeout: 60
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -36,15 +32,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/export-data'
       timeout: 120
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -56,15 +43,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/change-email'
       timeout: 30
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -76,15 +54,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/change-password'
       timeout: 30
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -96,15 +65,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/revoke-session'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: Proxies to hasura-auth DELETE /user/sessions/{id}. Idempotent.
@@ -114,15 +74,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/enable-mfa'
       timeout: 30
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: Proxies to hasura-auth POST /user/mfa/totp/generate. Returns TOTP secret + QR URL.
@@ -132,15 +83,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/disable-mfa'
       timeout: 30
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: Proxies to hasura-auth POST /user/mfa/totp/disable. Requires OTP confirmation.
@@ -151,15 +93,6 @@ actions:
       handler: '{{ACTION_HANDLER_URL}}/api/actions/list-sessions'
       timeout: 15
       type: query
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: Proxies to hasura-auth GET /user/sessions. Returns active session list.
@@ -171,15 +104,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-create'
       timeout: 30
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -192,15 +116,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-accept'
       timeout: 30
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -213,15 +128,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-decline'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -233,15 +139,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-revoke'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -255,15 +152,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/share-create'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -276,15 +164,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/share-revoke'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -298,15 +177,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/member-role-update'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -318,15 +188,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/member-remove'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -338,15 +199,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/list-leave'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -358,15 +210,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/list-transfer-ownership'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -381,15 +224,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/presence-upsert'
       timeout: 10
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -401,15 +235,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/presence-remove'
       timeout: 10
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -422,15 +247,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/get-upload-url'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >
@@ -444,15 +260,6 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/get-download-url'
       timeout: 15
-      request_transform:
-        method: POST
-        template_engine: Kriti
-        version: "2"
-        body:
-          action:
-            name: '{{$action.name}}'
-          session_variables: '{{$session_variables}}'
-          input: '{{$body.input}}'
     permissions:
       - role: user
     comment: >

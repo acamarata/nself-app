@@ -101,7 +101,7 @@
           table:
             schema: public
             name: np_comments
-    - name: attachments
+    - name: file_attachments
       using:
         foreign_key_constraint_on:
           column: todo_id
@@ -144,6 +144,11 @@
           - description
           - completed
           - is_public
+          - list_id
+          - priority
+          - due_date
+          - tags
+          - notes
           - source_account_id
         check:
           user_id:
@@ -160,6 +165,11 @@
           - description
           - completed
           - is_public
+          - list_id
+          - priority
+          - due_date
+          - tags
+          - notes
           - source_account_id
           - created_at
           - updated_at
@@ -1430,3 +1440,35 @@
         filter:
           user_id:
             _eq: X-Hasura-User-Id
+
+# ---------------------------------------------------------------------------
+# auth.users table — tracked for cross-schema relationships
+#
+# np_todos.user_id, np_todos.completed_by, np_todos.approved_by,
+# np_attachments.uploader_id, np_comments.author_id, and several other
+# FK columns all reference auth.users(id). Hasura requires the target table
+# to be tracked before it can resolve object relationships.
+#
+# Permissions: user role may SELECT only non-sensitive columns.
+# Sensitive auth fields (password_hash, totp_secret, otp_hash, ticket) excluded.
+# ---------------------------------------------------------------------------
+- table:
+    schema: auth
+    name: users
+  select_permissions:
+    - role: user
+      permission:
+        columns:
+          - id
+          - display_name
+          - avatar_url
+          - email
+          - created_at
+          - updated_at
+          - last_seen
+          - default_role
+          - is_anonymous
+          - locale
+          - email_verified
+        filter: {}
+        allow_aggregations: false
