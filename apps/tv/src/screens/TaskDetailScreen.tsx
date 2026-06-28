@@ -9,83 +9,86 @@
  *   - Subtasks shown as a static list (count + titles, no interaction per D4).
  *   - Priority shown as a color-coded badge.
  *   - After mark-done success, auto-navigates back to ListView.
- * SPORT: Epic F — TV scaffold.
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback } from 'react'
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { useQuery } from 'urql';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { GET_TODO } from '@nself/ntask-core';
-import type { NpTask } from '@nself/ntask-core';
-import { MarkDoneButtonTV } from '../components/MarkDoneButtonTV';
-import { FocusableButton } from '../components/FocusableButton';
-import { RemoteHintBar, HINTS } from '../components/RemoteHintBar';
-import { tvTheme } from '../theme';
-import type { TVStackParamList } from '../navigation/TVNavigator';
+} from 'react-native'
+import { useQuery } from 'urql'
+import { useTranslation } from 'react-i18next'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { GET_TODO } from '@nself/ntask-core'
+import type { NpTask } from '@nself/ntask-core'
+import { MarkDoneButtonTV } from '../components/MarkDoneButtonTV'
+import { FocusableButton } from '../components/FocusableButton'
+import { RemoteHintBar, HINTS } from '../components/RemoteHintBar'
+import { tvTheme } from '../theme'
+import type { TVStackParamList } from '../navigation/TVNavigator'
 
-type Props = NativeStackScreenProps<TVStackParamList, 'TaskDetail'>;
+type Props = NativeStackScreenProps<TVStackParamList, 'TaskDetail'>
 
 interface GetTodoData {
-  np_todos_by_pk: NpTask | null;
+  np_todos_by_pk: NpTask | null
 }
 
 function priorityLabel(p: string): string {
-  return p.charAt(0).toUpperCase() + p.slice(1);
+  return p.charAt(0).toUpperCase() + p.slice(1)
 }
 
 function formatDate(iso: string | null): string {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 export function TaskDetailScreen({ route, navigation }: Props) {
-  const { taskId } = route.params;
+  const { taskId } = route.params
+  const { t } = useTranslation('screens')
+  const { t: tCommon } = useTranslation('common')
 
   const [{ data, fetching, error }] = useQuery<GetTodoData>({
     query: GET_TODO,
     variables: { id: taskId },
     requestPolicy: 'cache-and-network',
-  });
+  })
 
-  const task = data?.np_todos_by_pk ?? null;
+  const task = data?.np_todos_by_pk ?? null
 
   const handleMarkDoneSuccess = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    navigation.goBack()
+  }, [navigation])
 
-  const hints = task?.completed ? HINTS.taskDetailDone : HINTS.taskDetailActive;
+  const hints = task?.completed ? HINTS.taskDetailDone : HINTS.taskDetailActive
 
   if (fetching && !task) {
     return (
       <View style={styles.center}>
         <ActivityIndicator color={tvTheme.colors.brand} size="large" />
       </View>
-    );
+    )
   }
 
   if (error || !task) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>Task not found</Text>
+        <Text style={styles.errorText}>{tCommon('error')}</Text>
         <FocusableButton
           id="td-back"
-          label="Go Back"
+          label={tCommon('back')}
           variant="secondary"
           onSelect={() => navigation.goBack()}
         />
       </View>
-    );
+    )
   }
 
-  const priorityColor = tvTheme.priorityColors[task.priority] ?? tvTheme.colors.textSecondary;
+  const priorityColor = tvTheme.priorityColors[task.priority] ?? tvTheme.colors.textSecondary
 
   return (
     <View style={styles.container}>
@@ -105,32 +108,32 @@ export function TaskDetailScreen({ route, navigation }: Props) {
         <ScrollView style={styles.metaPanel} showsVerticalScrollIndicator={false}>
           {task.description ? (
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Description</Text>
+              <Text style={styles.sectionLabel}>{t('taskDetail.description')}</Text>
               <Text style={styles.sectionValue}>{task.description}</Text>
             </View>
           ) : null}
 
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Due date</Text>
+            <Text style={styles.sectionLabel}>{t('taskDetail.dueDate')}</Text>
             <Text style={styles.sectionValue}>{formatDate(task.due_date)}</Text>
           </View>
 
           {task.notes ? (
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Notes</Text>
+              <Text style={styles.sectionLabel}>{t('taskDetail.notes')}</Text>
               <Text style={styles.sectionValue}>{task.notes}</Text>
             </View>
           ) : null}
 
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Created</Text>
+            <Text style={styles.sectionLabel}>{t('taskDetail.createdAt')}</Text>
             <Text style={styles.sectionValue}>{formatDate(task.created_at)}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Status</Text>
+            <Text style={styles.sectionLabel}>{t('taskDetail.status')}</Text>
             <Text style={[styles.sectionValue, task.completed && { color: tvTheme.colors.success }]}>
-              {task.completed ? 'Completed' : 'In progress'}
+              {task.completed ? t('taskDetail.completed') : t('taskDetail.inProgress')}
             </Text>
           </View>
         </ScrollView>
@@ -146,7 +149,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
           />
           <FocusableButton
             id="td-back-btn"
-            label="← Back"
+            label={`← ${tCommon('back')}`}
             variant="secondary"
             onSelect={() => navigation.goBack()}
             nextFocusUp="td-mark-done"
@@ -156,7 +159,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
 
       <RemoteHintBar hints={hints} />
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -237,4 +240,4 @@ const styles = StyleSheet.create({
     fontSize: tvTheme.typeScale.heading3,
     color: tvTheme.colors.error,
   },
-});
+})

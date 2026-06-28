@@ -10,10 +10,10 @@
  *   - No "Forgot password" or "Create account" — TV is read-only consumer device.
  *   - Error shown inline below the Connect button.
  *   - Loading: Connect button shows ActivityIndicator; all inputs disabled.
- * SPORT: Epic F — TV scaffold.
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react'
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -22,24 +22,28 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { FocusableButton } from '../components/FocusableButton';
-import { tvTheme } from '../theme';
-import { useTVAuth } from '../hooks/useTVAuth';
+} from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { FocusableButton } from '../components/FocusableButton'
+import { tvTheme } from '../theme'
+import { useTVAuth } from '../hooks/useTVAuth'
 
 export function ConnectScreen() {
-  const { signIn, loading, error } = useTVAuth();
-  const [serverUrl, setServerUrl] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signIn, loading, error } = useTVAuth()
+  const { t } = useTranslation('screens')
+  const { t: tCommon } = useTranslation('common')
 
-  const emailRef = useRef<TextInput>(null);
-  const passwordRef = useRef<TextInput>(null);
+  const [serverUrl, setServerUrl] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const emailRef = useRef<TextInput>(null)
+  const passwordRef = useRef<TextInput>(null)
 
   const handleConnect = async () => {
-    if (!serverUrl.trim() || !email.trim() || !password) return;
-    await signIn(serverUrl.trim(), email.trim(), password);
-  };
+    if (!serverUrl.trim() || !email.trim() || !password) return
+    await signIn(serverUrl.trim(), email.trim(), password)
+  }
 
   return (
     <KeyboardAvoidingView
@@ -47,17 +51,17 @@ export function ConnectScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.card}>
-        <Text style={styles.appName}>ɳTask TV</Text>
-        <Text style={styles.subtitle}>Connect to your nSelf server</Text>
+        <Text style={styles.appName}>{t('connect.title')}</Text>
+        <Text style={styles.subtitle}>{t('connect.subtitle')}</Text>
 
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={styles.label}>Server URL</Text>
+            <Text style={styles.label}>{t('connect.serverUrl')}</Text>
             <TextInput
               style={styles.input}
               value={serverUrl}
               onChangeText={setServerUrl}
-              placeholder="https://my.nself.server"
+              placeholder={t('connect.serverUrlPlaceholder')}
               placeholderTextColor={tvTheme.colors.textDisabled}
               autoCapitalize="none"
               autoCorrect={false}
@@ -69,13 +73,13 @@ export function ConnectScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>{t('connect.email')}</Text>
             <TextInput
               ref={emailRef}
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="you@example.com"
+              placeholder={t('connect.emailPlaceholder')}
               placeholderTextColor={tvTheme.colors.textDisabled}
               autoCapitalize="none"
               autoCorrect={false}
@@ -87,13 +91,13 @@ export function ConnectScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('connect.password')}</Text>
             <TextInput
               ref={passwordRef}
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••"
+              placeholder={t('connect.passwordPlaceholder')}
               placeholderTextColor={tvTheme.colors.textDisabled}
               secureTextEntry
               returnKeyType="done"
@@ -105,12 +109,12 @@ export function ConnectScreen() {
           {loading ? (
             <View style={styles.loadingRow}>
               <ActivityIndicator color={tvTheme.colors.brand} size="large" />
-              <Text style={styles.loadingText}>Connecting…</Text>
+              <Text style={styles.loadingText}>{t('connect.connecting')}</Text>
             </View>
           ) : (
             <FocusableButton
               id="connect-btn"
-              label="Connect"
+              label={t('connect.connectButton')}
               onSelect={handleConnect}
               disabled={!serverUrl.trim() || !email.trim() || !password}
               nextFocusUp="password-input"
@@ -123,7 +127,7 @@ export function ConnectScreen() {
         </View>
       </View>
     </KeyboardAvoidingView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -191,4 +195,4 @@ const styles = StyleSheet.create({
     color: tvTheme.colors.error,
     textAlign: 'center',
   },
-});
+})

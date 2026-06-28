@@ -9,97 +9,100 @@
  *   - Auto-refresh every 60s via useFocusEffect (TV displays are passive monitors).
  *   - No pull-to-refresh (TV UX: no swipe gestures).
  *   - Error state: full-screen error text with retry button.
- * SPORT: Epic F — TV scaffold.
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { GlanceCard } from '../components/GlanceCard';
-import { ListSidebarTV } from '../components/ListSidebarTV';
-import { RemoteHintBar, HINTS } from '../components/RemoteHintBar';
-import { FocusableButton } from '../components/FocusableButton';
-import { useTVLists, useTVListTasks } from '../hooks/useTVTasks';
-import { tvTheme } from '../theme';
-import type { TVStackParamList } from '../navigation/TVNavigator';
+} from 'react-native'
+import { useTranslation } from 'react-i18next'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { GlanceCard } from '../components/GlanceCard'
+import { ListSidebarTV } from '../components/ListSidebarTV'
+import { RemoteHintBar, HINTS } from '../components/RemoteHintBar'
+import { FocusableButton } from '../components/FocusableButton'
+import { useTVLists, useTVListTasks } from '../hooks/useTVTasks'
+import { tvTheme } from '../theme'
+import type { TVStackParamList } from '../navigation/TVNavigator'
 
-type Props = NativeStackScreenProps<TVStackParamList, 'Dashboard'>;
+type Props = NativeStackScreenProps<TVStackParamList, 'Dashboard'>
 
 export function DashboardScreen({ navigation }: Props) {
-  const { lists, loading: listsLoading, error: listsError, refetch: refetchLists } = useTVLists();
+  const { t } = useTranslation('screens')
+  const { t: tCommon } = useTranslation('common')
 
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const { lists, loading: listsLoading, error: listsError, refetch: refetchLists } = useTVLists()
+  const [selectedListId, setSelectedListId] = useState<string | null>(null)
 
   // Auto-select first default list once lists load
   useEffect(() => {
     if (lists.length > 0 && !selectedListId) {
-      const defaultList = lists.find((l) => l.is_default) ?? lists[0];
-      setSelectedListId(defaultList.id);
+      const defaultList = lists.find((l) => l.is_default) ?? lists[0]
+      setSelectedListId(defaultList.id)
     }
-  }, [lists, selectedListId]);
+  }, [lists, selectedListId])
 
   const { todayTasks, upcomingTasks, overdueTasks, loading: tasksLoading, error: tasksError, refetch: refetchTasks } =
-    useTVListTasks(selectedListId ?? '');
+    useTVListTasks(selectedListId ?? '')
 
   // Auto-refresh every 60s — TV dashboard is a passive monitor
-  const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   useEffect(() => {
     refreshTimer.current = setInterval(() => {
-      refetchTasks();
-    }, 60_000);
+      refetchTasks()
+    }, 60_000)
     return () => {
-      if (refreshTimer.current) clearInterval(refreshTimer.current);
-    };
-  }, [refetchTasks]);
+      if (refreshTimer.current) clearInterval(refreshTimer.current)
+    }
+  }, [refetchTasks])
 
   const handleRetry = useCallback(() => {
-    refetchLists();
-    refetchTasks();
-  }, [refetchLists, refetchTasks]);
+    refetchLists()
+    refetchTasks()
+  }, [refetchLists, refetchTasks])
 
   const handleSelectGlanceCard = useCallback(
     (_bucket: 'today' | 'upcoming' | 'overdue') => {
       if (selectedListId) {
         navigation.navigate('ListView', {
           listId: selectedListId,
-          listTitle: lists.find((l) => l.id === selectedListId)?.title ?? 'Tasks',
-        });
+          listTitle: lists.find((l) => l.id === selectedListId)?.title ?? t('dashboard.title'),
+        })
       }
     },
-    [navigation, selectedListId, lists],
-  );
+    [navigation, selectedListId, lists, t],
+  )
 
   if (listsLoading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator color={tvTheme.colors.brand} size="large" />
-        <Text style={styles.loadingText}>Loading…</Text>
+        <Text style={styles.loadingText}>{tCommon('loading')}</Text>
       </View>
-    );
+    )
   }
 
   if (listsError || tasksError) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>Could not load tasks</Text>
+        <Text style={styles.errorText}>{t('dashboard.errorTitle')}</Text>
         <Text style={styles.errorSub}>{(listsError ?? tasksError)?.message}</Text>
-        <FocusableButton id="retry-btn" label="Retry" onSelect={handleRetry} />
+        <FocusableButton id="retry-btn" label={tCommon('retry')} onSelect={handleRetry} />
       </View>
-    );
+    )
   }
 
-  const selectedListTitle = lists.find((l) => l.id === selectedListId)?.title ?? '';
+  const selectedListTitle = lists.find((l) => l.id === selectedListId)?.title ?? ''
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>ɳTask TV</Text>
+        <Text style={styles.title}>{t('dashboard.title')}</Text>
         {selectedListTitle ? (
           <Text style={styles.subtitle}>{selectedListTitle}</Text>
         ) : null}
@@ -123,7 +126,7 @@ export function DashboardScreen({ navigation }: Props) {
           <GlanceCard
             id="card-overdue"
             variant="overdue"
-            title="Overdue"
+            title={t('dashboard.overdue')}
             tasks={overdueTasks}
             onSelect={() => handleSelectGlanceCard('overdue')}
             nextFocusLeft="sidebar-0"
@@ -132,7 +135,7 @@ export function DashboardScreen({ navigation }: Props) {
           <GlanceCard
             id="card-today"
             variant="today"
-            title="Today"
+            title={t('dashboard.today')}
             tasks={todayTasks}
             onSelect={() => handleSelectGlanceCard('today')}
             nextFocusLeft="card-overdue"
@@ -141,7 +144,7 @@ export function DashboardScreen({ navigation }: Props) {
           <GlanceCard
             id="card-upcoming"
             variant="upcoming"
-            title="Upcoming"
+            title={t('dashboard.upcoming')}
             tasks={upcomingTasks}
             onSelect={() => handleSelectGlanceCard('upcoming')}
             nextFocusLeft="card-today"
@@ -151,7 +154,7 @@ export function DashboardScreen({ navigation }: Props) {
 
       <RemoteHintBar hints={HINTS.dashboard} />
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -213,4 +216,4 @@ const styles = StyleSheet.create({
     fontSize: tvTheme.typeScale.body,
     color: tvTheme.colors.textSecondary,
   },
-});
+})

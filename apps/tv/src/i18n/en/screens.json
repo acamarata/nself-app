@@ -1,0 +1,62 @@
+{
+  "connect": {
+    "title": "Connect to ɳTasks",
+    "subtitle": "Enter your server URL and credentials",
+    "serverUrl": "Server URL",
+    "serverUrlPlaceholder": "https://your-server.com",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "connectButton": "Connect",
+    "connecting": "Connecting…",
+    "errorTitle": "Connection failed"
+  },
+  "dashboard": {
+    "title": "My Tasks",
+    "overdue": "Overdue",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "noTasks": "No tasks",
+    "moreTasks": "+{{count}} more",
+    "errorTitle": "Failed to load tasks",
+    "retryButton": "Retry",
+    "viewTasks": "View tasks",
+    "menuHint": "Menu"
+  },
+  "listView": {
+    "title": "Tasks",
+    "taskCount": "{{count}} task",
+    "taskCount_plural": "{{count}} tasks",
+    "noTasks": "No tasks in this list",
+    "errorTitle": "Failed to load tasks",
+    "viewTask": "View task",
+    "markDone": "Mark done",
+    "backHint": "Back"
+  },
+  "taskDetail": {
+    "description": "Description",
+    "dueDate": "Due date",
+    "notes": "Notes",
+    "createdAt": "Created",
+    "status": "Status",
+    "completed": "Completed",
+    "inProgress": "In progress",
+    "markDone": "✓  Mark as Done",
+    "markDoneLoading": "Marking done…",
+    "alreadyDone": "✓ Done",
+    "backButton": "Back",
+    "markDoneHint": "Mark done",
+    "backHint": "Back"
+  },
+  "remoteHints": {
+    "viewTasks": "View tasks",
+    "viewTask": "View task",
+    "markDone": "Mark done",
+    "back": "Back",
+    "menu": "Menu"
+  },
+  "sidebar": {
+    "lists": "Lists"
+  }
+}

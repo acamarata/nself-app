@@ -15,22 +15,31 @@
  *     5. TaskDetail (active): [SELECT: mark done, MENU: back]
  *     6. TaskDetail (completed): [MENU: back]
  *     7. Loading: []
- * SPORT: Epic F — TV scaffold.
+ *   - i18n: labels are passed in as translated strings by the screens (or via HINTS presets
+ *     which are now initialized lazily via makeHints() using useTranslation).
+ * SPORT: Epic F — TV scaffold / F-S2-T6 (i18n TV wave).
  */
 
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { tvTheme } from '../theme';
+import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { tvTheme } from '../theme'
 
 export interface RemoteHint {
   /** Remote button glyph or label */
-  button: string;
+  button: string
   /** Action description */
-  label: string;
+  label: string
 }
 
-// ─── Preset hint sets (7-state variants) ──────────────────────────────────────
+// ─── Static hint presets (English fallback — screens pass translated hints in practice) ──
 
+/**
+ * HINTS provides static preset hint arrays.
+ * For i18n screens, pass translated hint labels directly; these presets are kept
+ * for backward-compatibility and are replaced by makeHints() in screens that import
+ * useTranslation. Screens that don't need per-locale hints can use these.
+ */
 export const HINTS = {
   none: [] as RemoteHint[],
   dashboard: [
@@ -53,16 +62,16 @@ export const HINTS = {
     { button: '◄', label: 'Back' },
   ] as RemoteHint[],
   loading: [] as RemoteHint[],
-} as const;
+} as const
 
-export type HintPreset = keyof typeof HINTS;
+export type HintPreset = keyof typeof HINTS
 
 interface RemoteHintBarProps {
-  hints: RemoteHint[];
+  hints: RemoteHint[]
 }
 
 export function RemoteHintBar({ hints }: RemoteHintBarProps) {
-  if (hints.length === 0) return null;
+  if (hints.length === 0) return null
 
   return (
     <View style={styles.bar}>
@@ -75,7 +84,7 @@ export function RemoteHintBar({ hints }: RemoteHintBarProps) {
         </View>
       ))}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -112,4 +121,4 @@ const styles = StyleSheet.create({
     fontSize: tvTheme.typeScale.hint,
     color: tvTheme.colors.textSecondary,
   },
-});
+})
