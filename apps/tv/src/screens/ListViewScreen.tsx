@@ -69,6 +69,7 @@ export function ListViewScreen({ route, navigation }: Props) {
       </View>
 
       <View style={styles.body}>
+        {/* Sidebar — right-arrow bridges to first task row */}
         <ListSidebarTV
           lists={lists}
           selectedListId={activeListId}
@@ -80,6 +81,7 @@ export function ListViewScreen({ route, navigation }: Props) {
             }
           }}
           idPrefix="lv-sidebar"
+          nextFocusRight="lv-row-0"
         />
 
         <View style={styles.taskArea}>
@@ -119,6 +121,7 @@ export function ListViewScreen({ route, navigation }: Props) {
                     markingDone={markingDoneId === task.id}
                     nextFocusUp={index > 0 ? `lv-row-${index - 1}` : undefined}
                     nextFocusDown={index < allTasks.length - 1 ? `lv-row-${index + 1}` : undefined}
+                    nextFocusLeft="lv-sidebar-0"
                   />
                 )
               })}

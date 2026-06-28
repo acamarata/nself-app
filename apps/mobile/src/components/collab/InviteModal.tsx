@@ -23,6 +23,7 @@ import {
   Platform,
 } from 'react-native';
 import { useCollabMutations } from '../../hooks/useCollab';
+import { useTheme } from '../../theme';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,6 +55,7 @@ interface Props {
 // ---------------------------------------------------------------------------
 
 export function InviteModal({ listId, visible, onClose, onInvited }: Props) {
+  const { colors } = useTheme();
   const { createInvite } = useCollabMutations();
 
   const [email, setEmail] = useState('');
@@ -122,10 +124,10 @@ export function InviteModal({ listId, visible, onClose, onInvited }: Props) {
         style={styles.backdrop}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.sheet} accessibilityViewIsModal>
+        <View style={[styles.sheet, { backgroundColor: colors.surfaceElevated }]} accessibilityViewIsModal>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.text }]}>
               {/* i18n: screens.members.inviteByEmail */}
               Invite by email
             </Text>
@@ -135,16 +137,16 @@ export function InviteModal({ listId, visible, onClose, onInvited }: Props) {
               accessibilityLabel="Cancel invite" // i18n: screens.members.cancelInvite
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
 
           {/* Email input */}
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
             Email address {/* i18n: screens.members.emailPlaceholder */}
           </Text>
           <TextInput
-            style={[styles.input, !!error && !success && styles.inputError]}
+            style={[styles.input, { borderColor: !!error && !success ? colors.danger : colors.border, color: colors.text }]}
             value={email}
             onChangeText={(v) => { setEmail(v); setError(null); }}
             placeholder="name@example.com" // i18n: screens.members.emailPlaceholder
@@ -157,35 +159,35 @@ export function InviteModal({ listId, visible, onClose, onInvited }: Props) {
           />
 
           {/* Inline error */}
-          {!!error && <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>}
+          {!!error && <Text style={[styles.errorText, { color: colors.danger }]} accessibilityRole="alert">{error}</Text>}
 
           {/* Success */}
           {success && (
-            <Text style={styles.successText} accessibilityRole="alert">
+            <Text style={[styles.successText, { color: colors.success }]} accessibilityRole="alert">
               Invite sent! {/* i18n: screens.members.inviteSent */}
             </Text>
           )}
 
           {/* Role selector */}
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
             Role {/* i18n: screens.members.roleLabel */}
           </Text>
           <View style={styles.roleGroup}>
             {ROLES.map((opt) => (
               <TouchableOpacity
                 key={opt.value}
-                style={[styles.roleRow, role === opt.value && styles.roleRowSelected]}
+                style={[styles.roleRow, { borderColor: role === opt.value ? colors.primary : colors.border }, role === opt.value && { backgroundColor: colors.primarySubtle }]}
                 onPress={() => !loading && !success && setRole(opt.value)}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: role === opt.value }}
                 accessibilityLabel={`${opt.label}: ${opt.description}`}
               >
-                <View style={[styles.radio, role === opt.value && styles.radioSelected]}>
-                  {role === opt.value && <View style={styles.radioDot} />}
+                <View style={[styles.radio, { borderColor: role === opt.value ? colors.primary : colors.border }]}>
+                  {role === opt.value && <View style={[styles.radioDot, { backgroundColor: colors.primary }]} />}
                 </View>
                 <View style={styles.roleText}>
-                  <Text style={styles.roleLabel}>{opt.label}</Text>
-                  <Text style={styles.roleDesc}>{opt.description}</Text>
+                  <Text style={[styles.roleLabel, { color: colors.text }]}>{opt.label}</Text>
+                  <Text style={[styles.roleDesc, { color: colors.textSecondary }]}>{opt.description}</Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -193,7 +195,7 @@ export function InviteModal({ listId, visible, onClose, onInvited }: Props) {
 
           {/* Submit */}
           <TouchableOpacity
-            style={[styles.submitBtn, (loading || success) && styles.submitBtnDisabled]}
+            style={[styles.submitBtn, { backgroundColor: colors.primary }, (loading || success) && styles.submitBtnDisabled]}
             onPress={handleSubmit}
             disabled={loading || success}
             accessibilityRole="button"
@@ -201,8 +203,8 @@ export function InviteModal({ listId, visible, onClose, onInvited }: Props) {
             accessibilityState={{ disabled: loading || success }}
           >
             {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.submitText}>Send invite</Text>}
+              ? <ActivityIndicator color={colors.textOnPrimary} />
+              : <Text style={[styles.submitText, { color: colors.textOnPrimary }]}>Send invite</Text>}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -221,7 +223,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
@@ -233,21 +234,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  title: { fontSize: 17, fontWeight: '700', color: '#111827' },
-  cancelText: { fontSize: 15, color: '#6b7280' },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
+  title: { fontSize: 17, fontWeight: '700' },
+  cancelText: { fontSize: 15 },
+  label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 10,
     padding: 12,
     fontSize: 15,
-    color: '#111827',
     marginBottom: 6,
   },
-  inputError: { borderColor: '#dc2626' },
-  errorText: { fontSize: 12, color: '#dc2626', marginBottom: 12 },
-  successText: { fontSize: 12, color: '#16a34a', marginBottom: 12 },
+  errorText: { fontSize: 12, marginBottom: 12 },
+  successText: { fontSize: 12, marginBottom: 12 },
   roleGroup: { gap: 8, marginBottom: 24 },
   roleRow: {
     flexDirection: 'row',
@@ -255,30 +253,25 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     gap: 12,
   },
-  roleRowSelected: { borderColor: '#6366f1', backgroundColor: '#eef2ff' },
   radio: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#d1d5db',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioSelected: { borderColor: '#6366f1' },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#6366f1' },
+  radioDot: { width: 10, height: 10, borderRadius: 5 },
   roleText: { flex: 1 },
-  roleLabel: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  roleDesc: { fontSize: 12, color: '#6b7280', marginTop: 1 },
+  roleLabel: { fontSize: 14, fontWeight: '600' },
+  roleDesc: { fontSize: 12, marginTop: 1 },
   submitBtn: {
-    backgroundColor: '#6366f1',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   submitBtnDisabled: { opacity: 0.6 },
-  submitText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  submitText: { fontSize: 16, fontWeight: '700' },
 });

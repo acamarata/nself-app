@@ -8,6 +8,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { TaskPriority } from '../types';
+import { useTheme } from '../theme';
 
 const PRIORITY_LABELS: Record<TaskPriority, string> = {
   none: 'No priority',
@@ -17,27 +18,33 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
   urgent: 'Urgent',
 };
 
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  none: '#e5e7eb',
-  low: '#d1d5db',
-  medium: '#fef3c7',
-  high: '#fee2e2',
-  urgent: '#fecaca',
-};
-
 interface Props {
   priority: TaskPriority;
   completed: boolean;
 }
 
 export function TaskStatus({ priority, completed }: Props) {
+  const { colors } = useTheme();
+
+  const PRIORITY_COLORS: Record<TaskPriority, string> = {
+    none: colors.border,
+    low: colors.primarySubtle,
+    medium: colors.warningSubtle,
+    high: colors.dangerSubtle,
+    urgent: colors.dangerSubtle,
+  };
+
   return (
-    <View style={styles.row}>
+    <View
+      style={styles.row}
+      accessibilityRole="text"
+      accessibilityLabel={`${priority}${completed ? ' complete' : ' incomplete'}`}
+    >
       <View style={[styles.badge, { backgroundColor: PRIORITY_COLORS[priority] }]}>
-        <Text style={styles.badgeText}>{PRIORITY_LABELS[priority]}</Text>
+        <Text style={[styles.badgeText, { color: colors.textSecondary }]}>{PRIORITY_LABELS[priority]}</Text>
       </View>
-      <View style={[styles.badge, { backgroundColor: completed ? '#dcfce7' : '#f3f4f6' }]}>
-        <Text style={styles.badgeText}>{completed ? 'Complete' : 'Incomplete'}</Text>
+      <View style={[styles.badge, { backgroundColor: completed ? colors.successSubtle : colors.surface }]}>
+        <Text style={[styles.badgeText, { color: colors.textSecondary }]}>{completed ? 'Complete' : 'Incomplete'}</Text>
       </View>
     </View>
   );
@@ -46,5 +53,5 @@ export function TaskStatus({ priority, completed }: Props) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { fontSize: 12, color: '#374151', fontWeight: '600' },
+  badgeText: { fontSize: 12, fontWeight: '600' },
 });

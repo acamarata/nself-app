@@ -16,6 +16,7 @@ import type { NpComment } from '../types';
 import { GET_COMMENTS } from '../lib/hasura';
 import { useCommentMutations } from '../hooks/useTaskMutations';
 import { generateIdempotencyKey } from '../lib/idempotency';
+import { useTheme } from '../theme';
 
 interface CommentsData {
   np_comments: NpComment[];
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export function CommentThread({ todoId, userId }: Props) {
+  const { colors } = useTheme();
   const [result, reexecute] = useQuery<CommentsData>({
     query: GET_COMMENTS,
     variables: { todoId },
@@ -62,34 +64,34 @@ export function CommentThread({ todoId, userId }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionLabel}>
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
         COMMENTS {comments.length > 0 ? `(${comments.length})` : ''}
       </Text>
 
       {result.fetching && comments.length === 0 && (
-        <ActivityIndicator size="small" color="#6366f1" style={{ marginVertical: 8 }} />
+        <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 8 }} />
       )}
 
       {comments.length === 0 && !result.fetching && (
-        <Text style={styles.empty}>No comments yet.</Text>
+        <Text style={[styles.empty, { color: colors.textTertiary }]}>No comments yet.</Text>
       )}
 
       {comments.map((comment) => (
         <TouchableOpacity
           key={comment.id}
-          style={styles.commentRow}
+          style={[styles.commentRow, { borderBottomColor: colors.borderSubtle }]}
           onLongPress={() => handleDelete(comment)}
           accessibilityLabel={`Comment: ${comment.body}`}
           accessibilityHint={comment.author_id === userId ? 'Long press to delete' : undefined}
         >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+          <View style={[styles.avatar, { backgroundColor: colors.primarySubtle }]}>
+            <Text style={[styles.avatarText, { color: colors.primary }]}>
               {comment.author_id.slice(-2).toUpperCase()}
             </Text>
           </View>
           <View style={styles.commentContent}>
-            <Text style={styles.commentBody}>{comment.body}</Text>
-            <Text style={styles.commentMeta}>
+            <Text style={[styles.commentBody, { color: colors.text }]}>{comment.body}</Text>
+            <Text style={[styles.commentMeta, { color: colors.textTertiary }]}>
               {comment.edited_at ? 'edited · ' : ''}
               {new Date(comment.created_at).toLocaleDateString()}
             </Text>
@@ -99,7 +101,7 @@ export function CommentThread({ todoId, userId }: Props) {
 
       <View style={styles.composeRow}>
         <TextInput
-          style={styles.composeInput}
+          style={[styles.composeInput, { borderColor: colors.border, backgroundColor: colors.surfaceElevated }]}
           value={body}
           onChangeText={setBody}
           placeholder="Add a comment…"
@@ -109,15 +111,15 @@ export function CommentThread({ todoId, userId }: Props) {
         />
         <TouchableOpacity
           onPress={handleSend}
-          style={[styles.sendBtn, (!body.trim() || creating) && styles.sendBtnDisabled]}
+          style={[styles.sendBtn, { backgroundColor: colors.primary }, (!body.trim() || creating) && styles.sendBtnDisabled]}
           disabled={!body.trim() || creating}
           accessibilityLabel="Send comment"
           accessibilityRole="button"
         >
           {creating ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={colors.textOnPrimary} />
           ) : (
-            <Text style={styles.sendBtnText}>Send</Text>
+            <Text style={[styles.sendBtnText, { color: colors.textOnPrimary }]}>Send</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -127,17 +129,17 @@ export function CommentThread({ todoId, userId }: Props) {
 
 const styles = StyleSheet.create({
   container: { marginTop: 8 },
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
-  empty: { fontSize: 13, color: '#9ca3af', fontStyle: 'italic', paddingVertical: 4 },
-  commentRow: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#e0e7ff', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  avatarText: { fontSize: 11, fontWeight: '700', color: '#6366f1' },
+  sectionLabel: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  empty: { fontSize: 13, fontStyle: 'italic', paddingVertical: 4 },
+  commentRow: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1 },
+  avatar: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  avatarText: { fontSize: 11, fontWeight: '700' },
   commentContent: { flex: 1 },
-  commentBody: { fontSize: 14, color: '#111827', lineHeight: 20 },
-  commentMeta: { fontSize: 11, color: '#9ca3af', marginTop: 2 },
+  commentBody: { fontSize: 14, lineHeight: 20 },
+  commentMeta: { fontSize: 11, marginTop: 2 },
   composeRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 12 },
-  composeInput: { flex: 1, borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 10, fontSize: 14, backgroundColor: '#fff', maxHeight: 100, minHeight: 44 },
-  sendBtn: { backgroundColor: '#6366f1', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
-  sendBtnDisabled: { backgroundColor: '#c4b5fd' },
-  sendBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  composeInput: { flex: 1, borderWidth: 1, borderRadius: 10, padding: 10, fontSize: 14, maxHeight: 100, minHeight: 44 },
+  sendBtn: { borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
+  sendBtnDisabled: { opacity: 0.5 },
+  sendBtnText: { fontWeight: '700', fontSize: 14 },
 });

@@ -14,11 +14,15 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList, Priority } from '../types';
 import { GET_TODO } from '../lib/hasura';
 import { useTaskMutations } from '../hooks/useTaskMutations';
+import { useNetworkState } from '../hooks/useNetworkState';
 import { TaskStatus } from '../components/TaskStatus';
 import { AssigneeSelector } from '../components/AssigneeSelector';
 import { SubtaskList } from '../components/SubtaskList';
 import { CommentThread } from '../components/CommentThread';
 import { TagPicker } from '../components/TagPicker';
+import { ErrorCard, OfflineBanner, PermissionDenied, RateLimitedCard } from '../components/seven-states';
+import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
+import { useTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskDetail'>;
 
@@ -45,12 +49,17 @@ const PRIORITY_HEX: Record<Priority, string> = {
 
 export function TaskDetailScreen({ route, navigation }: Props) {
   const { taskId, listId } = route.params;
+  const { colors } = useTheme();
 
-  const [result] = useQuery<TodoData>({
+  const [result, reexecuteQuery] = useQuery<TodoData>({
     query: GET_TODO,
     variables: { id: taskId },
     requestPolicy: 'cache-and-network',
   });
+
+  const refetch = () => reexecuteQuery({ requestPolicy: 'network-only' });
+  const { isConnected } = useNetworkState({ onReconnect: refetch });
+  const { error } = result;
 
   const task = result.data?.np_todos_by_pk;
   const { updateTask, deleteTask } = useTaskMutations(listId);
@@ -106,35 +115,42 @@ export function TaskDetailScreen({ route, navigation }: Props) {
   if (result.fetching && !task) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
+  }
+
+  if (error) {
+    const taskErr = classifyUrqlError(error);
+    if (taskErr.type === 'auth') return <PermissionDenied />;
+    if (taskErr.type === 'rate_limit') return <RateLimitedCard retryAfter={taskErr.retryAfter ?? 30} onRetry={refetch} />;
+    return <ErrorCard message={taskUserMessage(taskErr)} onRetry={refetch} />;
   }
 
   if (!task) {
     return (
       <View style={styles.center}>
-        <Text style={styles.notFound}>Task not found.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>Back</Text>
+        <Text style={[styles.notFound, { color: colors.textSecondary }]}>Task not found.</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.primary }]}>
+          <Text style={[styles.backBtnText, { color: colors.textOnPrimary }]}>Back</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back">
-          <Text style={styles.back}>‹ Back</Text>
+          <Text style={[styles.back, { color: colors.primary }]}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Task</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Task</Text>
         <View style={styles.headerActions}>
           {saving ? (
-            <ActivityIndicator color="#6366f1" />
+            <ActivityIndicator color={colors.primary} />
           ) : (
             <TouchableOpacity onPress={handleSave} accessibilityLabel="Save">
-              <Text style={styles.saveBtn}>Save</Text>
+              <Text style={[styles.saveBtn, { color: colors.primary }]}>Save</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={handleDelete} style={{ marginLeft: 16 }} accessibilityLabel="Delete task">
@@ -143,12 +159,14 @@ export function TaskDetailScreen({ route, navigation }: Props) {
         </View>
       </View>
 
+      <OfflineBanner visible={!isConnected} />
+
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <TaskStatus priority={priority} completed={completed} />
 
-        <Text style={styles.label}>Title</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Title</Text>
         <TextInput
-          style={styles.inputLarge}
+          style={[styles.inputLarge, { borderColor: colors.border, backgroundColor: colors.surfaceElevated }]}
           value={title}
           onChangeText={setTitle}
           placeholder="Task title"
@@ -158,23 +176,24 @@ export function TaskDetailScreen({ route, navigation }: Props) {
         />
 
         <View style={styles.toggleRow}>
-          <Text style={styles.label}>Completed</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Completed</Text>
           <Switch
             value={completed}
             onValueChange={setCompleted}
-            trackColor={{ true: '#6366f1' }}
-            thumbColor={Platform.OS === 'android' ? (completed ? '#6366f1' : '#f4f4f5') : undefined}
+            trackColor={{ true: colors.primary }}
+            thumbColor={Platform.OS === 'android' ? (completed ? colors.primary : colors.surface) : undefined}
             accessibilityLabel="Mark completed"
           />
         </View>
 
-        <Text style={styles.label}>Priority</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Priority</Text>
         <View style={styles.segmentRow}>
           {PRIORITIES.map((p) => (
             <TouchableOpacity
               key={p}
               style={[
                 styles.segment,
+                { borderColor: colors.border, backgroundColor: colors.surfaceElevated },
                 priority === p && { borderColor: PRIORITY_HEX[p], backgroundColor: `${PRIORITY_HEX[p]}18` },
               ]}
               onPress={() => setPriority(p)}
@@ -182,16 +201,16 @@ export function TaskDetailScreen({ route, navigation }: Props) {
               accessibilityLabel={`Priority ${PRIORITY_LABELS[p]}`}
               accessibilityState={{ selected: priority === p }}
             >
-              <Text style={[styles.segmentText, priority === p && { color: PRIORITY_HEX[p] }]}>
+              <Text style={[styles.segmentText, { color: colors.textSecondary }, priority === p && { color: PRIORITY_HEX[p] }]}>
                 {PRIORITY_LABELS[p]}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.label}>Due date (YYYY-MM-DD)</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Due date (YYYY-MM-DD)</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surfaceElevated }]}
           value={dueDate}
           onChangeText={setDueDate}
           placeholder="e.g. 2025-12-31"
@@ -201,9 +220,9 @@ export function TaskDetailScreen({ route, navigation }: Props) {
 
         <AssigneeSelector assigneeId={null} readonly />
 
-        <Text style={styles.label}>Notes</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Notes</Text>
         <TextInput
-          style={[styles.input, styles.textarea]}
+          style={[styles.input, styles.textarea, { borderColor: colors.border, backgroundColor: colors.surfaceElevated }]}
           value={notes}
           onChangeText={setNotes}
           placeholder="Add notes…"
@@ -217,13 +236,13 @@ export function TaskDetailScreen({ route, navigation }: Props) {
         <CommentThread todoId={task.id} userId={task.user_id} />
 
         <TouchableOpacity
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+          style={[styles.saveButton, { backgroundColor: colors.primary }, saving && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={saving}
           accessibilityRole="button"
           accessibilityLabel="Save changes"
         >
-          <Text style={styles.saveButtonText}>{saving ? 'Saving…' : 'Save changes'}</Text>
+          <Text style={[styles.saveButtonText, { color: colors.textOnPrimary }]}>{saving ? 'Saving…' : 'Save changes'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -231,27 +250,27 @@ export function TaskDetailScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  notFound: { fontSize: 16, color: '#6b7280', marginBottom: 16 },
-  backBtn: { backgroundColor: '#6366f1', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 },
-  backBtnText: { color: '#fff', fontWeight: '600' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  back: { fontSize: 16, color: '#6366f1', width: 60 },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
+  notFound: { fontSize: 16, marginBottom: 16 },
+  backBtn: { borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 },
+  backBtnText: { fontWeight: '600' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, borderBottomWidth: 1 },
+  back: { fontSize: 16, width: 60 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   headerActions: { flexDirection: 'row', alignItems: 'center', width: 80, justifyContent: 'flex-end' },
-  saveBtn: { fontSize: 15, color: '#6366f1', fontWeight: '700' },
+  saveBtn: { fontSize: 15, fontWeight: '700' },
   deleteBtn: { fontSize: 18 },
   body: { padding: 20, gap: 4 },
-  label: { fontSize: 13, fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 16, marginBottom: 6 },
-  inputLarge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, fontSize: 17, fontWeight: '600', backgroundColor: '#fff', minHeight: 56 },
-  input: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, fontSize: 15, backgroundColor: '#fff' },
+  label: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 16, marginBottom: 6 },
+  inputLarge: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 17, fontWeight: '600', minHeight: 56 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 15 },
   textarea: { minHeight: 100, textAlignVertical: 'top' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
   segmentRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  segment: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: '#d1d5db', alignItems: 'center', backgroundColor: '#fff', minWidth: 60 },
-  segmentText: { fontSize: 12, fontWeight: '600', color: '#6b7280' },
-  saveButton: { backgroundColor: '#6366f1', borderRadius: 10, padding: 15, alignItems: 'center', marginTop: 24 },
+  segment: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, alignItems: 'center', minWidth: 60 },
+  segmentText: { fontSize: 12, fontWeight: '600' },
+  saveButton: { borderRadius: 10, padding: 15, alignItems: 'center', marginTop: 24 },
   saveButtonDisabled: { opacity: 0.6 },
-  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  saveButtonText: { fontSize: 16, fontWeight: '700' },
 });

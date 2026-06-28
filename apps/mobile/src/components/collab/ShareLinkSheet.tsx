@@ -25,6 +25,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useCollabMutations } from '../../hooks/useCollab';
+import { useTheme } from '../../theme';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,6 +53,7 @@ interface Props {
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export function ShareLinkSheet({ listId, visible, onClose }: Props) {
+  const { colors } = useTheme();
   const { createShareLink, revokeShareLink } = useCollabMutations();
 
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -147,7 +149,7 @@ export function ShareLinkSheet({ listId, visible, onClose }: Props) {
       accessibilityViewIsModal
     >
       <View style={styles.backdrop}>
-        <View style={[styles.sheet, { maxHeight: SCREEN_HEIGHT * 0.6 }]}>
+        <View style={[styles.sheet, { backgroundColor: colors.surfaceElevated, maxHeight: SCREEN_HEIGHT * 0.6 }]}>
           <ScrollView
             bounces={false}
             keyboardShouldPersistTaps="handled"
@@ -155,20 +157,20 @@ export function ShareLinkSheet({ listId, visible, onClose }: Props) {
           >
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>Share link</Text>
+              <Text style={[styles.title, { color: colors.text }]}>Share link</Text>
               <TouchableOpacity
                 onPress={resetAndClose}
                 accessibilityRole="button"
                 accessibilityLabel="Close share link sheet"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.closeText}>Done</Text>
+                <Text style={[styles.closeText, { color: colors.primary }]}>Done</Text>
               </TouchableOpacity>
             </View>
 
             {/* Inline error */}
             {!!error && (
-              <Text style={styles.errorText} accessibilityRole="alert">
+              <Text style={[styles.errorText, { color: colors.danger }]} accessibilityRole="alert">
                 {error}
               </Text>
             )}
@@ -176,11 +178,11 @@ export function ShareLinkSheet({ listId, visible, onClose }: Props) {
             {/* No link yet */}
             {!shareUrl && (
               <>
-                <Text style={styles.hint}>
+                <Text style={[styles.hint, { color: colors.textSecondary }]}>
                   Create a link so anyone can view this list — no account needed.
                 </Text>
                 <TouchableOpacity
-                  style={[styles.primaryBtn, busy && styles.btnDisabled]}
+                  style={[styles.primaryBtn, { backgroundColor: colors.primary }, busy && styles.btnDisabled]}
                   onPress={handleCreate}
                   disabled={busy}
                   accessibilityRole="button"
@@ -188,8 +190,8 @@ export function ShareLinkSheet({ listId, visible, onClose }: Props) {
                   accessibilityState={{ disabled: busy }}
                 >
                   {creating
-                    ? <ActivityIndicator color="#fff" />
-                    : <Text style={styles.primaryBtnText}>Create share link</Text>}
+                    ? <ActivityIndicator color={colors.textOnPrimary} />
+                    : <Text style={[styles.primaryBtnText, { color: colors.textOnPrimary }]}>Create share link</Text>}
                 </TouchableOpacity>
               </>
             )}
@@ -197,29 +199,29 @@ export function ShareLinkSheet({ listId, visible, onClose }: Props) {
             {/* Link exists */}
             {!!shareUrl && (
               <>
-                <Text style={styles.label}>Share link</Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>Share link</Text>
                 <View style={styles.linkRow}>
                   <TextInput
-                    style={styles.linkInput}
+                    style={[styles.linkInput, { borderColor: colors.border, color: colors.textSecondary, backgroundColor: colors.background }]}
                     value={shareUrl}
                     editable={false}
                     selectTextOnFocus
                     accessibilityLabel="Share link URL"
                   />
                   <TouchableOpacity
-                    style={styles.copyBtn}
+                    style={[styles.copyBtn, { backgroundColor: colors.primary }]}
                     onPress={handleCopy}
                     accessibilityRole="button"
                     accessibilityLabel={copied ? 'Link copied' : 'Copy link'}
                   >
-                    <Text style={styles.copyBtnText}>
+                    <Text style={[styles.copyBtnText, { color: colors.textOnPrimary }]}>
                       {copied ? 'Copied!' : 'Copy'}
                     </Text>
                   </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.revokeBtn, busy && styles.btnDisabled]}
+                  style={[styles.revokeBtn, { borderColor: colors.danger }, busy && styles.btnDisabled]}
                   onPress={confirmRevoke}
                   disabled={busy}
                   accessibilityRole="button"
@@ -227,8 +229,8 @@ export function ShareLinkSheet({ listId, visible, onClose }: Props) {
                   accessibilityState={{ disabled: busy }}
                 >
                   {revoking
-                    ? <ActivityIndicator color="#dc2626" />
-                    : <Text style={styles.revokeBtnText}>Revoke link</Text>}
+                    ? <ActivityIndicator color={colors.danger} />
+                    : <Text style={[styles.revokeBtnText, { color: colors.danger }]}>Revoke link</Text>}
                 </TouchableOpacity>
               </>
             )}
@@ -250,7 +252,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -264,21 +265,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  title: { fontSize: 17, fontWeight: '700', color: '#111827' },
-  closeText: { fontSize: 15, color: '#6366f1', fontWeight: '600' },
+  title: { fontSize: 17, fontWeight: '700' },
+  closeText: { fontSize: 15, fontWeight: '600' },
   hint: {
     fontSize: 14,
-    color: '#6b7280',
     lineHeight: 20,
     marginBottom: 20,
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
-  errorText: { fontSize: 12, color: '#dc2626', marginBottom: 12 },
+  errorText: { fontSize: 12, marginBottom: 12 },
   linkRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -288,36 +287,30 @@ const styles = StyleSheet.create({
   linkInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 10,
     padding: 10,
     fontSize: 13,
-    color: '#374151',
-    backgroundColor: '#f9fafb',
   },
   copyBtn: {
-    backgroundColor: '#6366f1',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 16,
     minWidth: 72,
     alignItems: 'center',
   },
-  copyBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  copyBtnText: { fontSize: 14, fontWeight: '700' },
   primaryBtn: {
-    backgroundColor: '#6366f1',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  primaryBtnText: { fontSize: 16, fontWeight: '700' },
   revokeBtn: {
     borderWidth: 1.5,
-    borderColor: '#dc2626',
     borderRadius: 12,
     paddingVertical: 13,
     alignItems: 'center',
   },
-  revokeBtnText: { color: '#dc2626', fontSize: 15, fontWeight: '600' },
+  revokeBtnText: { fontSize: 15, fontWeight: '600' },
   btnDisabled: { opacity: 0.55 },
 });

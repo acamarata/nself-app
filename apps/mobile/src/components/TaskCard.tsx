@@ -12,14 +12,16 @@ import React from 'react';
 import { ActivityIndicator, View, Text, TouchableOpacity, StyleSheet, Alert, I18nManager } from 'react-native';
 import type { NpTask, Priority } from '../types';
 import { formatHijriDate } from '../i18n';
+import { useTheme } from '../theme';
+import type { ColorTokens } from '../theme';
 
-const PRIORITY_COLORS: Record<Priority, string> = {
+const PRIORITY_COLORS = (_colors: ColorTokens): Record<Priority, string> => ({
   none: 'transparent',
   low: '#9ca3af',
   medium: '#f59e0b',
   high: '#ef4444',
   urgent: '#dc2626',
-};
+});
 
 interface Props {
   task: NpTask;
@@ -31,7 +33,8 @@ interface Props {
 }
 
 export function TaskCard({ task, onToggle, onDelete, onPress, pending = false }: Props) {
-  const dotColor = PRIORITY_COLORS[task.priority];
+  const { colors } = useTheme();
+  const dotColor = PRIORITY_COLORS(colors)[task.priority];
   const isRtl = I18nManager.isRTL;
 
   /**
@@ -55,9 +58,10 @@ export function TaskCard({ task, onToggle, onDelete, onPress, pending = false }:
 
   return (
     <TouchableOpacity
-      style={[styles.row, pending && styles.rowPending]}
+      style={[styles.row, { borderBottomColor: colors.borderSubtle }, pending && styles.rowPending]}
       onPress={pending ? undefined : onPress}
       onLongPress={pending ? undefined : confirmDelete}
+      accessibilityRole="button"
       accessibilityLabel={task.title}
       accessibilityState={{ busy: pending }}
     >
@@ -66,7 +70,7 @@ export function TaskCard({ task, onToggle, onDelete, onPress, pending = false }:
           <View style={[styles.dot, { backgroundColor: dotColor }]} />
         )}
         {pending ? (
-          <ActivityIndicator size="small" color="#6366f1" style={styles.checkbox} />
+          <ActivityIndicator size="small" color={colors.primary} style={styles.checkbox} />
         ) : (
           <TouchableOpacity
             onPress={() => onToggle(!task.completed)}
@@ -74,40 +78,49 @@ export function TaskCard({ task, onToggle, onDelete, onPress, pending = false }:
             accessibilityRole="checkbox"
             accessibilityState={{ checked: task.completed }}
           >
-            <View style={[styles.checkboxBox, task.completed && styles.checkboxChecked]}>
-              {task.completed && <Text style={styles.checkmark}>✓</Text>}
+            <View style={[
+              styles.checkboxBox,
+              { borderColor: colors.primary },
+              task.completed && { backgroundColor: colors.primary, borderColor: colors.primary },
+            ]}>
+              {task.completed && <Text style={[styles.checkmark, { color: colors.textOnPrimary }]}>✓</Text>}
             </View>
           </TouchableOpacity>
         )}
       </View>
       <View style={styles.content}>
-        <Text style={[styles.title, task.completed && styles.titleDone, pending && styles.titlePending]} numberOfLines={2}>
+        <Text
+          style={[
+            styles.title,
+            { color: colors.text },
+            task.completed && { textDecorationLine: 'line-through', color: colors.textTertiary },
+            pending && { color: colors.textSecondary },
+          ]}
+          numberOfLines={2}
+        >
           {task.title}
         </Text>
         {task.due_date && (
-          <Text style={styles.dueDate}>
+          <Text style={[styles.dueDate, { color: colors.textSecondary }]}>
             {isRtl ? formatDueDate(task.due_date) : `Due: ${formatDueDate(task.due_date)}`}
           </Text>
         )}
-        {pending && <Text style={styles.pendingLabel}>Saving…</Text>}
+        {pending && <Text style={[styles.pendingLabel, { color: colors.textTertiary }]}>Saving…</Text>}
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 1 },
   rowPending: { opacity: 0.55 },
   leading: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   checkbox: { padding: 4 },
-  checkboxBox: { width: 22, height: 22, borderRadius: 4, borderWidth: 2, borderColor: '#6366f1', alignItems: 'center', justifyContent: 'center' },
-  checkboxChecked: { backgroundColor: '#6366f1', borderColor: '#6366f1' },
-  checkmark: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  checkboxBox: { width: 22, height: 22, borderRadius: 4, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  checkmark: { fontSize: 14, fontWeight: '700' },
   content: { flex: 1 },
-  title: { fontSize: 15, color: '#111827' },
-  titleDone: { textDecorationLine: 'line-through', color: '#9ca3af' },
-  titlePending: { color: '#6b7280' },
-  pendingLabel: { fontSize: 11, color: '#9ca3af', marginTop: 2, fontStyle: 'italic' },
-  dueDate: { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  title: { fontSize: 15 },
+  dueDate: { fontSize: 12, marginTop: 2 },
+  pendingLabel: { fontSize: 11, marginTop: 2, fontStyle: 'italic' },
 });

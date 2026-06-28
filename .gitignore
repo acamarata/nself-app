@@ -12,7 +12,8 @@
 # app/ directory: leftover Flutter build artifacts from pre-RN-migration Flutter
 # client. The Flutter app/ was deleted in feat(mobile): migrate Flutter to React
 # Native Expo (7c594b5). These disk remnants are not tracked; suppress via gitignore.
-app/
+# Anchored to root so apps/mobile/src/app/ (React Native screens) is NOT excluded.
+/app/
 **/.dart_tool/
 **/build/
 **/*.g.dart

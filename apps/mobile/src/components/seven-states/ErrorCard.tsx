@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../theme';
 
 interface Props {
   message?: string;
@@ -14,17 +15,24 @@ interface Props {
 }
 
 export function ErrorCard({ message = 'Something went wrong', onRetry }: Props) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container} accessibilityRole="alert">
       <Text style={styles.icon}>⚠️</Text>
-      <Text style={styles.title}>Error</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.title, { color: colors.danger }]}>Error</Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text>
       {!!onRetry && (
-        <TouchableOpacity style={styles.button} onPress={onRetry} accessibilityRole="button" accessibilityLabel="Retry">
-          <Text style={styles.buttonText}>Retry</Text>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.primary }]}
+          onPress={onRetry}
+          accessibilityRole="button"
+          accessibilityLabel="Retry"
+        >
+          <Text style={[styles.buttonText, { color: colors.textOnPrimary }]}>Retry</Text>
         </TouchableOpacity>
       )}
-      <Text style={styles.hint}>Pull down to refresh</Text>
+      <Text style={[styles.hint, { color: colors.textTertiary }]}>Pull down to refresh</Text>
     </View>
   );
 }
@@ -44,29 +52,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#dc2626',
   },
   message: {
     fontSize: 14,
-    color: '#374151',
     textAlign: 'center',
     lineHeight: 20,
   },
   button: {
     marginTop: 12,
-    backgroundColor: '#6366f1',
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#fff',
     fontWeight: '600',
     fontSize: 14,
   },
   hint: {
     marginTop: 8,
     fontSize: 12,
-    color: '#9ca3af',
   },
 });

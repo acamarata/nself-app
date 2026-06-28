@@ -99,6 +99,11 @@ export interface TVFocusableProps {
   children: React.ReactNode;
   /** If true, renders as non-interactive (no touch, no focus ring). */
   disabled?: boolean;
+  /**
+   * tvOS UIFocusEngine: if true this element receives initial focus when its screen mounts.
+   * Passed directly to TVTouchable (react-native-tvos hasTVPreferredFocus prop).
+   */
+  hasTVPreferredFocus?: boolean;
 }
 
 /**
@@ -122,6 +127,7 @@ export function TVFocusable({
   accessibilityLabel,
   children,
   disabled = false,
+  hasTVPreferredFocus = false,
 }: TVFocusableProps) {
   const { setFocused, clearFocus } = useFocus();
   const [isFocused, setIsFocused] = useState(false);
@@ -166,6 +172,7 @@ export function TVFocusable({
       accessibilityLabel={accessibilityLabel}
       activeOpacity={0.85}
       isTVSelectable={true}
+      hasTVPreferredFocus={hasTVPreferredFocus}
       tvParallaxProperties={{ enabled: false }}
       nextFocusUp={nextFocusUp}
       nextFocusDown={nextFocusDown}

@@ -14,6 +14,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { ListMember } from '../../lib/collabOps';
 import { RoleSelector } from './RoleSelector';
+import { useTheme } from '../../theme';
 
 interface MemberRowProps {
   member: ListMember;
@@ -55,6 +56,7 @@ export function MemberRow({
   member, isPresent, presenceStatus, isOwner, currentUserId,
   onLongPress, onRoleSelect, expandedId,
 }: MemberRowProps) {
+  const { colors } = useTheme();
   const isSelf = member.user_id === currentUserId;
   const displayName = member.profile?.display_name;
   const initials = getInitials(displayName, member.user_id);
@@ -62,7 +64,7 @@ export function MemberRow({
 
   return (
     <TouchableOpacity
-      style={styles.row}
+      style={[styles.row, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}
       onLongPress={() => isOwner && !isSelf ? onLongPress(member) : undefined}
       accessibilityLabel={`${displayName ?? member.user_id}, ${member.role}${isPresent ? ', present' : ''}`}
       accessibilityRole="button"
@@ -70,11 +72,15 @@ export function MemberRow({
       <View style={styles.avatar}>
         <Text style={styles.avatarInitials}>{initials}</Text>
         {isPresent && (
-          <View style={[styles.presenceDot, presenceStatus === 'editing' ? styles.dotEditing : styles.dotViewing]} />
+          <View style={[
+            styles.presenceDot,
+            { borderColor: colors.surfaceElevated },
+            presenceStatus === 'editing' ? styles.dotEditing : styles.dotViewing,
+          ]} />
         )}
       </View>
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
           {displayName ?? member.user_id}{isSelf ? ' (you)' : ''}
         </Text>
         <View style={[styles.badge, { backgroundColor: roleBadgeColor(member.role) }]}>
@@ -89,14 +95,14 @@ export function MemberRow({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#818cf8', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   avatarInitials: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  presenceDot: { position: 'absolute', bottom: 0, right: 0, width: 11, height: 11, borderRadius: 6, borderWidth: 2, borderColor: '#fff' },
+  presenceDot: { position: 'absolute', bottom: 0, right: 0, width: 11, height: 11, borderRadius: 6, borderWidth: 2 },
   dotEditing: { backgroundColor: '#22c55e' },
   dotViewing: { backgroundColor: '#9ca3af' },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 4 },
+  name: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
   badge: { alignSelf: 'flex-start', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 10 },
   badgeText: { fontSize: 11, fontWeight: '600', color: '#fff' },
 });

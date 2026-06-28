@@ -58,6 +58,8 @@ export function ConnectScreen() {
           <View style={styles.field}>
             <Text style={styles.label}>{t('connect.serverUrl')}</Text>
             <TextInput
+              nativeID="server-url-input"
+              hasTVPreferredFocus={true}
               style={styles.input}
               value={serverUrl}
               onChangeText={setServerUrl}
@@ -76,6 +78,7 @@ export function ConnectScreen() {
             <Text style={styles.label}>{t('connect.email')}</Text>
             <TextInput
               ref={emailRef}
+              nativeID="email-input"
               style={styles.input}
               value={email}
               onChangeText={setEmail}
@@ -94,6 +97,7 @@ export function ConnectScreen() {
             <Text style={styles.label}>{t('connect.password')}</Text>
             <TextInput
               ref={passwordRef}
+              nativeID="password-input"
               style={styles.input}
               value={password}
               onChangeText={setPassword}

@@ -12,6 +12,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
+import { ThemeProvider } from '../src/theme';
 import { TaskCard } from '../src/components/TaskCard';
 import { EmptyState } from '../src/components/seven-states/EmptyState';
 import { ErrorCard } from '../src/components/seven-states/ErrorCard';
@@ -65,28 +66,36 @@ const noop = () => undefined;
 describe('TaskCard a11y', () => {
   it('has accessibilityLabel matching the task title', () => {
     render(
-      <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />
+      <ThemeProvider>
+        <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />
+      </ThemeProvider>
     );
     expect(screen.getByLabelText('Write accessibility tests')).toBeTruthy();
   });
 
   it('checkbox has accessibilityRole="checkbox" and correct checked state', () => {
     const { rerender } = render(
-      <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />
+      <ThemeProvider>
+        <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} />
+      </ThemeProvider>
     );
     const checkbox = screen.getByRole('checkbox');
     expect(checkbox).toBeTruthy();
     expect(checkbox.props.accessibilityState?.checked).toBe(false);
 
     rerender(
-      <TaskCard task={{ ...baseTask, completed: true }} onToggle={noop} onDelete={noop} onPress={noop} />
+      <ThemeProvider>
+        <TaskCard task={{ ...baseTask, completed: true }} onToggle={noop} onDelete={noop} onPress={noop} />
+      </ThemeProvider>
     );
     expect(screen.getByRole('checkbox').props.accessibilityState?.checked).toBe(true);
   });
 
   it('pending task sets accessibilityState.busy=true', () => {
     render(
-      <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} pending />
+      <ThemeProvider>
+        <TaskCard task={baseTask} onToggle={noop} onDelete={noop} onPress={noop} pending />
+      </ThemeProvider>
     );
     const row = screen.getByLabelText('Write accessibility tests');
     expect(row.props.accessibilityState?.busy).toBe(true);
@@ -99,14 +108,20 @@ describe('EmptyState a11y', () => {
   it('action button has accessibilityRole=button and correct label', () => {
     const onAction = jest.fn();
     render(
-      <EmptyState title="No tasks" actionLabel="Add task" onAction={onAction} />
+      <ThemeProvider>
+        <EmptyState title="No tasks" actionLabel="Add task" onAction={onAction} />
+      </ThemeProvider>
     );
     const btn = screen.getByRole('button', { name: 'Add task' });
     expect(btn).toBeTruthy();
   });
 
   it('renders without action button when actionLabel is absent', () => {
-    render(<EmptyState title="No tasks" />);
+    render(
+      <ThemeProvider>
+        <EmptyState title="No tasks" />
+      </ThemeProvider>
+    );
     expect(screen.queryByRole('button')).toBeNull();
   });
 });
@@ -116,14 +131,22 @@ describe('EmptyState a11y', () => {
 describe('ErrorCard a11y', () => {
   it('retry button has accessibilityRole=button and label "Retry"', () => {
     const onRetry = jest.fn();
-    render(<ErrorCard message="Network error" onRetry={onRetry} />);
+    render(
+      <ThemeProvider>
+        <ErrorCard message="Network error" onRetry={onRetry} />
+      </ThemeProvider>
+    );
     const btn = screen.getByRole('button', { name: 'Retry' });
     expect(btn).toBeTruthy();
   });
 
   it('container has accessibilityRole=alert', () => {
-    render(<ErrorCard />);
-    // RNTL v12 exposes accessibilityRole="alert" via getByA11yRole
+    render(
+      <ThemeProvider>
+        <ErrorCard />
+      </ThemeProvider>
+    );
+    // RNTL v12 exposes accessibilityRole="alert" via UNSAFE_getByProps
     const container = screen.UNSAFE_getByProps({ accessibilityRole: 'alert' });
     expect(container).toBeTruthy();
   });

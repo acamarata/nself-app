@@ -22,7 +22,9 @@
     "errorTitle": "Échec du chargement des tâches",
     "retryButton": "Réessayer",
     "viewTasks": "Voir les tâches",
-    "menuHint": "Menu"
+    "menuHint": "Menu",
+    "tomorrow": "Demain",
+    "noLists": "Aucune liste trouvée. Ajoutez des listes dans l'appli ɳTask mobile."
   },
   "listView": {
     "title": "Tâches",

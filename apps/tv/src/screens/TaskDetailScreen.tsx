@@ -28,6 +28,7 @@ import type { NpTask } from '@nself/ntask-core'
 import { MarkDoneButtonTV } from '../components/MarkDoneButtonTV'
 import { FocusableButton } from '../components/FocusableButton'
 import { RemoteHintBar, HINTS } from '../components/RemoteHintBar'
+import { TVFocusable } from '../navigation/FocusContext'
 import { tvTheme } from '../theme'
 import type { TVStackParamList } from '../navigation/TVNavigator'
 
@@ -79,7 +80,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
       <View style={styles.center}>
         <Text style={styles.errorText}>{tCommon('error')}</Text>
         <FocusableButton
-          id="td-back"
+          id="td-back-btn"
           label={tCommon('back')}
           variant="secondary"
           onSelect={() => navigation.goBack()}
@@ -95,7 +96,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle} numberOfLines={2}>{task.title}</Text>
-        <View style={[styles.priorityBadge, { backgroundColor: priorityColor + '33' }]}>
+        <View style={[styles.priorityBadge, { backgroundColor: priorityColor + tvTheme.opacity.badge }]}>
           <Text style={[styles.priorityText, { color: priorityColor }]}>
             {priorityLabel(task.priority)}
           </Text>
@@ -104,7 +105,8 @@ export function TaskDetailScreen({ route, navigation }: Props) {
 
       {/* Body */}
       <View style={styles.body}>
-        {/* Left panel — metadata */}
+        {/* Left panel — metadata; TVFocusable wrapper lets D-pad scroll the panel */}
+        <TVFocusable id="td-meta-panel" style={styles.metaPanelWrapper}>
         <ScrollView style={styles.metaPanel} showsVerticalScrollIndicator={false}>
           {task.description ? (
             <View style={styles.section}>
@@ -137,6 +139,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
             </Text>
           </View>
         </ScrollView>
+        </TVFocusable>
 
         {/* Right panel — actions */}
         <View style={styles.actionsPanel}>
@@ -146,6 +149,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
             completed={task.completed}
             onSuccess={handleMarkDoneSuccess}
             id="td-mark-done"
+            nextFocusDown="td-back-btn"
           />
           <FocusableButton
             id="td-back-btn"
@@ -207,8 +211,11 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
   },
-  metaPanel: {
+  metaPanelWrapper: {
     flex: 3,
+  },
+  metaPanel: {
+    flex: 1,
     paddingHorizontal: tvTheme.spacing.xl,
     paddingTop: tvTheme.spacing.xl,
   },

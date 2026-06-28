@@ -15,6 +15,7 @@ import { useQuery, useMutation } from 'urql';
 import type { NpTag } from '../types';
 import { GET_TAGS, ADD_TODO_TAG, REMOVE_TODO_TAG, CREATE_TAG } from '../lib/hasura';
 import { useTagMutations } from '../hooks/useTaskMutations';
+import { useTheme } from '../theme';
 
 interface TagsData {
   np_tags: NpTag[];
@@ -40,6 +41,7 @@ interface Props {
 const TAG_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
 export function TagPicker({ todoId, userId }: Props) {
+  const { colors } = useTheme();
   const [tagsResult] = useQuery<TagsData>({
     query: GET_TAGS,
     variables: { userId },
@@ -84,22 +86,22 @@ export function TagPicker({ todoId, userId }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionLabel}>TAGS</Text>
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>TAGS</Text>
         <TouchableOpacity
           onPress={() => setShowCreate((v) => !v)}
           accessibilityLabel={showCreate ? 'Cancel' : 'Create new tag'}
           accessibilityRole="button"
         >
-          <Text style={styles.addBtn}>{showCreate ? 'Cancel' : '+ New tag'}</Text>
+          <Text style={[styles.addBtn, { color: colors.primary }]}>{showCreate ? 'Cancel' : '+ New tag'}</Text>
         </TouchableOpacity>
       </View>
 
       {(tagsResult.fetching && allTags.length === 0) && (
-        <ActivityIndicator size="small" color="#6366f1" />
+        <ActivityIndicator size="small" color={colors.primary} />
       )}
 
       {allTags.length === 0 && !tagsResult.fetching && !showCreate && (
-        <Text style={styles.empty}>No tags yet.</Text>
+        <Text style={[styles.empty, { color: colors.textTertiary }]}>No tags yet.</Text>
       )}
 
       {allTags.length > 0 && (
@@ -112,7 +114,7 @@ export function TagPicker({ todoId, userId }: Props) {
                   key={tag.id}
                   style={[
                     styles.chip,
-                    { borderColor: tag.color, backgroundColor: active ? tag.color : '#fff' },
+                    { borderColor: tag.color, backgroundColor: active ? tag.color : colors.surfaceElevated },
                   ]}
                   onPress={() => handleToggleTag(tag)}
                   accessibilityRole="checkbox"
@@ -130,9 +132,9 @@ export function TagPicker({ todoId, userId }: Props) {
       )}
 
       {showCreate && (
-        <View style={styles.createBox}>
+        <View style={[styles.createBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
           <TextInput
-            style={styles.createInput}
+            style={[styles.createInput, { borderColor: colors.border, backgroundColor: colors.surfaceElevated }]}
             value={newName}
             onChangeText={setNewName}
             placeholder="Tag name"
@@ -148,7 +150,7 @@ export function TagPicker({ todoId, userId }: Props) {
                   style={[
                     styles.colorSwatch,
                     { backgroundColor: c },
-                    selectedColor === c && styles.colorSwatchSelected,
+                    selectedColor === c && { borderColor: colors.text, transform: [{ scale: 1.2 }] },
                   ]}
                   onPress={() => setSelectedColor(c)}
                   accessibilityLabel={`Color ${c}`}
@@ -159,13 +161,13 @@ export function TagPicker({ todoId, userId }: Props) {
             </View>
           </ScrollView>
           <TouchableOpacity
-            style={[styles.createBtn, !newName.trim() && styles.createBtnDisabled]}
+            style={[styles.createBtn, { backgroundColor: colors.primary }, !newName.trim() && styles.createBtnDisabled]}
             onPress={handleCreateTag}
             disabled={!newName.trim()}
             accessibilityRole="button"
             accessibilityLabel="Save tag"
           >
-            <Text style={styles.createBtnText}>Create tag</Text>
+            <Text style={[styles.createBtnText, { color: colors.textOnPrimary }]}>Create tag</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -176,18 +178,17 @@ export function TagPicker({ todoId, userId }: Props) {
 const styles = StyleSheet.create({
   container: { marginTop: 8 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 },
-  addBtn: { fontSize: 14, color: '#6366f1', fontWeight: '600' },
-  empty: { fontSize: 13, color: '#9ca3af', fontStyle: 'italic', paddingVertical: 4 },
+  sectionLabel: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  addBtn: { fontSize: 14, fontWeight: '600' },
+  empty: { fontSize: 13, fontStyle: 'italic', paddingVertical: 4 },
   chipScroll: { marginBottom: 4 },
   chipRow: { flexDirection: 'row', gap: 8, paddingRight: 4 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1.5 },
   chipText: { fontSize: 13, fontWeight: '600' },
-  createBox: { backgroundColor: '#f9fafb', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#e5e7eb' },
-  createInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 10, fontSize: 14, backgroundColor: '#fff' },
+  createBox: { borderRadius: 10, padding: 12, borderWidth: 1 },
+  createInput: { borderWidth: 1, borderRadius: 8, padding: 10, fontSize: 14 },
   colorSwatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: 'transparent' },
-  colorSwatchSelected: { borderColor: '#111827', transform: [{ scale: 1.2 }] },
-  createBtn: { marginTop: 10, backgroundColor: '#6366f1', borderRadius: 8, padding: 10, alignItems: 'center' },
-  createBtnDisabled: { backgroundColor: '#c4b5fd' },
-  createBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  createBtn: { marginTop: 10, borderRadius: 8, padding: 10, alignItems: 'center' },
+  createBtnDisabled: { opacity: 0.5 },
+  createBtnText: { fontWeight: '700', fontSize: 14 },
 });

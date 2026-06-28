@@ -22,7 +22,9 @@
     "errorTitle": "Error al cargar las tareas",
     "retryButton": "Reintentar",
     "viewTasks": "Ver tareas",
-    "menuHint": "Menú"
+    "menuHint": "Menú",
+    "tomorrow": "Mañana",
+    "noLists": "No se encontraron listas. Agrega listas en la app ɳTask móvil."
   },
   "listView": {
     "title": "Tareas",

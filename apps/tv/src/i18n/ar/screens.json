@@ -22,7 +22,9 @@
     "errorTitle": "فشل تحميل المهام",
     "retryButton": "إعادة المحاولة",
     "viewTasks": "عرض المهام",
-    "menuHint": "القائمة"
+    "menuHint": "القائمة",
+    "tomorrow": "غداً",
+    "noLists": "لم يتم العثور على قوائم. أضف قوائم في تطبيق ɳTask للجوال."
   },
   "listView": {
     "title": "المهام",

@@ -116,6 +116,23 @@ export const priorityColors: Record<string, string> = {
   none: '#9CA3AF',
 };
 
+/**
+ * Opacity suffix tokens — append as hex string to a color for consistent alpha overlays.
+ * Numeric values (disabled, focused) are used as StyleSheet opacity properties.
+ */
+export const opacity = {
+  /** 5% — very light overlay */
+  subtle: '0D',
+  /** 13% — selected tint (replaces ad-hoc +'22' pattern) */
+  tint: '22',
+  /** 20% — priority badge background (replaces ad-hoc +'33' pattern) */
+  badge: '33',
+  /** 40% — disabled element opacity */
+  disabled: 0.4,
+  /** 60% — already used in focusRing.shadowOpacity */
+  focused: 0.6,
+} as const;
+
 /** Full TV theme — always dark (TV default). Caller may override with light for accessibility modes. */
 export const tvTheme = {
   typeScale,
@@ -124,6 +141,7 @@ export const tvTheme = {
   focusRing,
   colors: darkColors,
   priorityColors,
+  opacity,
 } as const;
 
 export type TVTheme = typeof tvTheme;

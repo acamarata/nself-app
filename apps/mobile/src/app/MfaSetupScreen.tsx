@@ -14,12 +14,14 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { useAccountMutations } from '../hooks/useAccount';
+import { useTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MfaSetup'>;
 
 type EnableStep = 'info' | 'secret' | 'done';
 
 export function MfaSetupScreen({ navigation, route }: Props) {
+  const { colors } = useTheme();
   const { isEnabled } = route.params;
   const { enableMfa, disableMfa } = useAccountMutations();
 
@@ -76,13 +78,13 @@ export function MfaSetupScreen({ navigation, route }: Props) {
   }, [otp, disableMfa, navigation]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back" accessibilityRole="button">
-          <Text style={styles.back}>‹ Back</Text>
+          <Text style={[styles.back, { color: colors.primary }]}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Two-factor auth</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Two-factor auth</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -90,68 +92,68 @@ export function MfaSetupScreen({ navigation, route }: Props) {
         {isEnabled ? (
           /* ---- DISABLE FLOW ---- */
           <>
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
               <Text style={styles.cardIcon}>🔐</Text>
-              <Text style={styles.cardTitle}>2FA is currently enabled</Text>
-              <Text style={styles.cardSub}>Enter the 6-digit code from your authenticator app to remove two-factor authentication.</Text>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>2FA is currently enabled</Text>
+              <Text style={[styles.cardSub, { color: colors.textSecondary }]}>Enter the 6-digit code from your authenticator app to remove two-factor authentication.</Text>
             </View>
-            <Text style={styles.fieldLabel}>Authenticator code</Text>
+            <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Authenticator code</Text>
             <TextInput
-              style={styles.otpInput}
+              style={[styles.otpInput, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]}
               value={otp}
               onChangeText={t => setOtp(t.replace(/\D/g, '').slice(0, 6))}
               keyboardType="number-pad"
               maxLength={6}
               placeholder="000000"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textTertiary}
               accessibilityLabel="6-digit authenticator code"
             />
             <TouchableOpacity
-              style={[styles.dangerBtn, (loading || otp.length !== 6) && styles.btnDisabled]}
+              style={[styles.dangerBtn, { backgroundColor: colors.danger }, (loading || otp.length !== 6) && styles.btnDisabled]}
               onPress={handleDisable}
               disabled={loading || otp.length !== 6}
               accessibilityLabel="Disable two-factor authentication"
               accessibilityRole="button"
             >
-              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.dangerBtnText}>Disable 2FA</Text>}
+              {loading ? <ActivityIndicator color={colors.textOnPrimary} /> : <Text style={[styles.dangerBtnText, { color: colors.textOnPrimary }]}>Disable 2FA</Text>}
             </TouchableOpacity>
           </>
         ) : step === 'info' ? (
           /* ---- ENABLE: Step 1 — info ---- */
           <>
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
               <Text style={styles.cardIcon}>🛡️</Text>
-              <Text style={styles.cardTitle}>Set up two-factor authentication</Text>
-              <Text style={styles.cardSub}>Add an extra layer of security. You'll need an authenticator app (Google Authenticator, Authy, etc.) to generate login codes.</Text>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Set up two-factor authentication</Text>
+              <Text style={[styles.cardSub, { color: colors.textSecondary }]}>Add an extra layer of security. You'll need an authenticator app (Google Authenticator, Authy, etc.) to generate login codes.</Text>
             </View>
             <TouchableOpacity
-              style={[styles.primaryBtn, loading && styles.btnDisabled]}
+              style={[styles.primaryBtn, { backgroundColor: colors.primary }, loading && styles.btnDisabled]}
               onPress={handleBeginSetup}
               disabled={loading}
               accessibilityLabel="Begin two-factor authentication setup"
               accessibilityRole="button"
             >
-              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.primaryBtnText}>Begin setup</Text>}
+              {loading ? <ActivityIndicator color={colors.textOnPrimary} /> : <Text style={[styles.primaryBtnText, { color: colors.textOnPrimary }]}>Begin setup</Text>}
             </TouchableOpacity>
           </>
         ) : (
           /* ---- ENABLE: Step 2 — secret + QR URL ---- */
           <>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Scan this key in your authenticator app</Text>
-              <Text style={styles.cardSub}>Tap "Add account" in your authenticator, then enter the key below manually or scan the QR code URL.</Text>
+            <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Scan this key in your authenticator app</Text>
+              <Text style={[styles.cardSub, { color: colors.textSecondary }]}>Tap "Add account" in your authenticator, then enter the key below manually or scan the QR code URL.</Text>
             </View>
-            <Text style={styles.fieldLabel}>Secret key</Text>
+            <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Secret key</Text>
             <View style={styles.secretRow}>
-              <TextInput style={[styles.secretInput, { flex: 1 }]} value={secret} editable={false} selectTextOnFocus accessibilityLabel="TOTP secret key" />
-              <TouchableOpacity style={styles.copyBtn} onPress={handleCopySecret} accessibilityLabel="Copy secret key" accessibilityRole="button">
-                <Text style={styles.copyBtnText}>Copy key</Text>
+              <TextInput style={[styles.secretInput, { flex: 1, backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]} value={secret} editable={false} selectTextOnFocus accessibilityLabel="TOTP secret key" />
+              <TouchableOpacity style={[styles.copyBtn, { backgroundColor: colors.primarySubtle }]} onPress={handleCopySecret} accessibilityLabel="Copy secret key" accessibilityRole="button">
+                <Text style={[styles.copyBtnText, { color: colors.primary }]}>Copy key</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.fieldLabel}>QR code URL</Text>
-            <Text style={styles.qrUrl} selectable>{qrCodeUrl}</Text>
-            <TouchableOpacity style={styles.primaryBtn} onPress={handleDoneEnable} accessibilityLabel="Done, finish MFA setup" accessibilityRole="button">
-              <Text style={styles.primaryBtnText}>Done</Text>
+            <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>QR code URL</Text>
+            <Text style={[styles.qrUrl, { color: colors.textSecondary, backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} selectable>{qrCodeUrl}</Text>
+            <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: colors.primary }]} onPress={handleDoneEnable} accessibilityLabel="Done, finish MFA setup" accessibilityRole="button">
+              <Text style={[styles.primaryBtnText, { color: colors.textOnPrimary }]}>Done</Text>
             </TouchableOpacity>
           </>
         )}
@@ -163,25 +165,25 @@ export function MfaSetupScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#F9FAFB' },
-  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  back:           { fontSize: 16, color: '#6366F1', width: 60 },
-  title:          { fontSize: 17, fontWeight: '700', color: '#111827' },
+  container:      { flex: 1 },
+  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 14, borderBottomWidth: 1 },
+  back:           { fontSize: 16, width: 60 },
+  title:          { fontSize: 17, fontWeight: '700' },
   body:           { padding: 16, gap: 14 },
-  card:           { backgroundColor: '#FFF', borderRadius: 12, padding: 20, alignItems: 'center', gap: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  card:           { borderRadius: 12, padding: 20, alignItems: 'center', gap: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
   cardIcon:       { fontSize: 40 },
-  cardTitle:      { fontSize: 16, fontWeight: '700', color: '#111827', textAlign: 'center' },
-  cardSub:        { fontSize: 14, color: '#6B7280', textAlign: 'center', lineHeight: 20 },
-  fieldLabel:     { fontSize: 12, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: -6 },
+  cardTitle:      { fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  cardSub:        { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  fieldLabel:     { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: -6 },
   secretRow:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  secretInput:    { backgroundColor: '#FFF', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB', padding: 12, fontSize: 14, fontFamily: 'monospace', color: '#111827' },
-  copyBtn:        { backgroundColor: '#EEF2FF', borderRadius: 10, paddingVertical: 12, paddingHorizontal: 14 },
-  copyBtnText:    { fontSize: 13, fontWeight: '600', color: '#6366F1' },
-  qrUrl:          { fontSize: 11, color: '#6B7280', backgroundColor: '#FFF', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB', padding: 12, lineHeight: 17 },
-  otpInput:       { backgroundColor: '#FFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', padding: 14, fontSize: 24, fontWeight: '700', textAlign: 'center', letterSpacing: 8, color: '#111827' },
-  primaryBtn:     { backgroundColor: '#6366F1', borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
-  primaryBtnText: { fontSize: 15, fontWeight: '700', color: '#FFF' },
-  dangerBtn:      { backgroundColor: '#DC2626', borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
-  dangerBtnText:  { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  secretInput:    { borderRadius: 10, borderWidth: 1, padding: 12, fontSize: 14, fontFamily: 'monospace' },
+  copyBtn:        { borderRadius: 10, paddingVertical: 12, paddingHorizontal: 14 },
+  copyBtnText:    { fontSize: 13, fontWeight: '600' },
+  qrUrl:          { fontSize: 11, borderRadius: 10, borderWidth: 1, padding: 12, lineHeight: 17 },
+  otpInput:       { borderRadius: 12, borderWidth: 1, padding: 14, fontSize: 24, fontWeight: '700', textAlign: 'center', letterSpacing: 8 },
+  primaryBtn:     { borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
+  primaryBtnText: { fontSize: 15, fontWeight: '700' },
+  dangerBtn:      { borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
+  dangerBtnText:  { fontSize: 15, fontWeight: '700' },
   btnDisabled:    { opacity: 0.5 },
 });
