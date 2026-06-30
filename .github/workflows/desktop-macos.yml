@@ -57,8 +57,21 @@ jobs:
           restore-keys: |
             cargo-macos-${{ matrix.target }}-
 
-      - name: Install pnpm deps (desktop)
-        working-directory: apps/desktop
+      # @nself/* workspace packages live in nself-org/packages (private).
+      # Must check out adjacent so pnpm workspace links resolve.
+      - name: Checkout @nself packages
+        uses: actions/checkout@v4
+        with:
+          repository: nself-org/packages
+          token: ${{ secrets.NSELF_PACKAGES_TOKEN }}
+          path: _nself_packages
+
+      - name: Symlink packages to sibling path expected by pnpm workspace
+        run: |
+          PARENT_DIR="$(dirname "$GITHUB_WORKSPACE")"
+          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$PARENT_DIR/packages"
+
+      - name: Install pnpm deps (workspace root)
         run: pnpm install --frozen-lockfile
 
       # web/ntask is a static-only dir (no package.json / no SPA build needed).

@@ -60,11 +60,8 @@ jobs:
 
       - name: Symlink packages to sibling path expected by pnpm workspace
         run: |
-          # pnpm-workspace.yaml resolves ../packages relative to this repo root.
-          # GitHub workspace: /home/runner/work/ntask/ntask (repo), so ../packages
-          # = /home/runner/work/ntask/packages.  Create that symlink.
-          mkdir -p /home/runner/work/ntask
-          ln -s "$GITHUB_WORKSPACE/_nself_packages" /home/runner/work/ntask/packages
+          PARENT_DIR="$(dirname "$GITHUB_WORKSPACE")"
+          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$PARENT_DIR/packages"
 
       - uses: pnpm/action-setup@v4
         with:
