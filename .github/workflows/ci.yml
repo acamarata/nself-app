@@ -48,14 +48,23 @@ jobs:
       - uses: actions/checkout@v4
 
       # @nself/* workspace packages live in nself-org/packages (private).
-      # pnpm-workspace.yaml links them via ../packages/@nself/* — must be
-      # checked out adjacent to this repo so the workspace links resolve.
+      # pnpm-workspace.yaml links them via ../packages/@nself/* — GitHub Actions
+      # sandboxes checkouts under the workspace; check out into _nself_packages/
+      # then symlink to ../packages from the runner working tree.
       - name: Checkout @nself packages
         uses: actions/checkout@v4
         with:
           repository: nself-org/packages
           token: ${{ secrets.NSELF_PACKAGES_TOKEN }}
-          path: ../packages
+          path: _nself_packages
+
+      - name: Symlink packages to sibling path expected by pnpm workspace
+        run: |
+          # pnpm-workspace.yaml resolves ../packages relative to this repo root.
+          # GitHub workspace: /home/runner/work/ntask/ntask (repo), so ../packages
+          # = /home/runner/work/ntask/packages.  Create that symlink.
+          mkdir -p /home/runner/work/ntask
+          ln -s "$GITHUB_WORKSPACE/_nself_packages" /home/runner/work/ntask/packages
 
       - uses: pnpm/action-setup@v4
         with:
