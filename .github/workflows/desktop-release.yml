@@ -32,7 +32,7 @@ jobs:
           TAG="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
           # Strip 'ntask-v' prefix to get semver.
           EXPECTED="${TAG#ntask-v}"
-          ACTUAL=$(jq -r '.version' ntask/apps/desktop/src-tauri/tauri.conf.json)
+          ACTUAL=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
           echo "Tag version:    $EXPECTED"
           echo "Conf version:   $ACTUAL"
           if [[ "$EXPECTED" != "$ACTUAL" ]]; then

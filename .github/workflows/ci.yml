@@ -46,6 +46,17 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
+      # @nself/* workspace packages live in nself-org/packages (private).
+      # pnpm-workspace.yaml links them via ../packages/@nself/* — must be
+      # checked out adjacent to this repo so the workspace links resolve.
+      - name: Checkout @nself packages
+        uses: actions/checkout@v4
+        with:
+          repository: nself-org/packages
+          token: ${{ secrets.NSELF_PACKAGES_TOKEN }}
+          path: ../packages
+
       - uses: pnpm/action-setup@v4
         with:
           version: '10.30.1'

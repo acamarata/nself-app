@@ -58,32 +58,32 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ntask/apps/desktop/src-tauri/target
-          key: cargo-linux-x86_64-${{ hashFiles('ntask/apps/desktop/src-tauri/Cargo.toml') }}
+            apps/desktop/src-tauri/target
+          key: cargo-linux-x86_64-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}
           restore-keys: |
             cargo-linux-x86_64-
 
       - name: Install pnpm deps (desktop)
-        working-directory: ntask/apps/desktop
+        working-directory: apps/desktop
         run: pnpm install --frozen-lockfile
 
       - name: Build web/ntask SPA
-        working-directory: ntask/web/ntask
+        working-directory: web/ntask
         run: pnpm install --frozen-lockfile && pnpm build
 
       - name: Clippy check
-        working-directory: ntask/apps/desktop/src-tauri
+        working-directory: apps/desktop/src-tauri
         run: cargo clippy -- -D warnings
 
       - name: Build Tauri app
-        working-directory: ntask/apps/desktop
+        working-directory: apps/desktop
         env:
           TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
         run: pnpm tauri build
 
       - name: Headless smoke test (AppImage)
         run: |
-          APPIMAGE=$(find ntask/apps/desktop/src-tauri/target/release/bundle/appimage \
+          APPIMAGE=$(find apps/desktop/src-tauri/target/release/bundle/appimage \
             -name '*.AppImage' | head -1)
           if [[ -f "$APPIMAGE" ]]; then
             chmod +x "$APPIMAGE"
@@ -92,7 +92,7 @@ jobs:
             echo "AppImage smoke test: $APPIMAGE"
           else
             echo "No AppImage found — listing bundle dir:"
-            find ntask/apps/desktop/src-tauri/target/release/bundle -type f | head -20
+            find apps/desktop/src-tauri/target/release/bundle -type f | head -20
           fi
 
       - name: Upload AppImage + deb artifacts
@@ -100,6 +100,6 @@ jobs:
         with:
           name: desktop-linux-x86_64
           path: |
-            ntask/apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage
-            ntask/apps/desktop/src-tauri/target/release/bundle/deb/*.deb
+            apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage
+            apps/desktop/src-tauri/target/release/bundle/deb/*.deb
           retention-days: 30

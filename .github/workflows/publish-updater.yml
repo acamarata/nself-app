@@ -32,7 +32,7 @@ jobs:
 
       - name: Fail if tauri.conf.json pubkey contains unresolved $VAR
         run: |
-          PUBKEY=$(jq -r '.plugins.updater.pubkey' ntask/apps/desktop/src-tauri/tauri.conf.json)
+          PUBKEY=$(jq -r '.plugins.updater.pubkey' apps/desktop/src-tauri/tauri.conf.json)
           if [[ "$PUBKEY" == \$* ]] || [[ "$PUBKEY" == *PLACEHOLDER* ]]; then
             echo "ERROR: pubkey in tauri.conf.json is not a real Ed25519 key."
             echo "Current value: $PUBKEY"
@@ -62,7 +62,7 @@ jobs:
 
       - name: Determine version + downgrade guard
         run: |
-          VERSION=$(jq -r '.version' ntask/apps/desktop/src-tauri/tauri.conf.json)
+          VERSION=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
           echo "Offered version: $VERSION"
 
           # Downgrade guard: fetch current published manifest.

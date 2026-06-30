@@ -24,7 +24,7 @@ concurrency:
 jobs:
   build:
     name: Build (x86_64-pc-windows-msvc)
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 30
 
     steps:
@@ -49,23 +49,23 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ntask/apps/desktop/src-tauri/target
-          key: cargo-windows-x86_64-${{ hashFiles('ntask/apps/desktop/src-tauri/Cargo.toml') }}
+            apps/desktop/src-tauri/target
+          key: cargo-windows-x86_64-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}
           restore-keys: |
             cargo-windows-x86_64-
 
       - name: Install pnpm deps (desktop)
-        working-directory: ntask/apps/desktop
+        working-directory: apps/desktop
         shell: bash
         run: pnpm install --frozen-lockfile
 
       - name: Build web/ntask SPA
-        working-directory: ntask/web/ntask
+        working-directory: web/ntask
         shell: bash
         run: pnpm install --frozen-lockfile && pnpm build
 
       - name: Build Tauri app
-        working-directory: ntask/apps/desktop
+        working-directory: apps/desktop
         shell: bash
         env:
           TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
@@ -89,7 +89,7 @@ jobs:
           credential_id: ${{ secrets.SSL_COM_CREDENTIAL_ID }}
           totp_secret: ${{ secrets.SSL_COM_TOTP_SECRET }}
           file_path: >-
-            ntask/apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/ntask-desktop_1.0.0_x64_en-US.msi
+            apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/ntask-desktop_1.0.0_x64_en-US.msi
           override: true
 
       - name: Upload MSI + NSIS artifacts
@@ -97,6 +97,6 @@ jobs:
         with:
           name: desktop-windows-x86_64
           path: |
-            ntask/apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
-            ntask/apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+            apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
           retention-days: 30
