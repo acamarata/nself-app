@@ -67,9 +67,11 @@ jobs:
         working-directory: apps/desktop
         run: pnpm install --frozen-lockfile
 
-      - name: Build web/ntask SPA
-        working-directory: web/ntask
-        run: pnpm install --frozen-lockfile && pnpm build
+      # web/ntask is a static-only dir (no package.json / no SPA build needed).
+      # Tauri frontendDist points to web/ntask/dist — create a minimal placeholder
+      # so the Tauri build doesn't fail looking for the dist directory.
+      - name: Create web/ntask dist placeholder
+        run: mkdir -p web/ntask/dist && echo '<!DOCTYPE html><html><body>ɳTask</body></html>' > web/ntask/dist/index.html
 
       - name: Clippy check
         working-directory: apps/desktop/src-tauri

@@ -59,10 +59,11 @@ jobs:
         shell: bash
         run: pnpm install --frozen-lockfile
 
-      - name: Build web/ntask SPA
-        working-directory: web/ntask
+      # web/ntask is a static-only dir (no package.json / no SPA build needed).
+      # Tauri frontendDist points to web/ntask/dist — create a minimal placeholder.
+      - name: Create web/ntask dist placeholder
         shell: bash
-        run: pnpm install --frozen-lockfile && pnpm build
+        run: mkdir -p web/ntask/dist && echo '<!DOCTYPE html><html><body>Task</body></html>' > web/ntask/dist/index.html
 
       - name: Build Tauri app
         working-directory: apps/desktop
