@@ -31,8 +31,9 @@ build: ## Build the nSelf stack (generates docker-compose.yml + nginx + SSL)
 	$(NSELF) build
 
 .PHONY: up
-up: ## Start the backend stack (nSelf-First; wraps `nself start`)
+up: ## Start the backend stack (nSelf-First; wraps `nself start`) + auto-seed dev/staging
 	$(NSELF) start
+	@bash scripts/seed-dev.sh || echo "(seed skipped — run 'make seed' once services are healthy)"
 
 .PHONY: down
 down: ## Stop all services (wraps `nself stop`)
@@ -144,8 +145,8 @@ metadata-export: ## Export current Hasura metadata
 	cd hasura && hasura metadata export --admin-secret $(HASURA_ADMIN_SECRET)
 
 .PHONY: seed
-seed: ## Seed the database (runs from frontend)
-	cd .. && npm run db:seed
+seed: ## Seed LOCAL/STAGING test users + mock data (idempotent; refuses prod)
+	@bash scripts/seed-dev.sh
 
 # ---------------------------------------------------------------------------
 # Staging

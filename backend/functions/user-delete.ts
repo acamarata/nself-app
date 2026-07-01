@@ -12,6 +12,10 @@ import { Sentry } from './sentry';
 
 const HASURA_URL = process.env.HASURA_GRAPHQL_URL || 'http://hasura:8080/v1/graphql';
 const ADMIN_SECRET = process.env.HASURA_GRAPHQL_ADMIN_SECRET || '';
+// HASURA_AUTH_URL: the auth service endpoint used by user-delete (admin DELETE /users/{id}).
+//   AUTH_MODE=bundled (default): http://auth:4000 (local hasura-auth container)
+//   AUTH_MODE=external: https://auth.{env}.nself.org (shared nself auth)
+// Set HASURA_AUTH_URL in .env.secrets or CI to override for the target environment.
 const AUTH_URL = process.env.HASURA_AUTH_URL || 'http://auth:4000';
 const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
 const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || '';

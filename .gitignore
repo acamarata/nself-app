@@ -210,3 +210,14 @@ local.properties
 docker-compose.dev.yml
 docker-compose.override.yml
 backend/docker-compose.yml
+
+# Exception: backend/docker-compose.override.yml IS committed. Unlike a
+# personal/machine-specific override, it carries durable fixes for real
+# `nself build` generator gaps (functions service read_only/port/healthcheck
+# mismatch, missing ACTION_HANDLER_URL passthrough to hasura) that every dev
+# and CI runner needs — see the file's own header comments + CLI gaps filed:
+# nself-functions-readonly-fs, nself-functions-healthcheck-port-mismatch,
+# nself-hasura-action-env-passthrough. Contains no secrets (verified — only
+# read_only/port/healthcheck/env-var-name config). Remove this exception once
+# those CLI gaps are fixed upstream and the override is no longer needed.
+!backend/docker-compose.override.yml

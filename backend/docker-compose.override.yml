@@ -1,0 +1,64 @@
+# NSELF-FIRST EXCEPTION: d6-any-stack — hand-authored local-dev override, NOT nself build output
+#
+# Purpose: work around nself CLI gap — `nself build` hardcodes `read_only: true`
+# on every generated service (security hardening default), but the functions
+# service (nhost/functions:latest running our custom TS handlers) needs a
+# writable HOME to create npm/yarn rc files (/root/.nirc) and a writable
+# node_modules cache at container start. Without this override the container
+# crash-loops with "can't create /root/.nirc: Read-only file system".
+#
+# This file is plain docker-compose and is picked up automatically by
+# `docker compose` (and therefore by `nself start`/`nself stop`, which shell
+# out to `docker compose` without explicit `-f` flags for the dev profile —
+# see backend/Makefile `up`/`down` targets) whenever it sits next to
+# docker-compose.yml. It survives `nself build` regenerating docker-compose.yml
+# because it is a separate file that Compose merges at runtime — no hand-edit
+# of the generated file required.
+#
+# CLI gap filed: nself-functions-readonly-fs (nself.yaml has no per-service
+# `read_only: false` escape hatch yet). Remove this file once nself build
+# supports overriding hardening defaults per-service natively.
+#
+# Second CLI gap on the same service, same generator bug class: the
+# generated healthcheck is `curl -f http://localhost:3001/healthz`, but
+# `nhost/functions:latest`'s own bundled /server.ts (the actual process that
+# binds the listening socket) hardcodes `const PORT = 3000` and ignores the
+# PORT env var entirely — it only reads PORT indirectly via our unused
+# functions/server.ts, which the image's start.sh never executes (it globs
+# the mounted dir as individual route handlers instead of running it as an
+# app). Two consequences: (a) target port must be 3000, not 3001; (b) the
+# alpine-based image has no `curl` binary (only wget/nc), so `curl -f ...`
+# always exits 127 regardless of the app's real health.
+# CLI gap filed: nself-functions-healthcheck-port-mismatch (compose generator
+# should probe the image's actual bind port + use an available binary — or
+# nself.yaml needs a `services.functions.healthcheck` override field).
+services:
+  functions:
+    read_only: false
+    tmpfs:
+      - /tmp
+      - /run
+    ports:
+      - 127.0.0.1:3001:3000
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Third gap, same generator: hasura's action definitions (metadata/actions.yaml)
+  # reference {{ACTION_HANDLER_URL}}, and .env.dev declares
+  # ACTION_HANDLER_URL=http://host.docker.internal:3001, but `nself build` never
+  # forwards it into the hasura service's `environment:` block — so any
+  # metadata reload (replace_metadata) that revalidates action definitions
+  # fails with "Value for environment variables not found: ACTION_HANDLER_URL".
+  # CLI gap filed: nself-hasura-action-env-passthrough (nself build should
+  # forward any *_HANDLER_URL / action-referenced env var declared in .env.dev
+  # into the hasura service automatically).
+  hasura:
+    environment:
+      # Internal container-to-container port is 3000 (the image's real bind
+      # port — see the functions service comment above), not 3001 (the host
+      # published port used by FUNCTIONS_PORT/.env.dev for host-side tooling).
+      ACTION_HANDLER_URL: http://functions:3000
