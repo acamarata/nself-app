@@ -1,0 +1,37 @@
+{
+  "name": "@nself/ntask-mcp",
+  "version": "0.1.0",
+  "description": "ɳTask MCP server — expose task/list operations as MCP tools for AI agents (Claude, Cursor, etc.)",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ntask-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "ci:local": "pnpm typecheck && pnpm build && pnpm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@nself/ntask-cli": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.6"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -158,6 +158,10 @@ See the [Backend Architecture wiki page](https://github.com/nself-org/ntask/wiki
 | HTTPS (staging/prod) | Traefik with Let's Encrypt |
 | Orchestration | nSelf CLI + Docker Compose + Makefile |
 
+## CLI & MCP Server
+
+`cli/` — the open-source `ntask` terminal CLI (login, list/add/complete/search tasks, `--json` output for scripting). `mcp/` — an MCP server exposing the same operations as tools (`task_list`, `task_add`, `task_complete`, `task_search`, `task_update`, `list_lists`, `list_create`) so AI agents like Claude or Cursor can manage tasks directly. Both share one client library so behavior stays in sync. See [cli/README.md](cli/README.md) and [mcp/README.md](mcp/README.md).
+
 ## Documentation
 
 - [Self-Hosting Guide](.github/docs/SELF-HOSTING.md)
