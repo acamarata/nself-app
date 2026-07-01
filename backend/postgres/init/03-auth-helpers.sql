@@ -11,8 +11,11 @@
 --
 -- Must run AFTER 01-init.sql (auth schema exists) and BEFORE any schema that
 -- contains RLS policies referencing auth.uid(). File ordering: 03-*.sql.
-
-\c nself
+--
+-- Runs against whichever database POSTGRES_DB names (docker-entrypoint-initdb.d
+-- connects init scripts to that DB already — never \c to a hardcoded name here,
+-- or this function gets created in the wrong database when POSTGRES_DB !=
+-- "nself", which is exactly what broke auth.uid()/RLS on staging).
 
 CREATE SCHEMA IF NOT EXISTS auth;
 
