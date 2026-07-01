@@ -25,7 +25,10 @@ jobs:
         include:
           - os: macos-14
             target: aarch64-apple-darwin
-          - os: macos-13
+          # macos-13 (last Intel runner image) is retired — jobs queue forever.
+          # Cross-compile the x86_64 slice on Apple Silicon instead (rustup target
+          # + `tauri build --target` handle this natively).
+          - os: macos-14
             target: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -74,10 +77,11 @@ jobs:
       - name: Install pnpm deps (workspace root)
         run: pnpm install --frozen-lockfile
 
-      # web/ntask is a static-only dir (no package.json / no SPA build needed).
-      # Tauri frontendDist points to web/ntask/dist — create a minimal placeholder.
+      # Tauri frontendDist is ../../../../web/ntask/dist from apps/desktop/src-tauri —
+      # in CI that is $GITHUB_WORKSPACE/../web/ntask/dist (ABOVE the checkout). Create
+      # the placeholder there, not repo-relative web/ntask/dist (Tauri never reads it).
       - name: Create web/ntask dist placeholder
-        run: mkdir -p web/ntask/dist && echo '<!DOCTYPE html><html><body>ɳTask</body></html>' > web/ntask/dist/index.html
+        run: mkdir -p "$GITHUB_WORKSPACE/../web/ntask/dist" && echo '<!DOCTYPE html><html><body>ɳTask</body></html>' > "$GITHUB_WORKSPACE/../web/ntask/dist/index.html"
 
       - name: Clippy check
         working-directory: apps/desktop/src-tauri
@@ -105,7 +109,10 @@ jobs:
       - name: Build Tauri app
         working-directory: apps/desktop
         env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # Real signing identity only on tag builds (the cert-import step above is
+          # tag-gated, so the cert is only in the keychain then). PR/main builds
+          # ad-hoc sign ('-') — otherwise codesign fails with "item not found in keychain".
+          APPLE_SIGNING_IDENTITY: ${{ startsWith(github.ref, 'refs/tags/ntask-v') && secrets.APPLE_SIGNING_IDENTITY || '-' }}
           TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
         run: pnpm tauri build --target ${{ matrix.target }}
 
