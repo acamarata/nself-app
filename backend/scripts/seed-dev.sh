@@ -121,6 +121,19 @@ BEGIN
       END IF;
     END IF;
   END LOOP;
+
+  -- Every remaining seeded user (user@, demo@, demo@ntask.local, test@, and
+  -- any other future account) gets an EXPLICIT public.user_roles row for
+  -- 'user' if they have no role row at all yet. hasura-auth already grants
+  -- 'user' implicitly via auth.user_roles at signup, but public.user_roles
+  -- (our app-side RBAC source of truth) had nothing to show for them.
+  -- Matches postgres/migrations/024_rbac_backfill.sql section 2.
+  INSERT INTO public.user_roles (user_id, role_id)
+  SELECT u.id, r.id
+  FROM public.users u
+  JOIN public.roles r ON r.key = 'user'
+  WHERE NOT EXISTS (SELECT 1 FROM public.user_roles ur WHERE ur.user_id = u.id)
+  ON CONFLICT (user_id, role_id) DO NOTHING;
 END
 $roles$;
 
