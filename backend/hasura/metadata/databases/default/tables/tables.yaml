@@ -165,29 +165,53 @@
           - description
           - completed
           - is_public
-          - list_id
-          - priority
-          - due_date
-          - tags
-          - notes
           - source_account_id
           - created_at
           - updated_at
+          - list_id
+          - position
+          - due_date
+          - priority
+          - tags
+          - notes
+          - reminder_time
+          - location_name
+          - location_lat
+          - location_lng
+          - location_radius
+          - recurrence_rule
+          - recurrence_parent_id
+          - attachments
+          - requires_approval
+          - requires_photo
+          - completed_by
+          - approved
+          - approved_by
+          - approved_at
+          - completion_photo_url
+          - completion_notes
+          - rejected_by
+          - rejected_at
+          - rejection_reason
+          - completed_at
+          - idempotency_key
         filter:
           user_id:
             _eq: X-Hasura-User-Id
-    # PUBLIC ROLE: intentional — read-only access to tasks with is_public=true (shareable link feature). Do NOT add insert/update/delete for public role.
+    # PUBLIC ROLE: intentional — read-only access to tasks with is_public=true (shareable link feature).
+    # SECURITY: only non-sensitive columns are exposed here — no user_id, notes, location_*,
+    # attachments, completion_photo_url, or approval/rejection audit columns. Do NOT widen
+    # this list without a security review. Do NOT add insert/update/delete for public role.
     - role: public
       permission:
         columns:
           - id
-          - user_id
           - title
-          - description
           - completed
-          - is_public
-          - created_at
-          - updated_at
+          - list_id
+          - position
+          - due_date
+          - priority
         filter:
           is_public:
             _eq: true
@@ -469,6 +493,12 @@
           - source_account_id
           - created_at
           - updated_at
+          - location_name
+          - location_lat
+          - location_lng
+          - location_radius
+          - reminder_on_arrival
+          - group_id
         filter:
           _or:
             - user_id:
