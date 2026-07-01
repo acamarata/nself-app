@@ -14,10 +14,12 @@
 #
 # Prerequisites:
 #   - A VPS with Docker installed
-#   - DNS records pointing to the VPS:
-#       staging.yourdomain.com     -> VPS IP
-#       api.staging.yourdomain.com -> VPS IP (or use wildcard)
+#   - DNS records pointing to the VPS (DOMAIN=nself.org):
+#       api.task.staging.nself.org  -> VPS IP   (Hasura GraphQL — ntask Remote Schema)
+#       auth.staging.nself.org      -> VPS IP   (bundled mode) or central deploy (external mode)
+#       storage.staging.nself.org   -> VPS IP
 #   - Ports 80 and 443 open on the VPS
+#   - SHARED_AUTH_JWT_SECRET set in .env.secrets (must match shared nself auth)
 ###############################################################################
 
 version: "3.9"
@@ -36,7 +38,7 @@ services:
       - --entrypoints.websecure.address=:443
       - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@yourdomain.com}
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@nself.org}
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
@@ -49,21 +51,25 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "false"
       HASURA_GRAPHQL_DEV_MODE: "false"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log
+      HASURA_GRAPHQL_JWT_SECRET: '${SHARED_AUTH_JWT_SECRET}'
     labels:
       - traefik.enable=true
-      - traefik.http.routers.hasura.rule=Host(`api.staging.${DOMAIN:-yourdomain.com}`)
+      - traefik.http.routers.hasura.rule=Host(`api.task.staging.${DOMAIN:-nself.org}`)
       - traefik.http.routers.hasura.entrypoints=websecure
       - traefik.http.routers.hasura.tls.certresolver=letsencrypt
       - traefik.http.services.hasura.loadbalancer.server.port=8080
     ports: []
 
+  # auth service: active in AUTH_MODE=bundled (default).
+  # In AUTH_MODE=external, comment out or use `--profile bundled-auth` to exclude.
+  # Both modes share HASURA_GRAPHQL_JWT_SECRET (set in .env.secrets).
   auth:
     environment:
-      AUTH_SERVER_URL: https://auth.staging.${DOMAIN:-yourdomain.com}
-      AUTH_CLIENT_URL: https://staging.${DOMAIN:-yourdomain.com}
+      AUTH_SERVER_URL: https://auth.staging.${DOMAIN:-nself.org}
+      AUTH_CLIENT_URL: https://task.staging.${DOMAIN:-nself.org}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.auth.rule=Host(`auth.staging.${DOMAIN:-yourdomain.com}`)
+      - traefik.http.routers.auth.rule=Host(`auth.staging.${DOMAIN:-nself.org}`)
       - traefik.http.routers.auth.entrypoints=websecure
       - traefik.http.routers.auth.tls.certresolver=letsencrypt
       - traefik.http.services.auth.loadbalancer.server.port=4000
@@ -71,10 +77,10 @@ services:
 
   storage:
     environment:
-      PUBLIC_URL: https://storage.staging.${DOMAIN:-yourdomain.com}
+      PUBLIC_URL: https://storage.staging.${DOMAIN:-nself.org}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.storage.rule=Host(`storage.staging.${DOMAIN:-yourdomain.com}`)
+      - traefik.http.routers.storage.rule=Host(`storage.staging.${DOMAIN:-nself.org}`)
       - traefik.http.routers.storage.entrypoints=websecure
       - traefik.http.routers.storage.tls.certresolver=letsencrypt
       - traefik.http.services.storage.loadbalancer.server.port=8484
