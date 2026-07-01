@@ -21,6 +21,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [
   "tray-icon",   # E-S2-T1 — system tray
   "image-png",   # tray state icons (connected/syncing/offline)
+  "devtools",    # menu.rs "Toggle Developer Tools" item — devtools methods on WebviewWindow exist only with this feature (release builds fail to compile without it)
 ] }
 
 # ── Tauri 2 plugins ───────────────────────────────────────────────────────────
