@@ -25,7 +25,10 @@ jobs:
         include:
           - os: macos-14
             target: aarch64-apple-darwin
-          - os: macos-13
+          # macos-13 (last Intel runner image) is retired — jobs queue forever.
+          # Cross-compile the x86_64 slice on Apple Silicon instead (rustup target
+          # + `tauri build --target` handle this natively).
+          - os: macos-14
             target: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
