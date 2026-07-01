@@ -74,11 +74,12 @@ jobs:
       - name: Install pnpm deps (workspace root)
         run: pnpm install --frozen-lockfile
 
-      # web/ntask is a static-only dir (no package.json / no SPA build needed).
-      # Tauri frontendDist points to web/ntask/dist — create a minimal placeholder.
+      # Tauri frontendDist is ../../../../web/ntask/dist from apps/desktop/src-tauri —
+      # in CI that is $GITHUB_WORKSPACE/../web/ntask/dist (ABOVE the checkout). Create
+      # the placeholder there, not repo-relative web/ntask/dist (Tauri never reads it).
       - name: Create web/ntask dist placeholder
         shell: bash
-        run: mkdir -p web/ntask/dist && echo '<!DOCTYPE html><html><body>Task</body></html>' > web/ntask/dist/index.html
+        run: mkdir -p "$GITHUB_WORKSPACE/../web/ntask/dist" && echo '<!DOCTYPE html><html><body>Task</body></html>' > "$GITHUB_WORKSPACE/../web/ntask/dist/index.html"
 
       - name: Build Tauri app
         working-directory: apps/desktop
