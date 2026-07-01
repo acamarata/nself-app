@@ -486,14 +486,17 @@ CREATE INDEX IF NOT EXISTS idx_np_recurring_instances_source_account ON public.n
 -- RLS policies for notifications
 ALTER TABLE public.np_notifications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own notifications" ON public.np_notifications;
 CREATE POLICY "Users can view their own notifications"
   ON public.np_notifications FOR SELECT
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own notifications" ON public.np_notifications;
 CREATE POLICY "Users can update their own notifications"
   ON public.np_notifications FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "System can create notifications" ON public.np_notifications;
 CREATE POLICY "System can create notifications"
   ON public.np_notifications FOR INSERT
   WITH CHECK (true);
@@ -501,6 +504,7 @@ CREATE POLICY "System can create notifications"
 -- RLS policies for recurring instances
 ALTER TABLE public.np_recurring_instances ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view instances of their todos" ON public.np_recurring_instances;
 CREATE POLICY "Users can view instances of their todos"
   ON public.np_recurring_instances FOR SELECT
   USING (
@@ -511,6 +515,7 @@ CREATE POLICY "Users can view instances of their todos"
     )
   );
 
+DROP POLICY IF EXISTS "Users can insert instances of their todos" ON public.np_recurring_instances;
 CREATE POLICY "Users can insert instances of their todos"
   ON public.np_recurring_instances FOR INSERT
   WITH CHECK (
@@ -521,6 +526,7 @@ CREATE POLICY "Users can insert instances of their todos"
     )
   );
 
+DROP POLICY IF EXISTS "Users can update instances of their todos" ON public.np_recurring_instances;
 CREATE POLICY "Users can update instances of their todos"
   ON public.np_recurring_instances FOR UPDATE
   USING (
@@ -606,6 +612,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_notify_list_shared ON public.np_list_shares;
 CREATE TRIGGER trigger_notify_list_shared
   AFTER INSERT OR UPDATE ON public.np_list_shares
   FOR EACH ROW
@@ -819,6 +826,7 @@ END $$;
 ALTER TABLE public.np_list_members ENABLE ROW LEVEL SECURITY;
 
 -- Users can view members of lists they have access to
+DROP POLICY IF EXISTS "Users can view list members" ON public.np_list_members;
 CREATE POLICY "Users can view list members"
   ON public.np_list_members
   FOR SELECT
@@ -834,6 +842,7 @@ CREATE POLICY "Users can view list members"
   );
 
 -- Only owners and admins can add members
+DROP POLICY IF EXISTS "Owners and admins can add members" ON public.np_list_members;
 CREATE POLICY "Owners and admins can add members"
   ON public.np_list_members
   FOR INSERT
@@ -847,6 +856,7 @@ CREATE POLICY "Owners and admins can add members"
   );
 
 -- Only owners can change member roles or remove members
+DROP POLICY IF EXISTS "Owners can manage members" ON public.np_list_members;
 CREATE POLICY "Owners can manage members"
   ON public.np_list_members
   FOR UPDATE
@@ -860,6 +870,7 @@ CREATE POLICY "Owners can manage members"
   );
 
 -- Only owners can remove members
+DROP POLICY IF EXISTS "Owners can remove members" ON public.np_list_members;
 CREATE POLICY "Owners can remove members"
   ON public.np_list_members
   FOR DELETE
@@ -884,6 +895,7 @@ DROP POLICY IF EXISTS "Users can update their own todos" ON public.np_todos;
 DROP POLICY IF EXISTS "Users can delete their own todos" ON public.np_todos;
 
 -- Users can view todos in lists they have access to
+DROP POLICY IF EXISTS "Users can view accessible todos" ON public.np_todos;
 CREATE POLICY "Users can view accessible todos"
   ON public.np_todos
   FOR SELECT
@@ -908,6 +920,7 @@ CREATE POLICY "Users can view accessible todos"
   );
 
 -- Users can create todos in lists they're members of
+DROP POLICY IF EXISTS "Members can create todos" ON public.np_todos;
 CREATE POLICY "Members can create todos"
   ON public.np_todos
   FOR INSERT
@@ -923,6 +936,7 @@ CREATE POLICY "Members can create todos"
   );
 
 -- Members can update todos, but only owners/admins can approve
+DROP POLICY IF EXISTS "Members can update todos" ON public.np_todos;
 CREATE POLICY "Members can update todos"
   ON public.np_todos
   FOR UPDATE
@@ -938,6 +952,7 @@ CREATE POLICY "Members can update todos"
   );
 
 -- Only todo creator or list owners/admins can delete
+DROP POLICY IF EXISTS "Owners and creators can delete todos" ON public.np_todos;
 CREATE POLICY "Owners and creators can delete todos"
   ON public.np_todos
   FOR DELETE
