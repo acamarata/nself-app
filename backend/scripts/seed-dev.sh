@@ -152,12 +152,12 @@ BEGIN
         (uid,'Personal','#22c55e','user',2) RETURNING id INTO personal_id;
       INSERT INTO np_lists (user_id,title,color,icon,position) VALUES
         (uid,'Shopping','#f59e0b','cart',3);
-      INSERT INTO np_todos (user_id,list_id,title,completed,priority,position) VALUES
-        (uid,work_id,'Finish Q3 roadmap',false,'high',0),
-        (uid,work_id,'Review pull requests',false,'medium',1),
-        (uid,personal_id,'Book dentist',true,'none',0),
-        (uid,personal_id,'Plan weekend trip',false,'low',1),
-        (uid,today_id,'Try ɳTask ✨',false,'medium',0);
+      INSERT INTO np_todos (user_id,list_id,title,completed,completed_at,priority,position) VALUES
+        (uid,work_id,'Finish Q3 roadmap',false,NULL,'high',0),
+        (uid,work_id,'Review pull requests',false,NULL,'medium',1),
+        (uid,personal_id,'Book dentist',true,now(),'none',0),
+        (uid,personal_id,'Plan weekend trip',false,NULL,'low',1),
+        (uid,today_id,'Try ɳTask ✨',false,NULL,'medium',0);
     END IF;
   END LOOP;
 END

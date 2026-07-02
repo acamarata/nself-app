@@ -62,14 +62,17 @@ EXPO_PUBLIC_STORAGE_URL=http://localhost:8484
 
 ## 4. Run the Web SaaS (Vite)
 
+The web SaaS lives in a separate repo (`web/ntask/` in `nself-org/web`), not in `ntask`:
+
 ```bash
-cd apps/web
+git clone https://github.com/nself-org/web.git
+cd web/ntask
 cp .env.example .env.local
 pnpm install
 pnpm dev                     # http://localhost:5173
 ```
 
-Environment variables (`apps/web/.env.local`):
+Environment variables (`web/ntask/.env.local`):
 
 ```bash
 VITE_HASURA_URL=http://localhost:8080/v1/graphql

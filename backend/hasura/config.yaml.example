@@ -16,7 +16,7 @@
 version: 3
 
 endpoint: http://localhost:8080
-admin_secret: nself-admin-secret
+admin_secret: "{{HASURA_GRAPHQL_ADMIN_SECRET}}"
 
 metadata_directory: metadata
 actions:

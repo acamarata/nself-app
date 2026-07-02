@@ -1,6 +1,6 @@
 # Web SaaS Setup (ɳTasks)
 
-Setup guide for the React 19 + Vite 6 web SaaS at `task.nself.org` (`apps/web/`).
+Setup guide for the React 19 + Vite 6 web SaaS at `task.nself.org`. The app itself lives in a separate repo — `web/ntask/` in the `nself-org/web` monorepo — not in this repo. This repo (`ntask`) ships the backend plus the mobile, desktop, and TV clients; the web client is developed and deployed alongside the rest of nself.org.
 
 ## Prerequisites
 
@@ -12,15 +12,15 @@ Setup guide for the React 19 + Vite 6 web SaaS at `task.nself.org` (`apps/web/`)
 ## Install
 
 ```bash
-git clone https://github.com/nself-org/ntask.git
-cd ntask
+git clone https://github.com/nself-org/web.git
+cd web/ntask
 pnpm install
 ```
 
 ## Environment Config
 
 ```bash
-cd apps/web
+cd web/ntask
 cp .env.example .env.local
 ```
 
@@ -42,14 +42,14 @@ cd backend && make up
 
 Then start Vite dev server:
 ```bash
-cd apps/web
+cd web/ntask
 pnpm dev     # http://localhost:5173 by default
 ```
 
 ## Build
 
 ```bash
-cd apps/web
+cd web/ntask
 pnpm build      # Production build (dist/)
 pnpm preview    # Preview production build locally
 ```
@@ -57,22 +57,20 @@ pnpm preview    # Preview production build locally
 ## Tests
 
 ```bash
-cd apps/web
+cd web/ntask
 pnpm test               # Vitest (once)
 pnpm test -- --watch    # Watch mode
 pnpm test -- --coverage # Coverage report
-pnpm test:e2e           # Playwright e2e (if configured)
+pnpm test:e2e           # Playwright e2e
 ```
 
 ## Deployment
 
-The hosted `task.nself.org` is served from `web/ntask/` (the `web/` repo) via Vercel. The `apps/web/` directory here is the development workspace; the Vercel deploy in `web/ntask/` may differ in build config.
-
-See [Deployment](Deployment) for staging/production deploy guide.
+The hosted `task.nself.org` is served from `web/ntask/` (the `web` monorepo) via Vercel, pointed at this repo's backend. See [Deployment](Deployment) for the staging/production deploy guide.
 
 ## Related
 
 - [Backend-Setup](Backend-Setup): start the Docker Compose backend
-- [Monorepo-Setup](Monorepo-Setup): workspace layout
+- [Desktop](Desktop): Tauri shell wrapping this same app
 - [testing](testing): full testing guide
 - [Deployment](Deployment): Vercel deploy

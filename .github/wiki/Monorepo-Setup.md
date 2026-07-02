@@ -1,6 +1,6 @@
 # Workspace Setup — ɳTasks pnpm Monorepo
 
-ɳTasks is a pnpm workspace with four app surfaces under `apps/` sharing a common backend and `@nself/*` packages.
+ɳTasks is a pnpm workspace with three app surfaces under `apps/` (mobile, desktop, TV) sharing a common backend and `@nself/*` packages. The web SaaS surface lives in a separate repo — `web/ntask/` in `nself-org/web` — not in this workspace.
 
 ---
 
@@ -10,14 +10,17 @@
 ntask/
 ├── apps/
 │   ├── mobile/    # React Native 0.79.7 + Expo 53 (iOS + Android)
-│   ├── web/       # React 19 + Vite 6 SPA (task.nself.org)
-│   ├── desktop/   # Tauri 2 wrapping apps/web/ (macOS/Windows/Linux) — Planned
-│   └── tv/        # react-native-tvos (Apple TV + Android TV) — Planned
+│   ├── desktop/   # Tauri 2 wrapping web/ntask (macOS/Windows/Linux) — Shipped
+│   └── tv/        # react-native-tvos (Apple TV + Android TV) — Scaffolded
 ├── backend/       # Docker Compose stack (nSelf-First)
+├── cli/           # ntask terminal CLI
+├── mcp/           # MCP server for AI agents
 ├── pnpm-workspace.yaml
 ├── package.json   # Root workspace scripts
 └── Makefile       # Backend convenience targets
 ```
+
+The web SaaS (React 19 + Vite 6 SPA, `task.nself.org`) is `web/ntask/` in the separate `nself-org/web` repo.
 
 All apps consume shared TypeScript packages from `packages/` (`@nself/*`) via pnpm workspace protocol.
 
@@ -63,17 +66,18 @@ pnpm android    # Android emulator
 
 See [RN-Setup](RN-Setup) for full mobile setup guide.
 
-### Web SaaS (React + Vite)
+### Web SaaS (React + Vite, separate repo)
 
 ```bash
-cd apps/web
+git clone https://github.com/nself-org/web.git
+cd web/ntask
 pnpm dev        # Vite dev server (default: http://localhost:5173)
 pnpm build      # Production build
 ```
 
 See [Web-SPA](Web-SPA) for full web setup guide.
 
-### Desktop (Tauri 2) — Planned
+### Desktop (Tauri 2) — Shipped
 
 ```bash
 cd apps/desktop
@@ -83,7 +87,7 @@ pnpm tauri build
 
 See [Desktop](Desktop) for setup guide.
 
-### TV (rn-tvos) — Planned
+### TV (rn-tvos) — Scaffolded
 
 ```bash
 cd apps/tv
@@ -131,7 +135,7 @@ Each surface has its own `.env.local` (copied from `.env.example`):
 | Surface | Config file | Key vars |
 |---|---|---|
 | Mobile | `apps/mobile/.env.local` | `EXPO_PUBLIC_HASURA_URL`, `EXPO_PUBLIC_AUTH_URL` |
-| Web SaaS | `apps/web/.env.local` | `VITE_HASURA_URL`, `VITE_AUTH_URL`, `VITE_SENTRY_DSN` |
+| Web SaaS | `web/ntask/.env.local` (separate repo) | `VITE_HASURA_URL`, `VITE_AUTH_URL`, `VITE_SENTRY_DSN` |
 | Desktop | `apps/desktop/.env.local` | Same as web SaaS |
 | TV | `apps/tv/.env.local` | Same as mobile |
 
@@ -158,7 +162,7 @@ pnpm start --reset-cache
 
 ### Tauri needs Vite first
 
-`apps/desktop` embeds `apps/web/` as its frontend. Run `cd apps/web && pnpm build` before `cd apps/desktop && pnpm tauri build` for production.
+`apps/desktop` embeds the `web/ntask` Vite build as its frontend. Build `web/ntask` first, then `cd apps/desktop && pnpm tauri build` for production.
 
 ---
 

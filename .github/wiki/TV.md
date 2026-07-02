@@ -2,7 +2,7 @@
 
 Setup guide for the rn-tvos app (`apps/tv/`).
 
-> **Status: Planned — Epic F.** This guide reflects the intended setup; some sections are stubs pending Epic F completion.
+> **Status: Scaffolded.** Package isolation (react-native-tvos alongside the mobile app's react-native) is solved and the app builds; EAS release builds have not been triggered yet. Treat this as an early preview, not a finished app. See `apps/tv/SPIKE.md` for the integration notes.
 
 ## Scope
 
@@ -47,8 +47,8 @@ pnpm android-tv   # Android TV emulator
 
 | Platform | Status |
 |---|---|
-| Apple TV (tvOS) | Planned — Epic F |
-| Android TV | Planned — Epic F |
+| Apple TV (tvOS) | Scaffolded — builds locally, no release build yet |
+| Android TV | Scaffolded — builds locally, no release build yet |
 
 ## Related
 

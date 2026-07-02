@@ -10,7 +10,7 @@ cd my-tasks/backend && cp .env.example .env.dev && make up
 cd ../apps/mobile && pnpm install && pnpm start
 ```
 
-The mobile app (Expo) launches against the local backend. Open the Hasura console at `http://localhost:8080/console`. For the web SaaS: `cd apps/web && pnpm dev`.
+The mobile app (Expo) launches against the local backend. Open the Hasura console at `http://localhost:8080/console`. The web SaaS lives in a separate repo — see [Web-SPA](Web-SPA).
 
 ## Contents
 
@@ -32,8 +32,8 @@ The mobile app (Expo) launches against the local backend. Open the Hasura consol
 - [Quickstart-Guide](Quickstart-Guide): short version for experienced devs
 - [RN-Setup](RN-Setup): React Native mobile app setup
 - [Web-SPA](Web-SPA): Vite web SaaS setup
-- [Desktop](Desktop): Tauri desktop setup (Planned — Epic E)
-- [TV](TV): rn-tvos setup (Planned — Epic F)
+- [Desktop](Desktop): Tauri desktop setup (Shipped)
+- [TV](TV): rn-tvos setup (Scaffolded)
 - [Backend-Setup](Backend-Setup): start the Docker Compose backend
 - [Backend-Troubleshooting](Backend-Troubleshooting): fixes for common backend issues
 
@@ -44,9 +44,9 @@ The mobile app (Expo) launches against the local backend. Open the Hasura consol
 | Surface | Framework | Path |
 |---|---|---|
 | Mobile | React Native 0.79.7 + Expo 53 | `apps/mobile/` |
-| Web SaaS | React 19 + Vite 6 SPA | `apps/web/` → task.nself.org |
-| Desktop | Tauri 2 | `apps/desktop/` — Planned |
-| TV | react-native-tvos | `apps/tv/` — Planned |
+| Web SaaS | React 19 + Vite 6 SPA | `web/ntask/` in the separate `web` monorepo → task.nself.org |
+| Desktop | Tauri 2 | `apps/desktop/` — Shipped, wraps `web/ntask` |
+| TV | react-native-tvos | `apps/tv/` — Scaffolded |
 
 All surfaces share `@nself/*` packages and connect to the same Hasura GraphQL backend.
 
@@ -80,13 +80,13 @@ make staging-up | make prod-up
 ```
 
 Mobile: `cd apps/mobile && pnpm start`
-Web SaaS: `cd apps/web && pnpm dev`
+Web SaaS: `cd web/ntask && pnpm dev` (separate repo)
 
 ## Configuration
 
 - [Backend-Setup](Backend-Setup): `.env.dev` reference and required variables
 - [RN-Setup](RN-Setup): mobile env config (`apps/mobile/.env.local`)
-- [Web-SPA](Web-SPA): web env config (`apps/web/.env.local`)
+- [Web-SPA](Web-SPA): web env config (`web/ntask/.env.local`, separate repo)
 
 ## Plugins
 
@@ -98,6 +98,8 @@ Web SaaS: `cd apps/web && pnpm dev`
 - [Monorepo-Setup](Monorepo-Setup): pnpm workspace layout
 - [Developer-Tools](Developer-Tools): testing, debugging, dev tooling
 - [API-Reference](API-Reference): GraphQL API reference (stub — pending Epic B)
+- [CLI](CLI): the `ntask` terminal CLI
+- [MCP-Server](MCP-Server): the MCP server for AI agents
 
 ## Architecture
 

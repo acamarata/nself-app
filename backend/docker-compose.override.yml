@@ -38,8 +38,17 @@ services:
     tmpfs:
       - /tmp
       - /run
+    # WORKAROUND: this Docker Desktop session has a stuck stale port-forward
+    # registration on host port 127.0.0.1:3001 (reproduced repeatedly: no
+    # process/container on the host or inside the Docker Desktop VM holds
+    # the port, yet every attempt to publish 3001 for this service fails
+    # with "port is already allocated", regardless of container name).
+    # Publish on 3011 instead until Docker Desktop is restarted and the
+    # stale proxy entry clears. Internal container-to-container traffic
+    # (nginx -> functions:3000, hasura ACTION_HANDLER_URL -> functions:3000)
+    # is unaffected — only the host-side published port changes.
     ports:
-      - 127.0.0.1:3001:3000
+      - 127.0.0.1:3011:3000
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/healthz || exit 1"]
       interval: 30s

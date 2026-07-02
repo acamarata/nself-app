@@ -2,7 +2,7 @@
 
 ## Overview
 
-ɳTasks uses a three-layer test pyramid: unit, integration, and e2e. The React Native mobile app (`apps/mobile/`) uses jest-expo; the web SaaS (`apps/web/`) uses Vitest.
+ɳTasks uses a three-layer test pyramid: unit, integration, and e2e. The React Native mobile app (`apps/mobile/`, this repo) uses jest-expo; the web SaaS (`web/ntask/`, separate repo) uses Vitest.
 
 ---
 
@@ -57,14 +57,14 @@ pnpm e2e:android  # Android emulator
 
 ---
 
-## Web SaaS (`apps/web/`)
+## Web SaaS (`web/ntask/`, separate repo)
 
 ### Unit tests — Vitest
 
 **Run locally:**
 
 ```bash
-cd apps/web
+cd web/ntask
 pnpm test               # run once
 pnpm test -- --watch    # watch mode
 pnpm test -- --coverage # coverage report
@@ -77,7 +77,7 @@ pnpm test -- --coverage # coverage report
 | App | Gate command | What runs |
 |---|---|---|
 | `apps/mobile/` | `make ci-local-rn` | lint + typecheck + jest (no simulator) |
-| `apps/web/` | `cd apps/web && pnpm test` | Vitest unit tests |
-| All | `make ci-local` | RN lint + typecheck + jest |
+| `web/ntask/` (separate repo) | `cd web/ntask && pnpm test` | Vitest unit tests |
+| All (this repo) | `make ci-local` | RN lint + typecheck + jest |
 
 E2E (Detox) is NOT part of `make ci-local` — requires a separate simulator session.

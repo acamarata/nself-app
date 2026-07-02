@@ -1,6 +1,6 @@
 # Getting Started — ɳTasks
 
-Get ɳTasks running on your machine in minutes. ɳTasks is a multi-surface app: React Native + Expo (mobile), React 19 + Vite SPA (web), with Tauri 2 desktop and rn-tvos TV surfaces planned.
+Get ɳTasks running on your machine in minutes. ɳTasks is a multi-surface app: React Native + Expo (mobile), React 19 + Vite SPA (web, built in the separate `web/ntask` repo), a shipped Tauri 2 desktop shell, and a scaffolded rn-tvos TV surface.
 
 ---
 
@@ -78,14 +78,17 @@ See [[RN-Setup]] for the full React Native setup guide.
 
 ### 4. Run the Web SaaS
 
+The web SaaS lives in a separate repo (`web/ntask/` in the `nself-org/web` monorepo), not in `ntask`:
+
 ```bash
-cd apps/web
+git clone https://github.com/nself-org/web.git
+cd web/ntask
 cp .env.example .env.local
 pnpm install
 pnpm dev            # http://localhost:5173
 ```
 
-Environment (`apps/web/.env.local`):
+Environment (`web/ntask/.env.local`):
 
 ```bash
 VITE_HASURA_URL=http://localhost:8080/v1/graphql
@@ -145,17 +148,20 @@ Schema prefix: `np_*`. Tables: `np_lists`, `np_todos`, `np_shares`, `np_attachme
 ntask/
 ├── apps/
 │   ├── mobile/       # React Native + Expo (iOS, Android)
-│   └── web/          # React 19 + Vite SPA (task.nself.org)
+│   ├── desktop/      # Tauri 2 shell wrapping web/ntask (Shipped)
+│   └── tv/           # rn-tvos (Scaffolded)
 ├── backend/
 │   ├── hasura/       # GraphQL metadata + migrations
 │   ├── nginx/        # Reverse proxy config
 │   └── postgres/     # Init scripts + migrations (np_* schema)
+├── cli/              # ntask terminal CLI
+├── mcp/              # MCP server for AI agents
 └── .github/
     ├── wiki/         # This documentation
     └── workflows/    # CI/CD
 ```
 
-Planned surfaces: `apps/desktop/` (Tauri 2, Epic E), `apps/tv/` (rn-tvos, Epic F).
+The web SaaS (`task.nself.org`) is built in a separate repo: `web/ntask/` in `nself-org/web`, not in this repo.
 
 ---
 
@@ -175,7 +181,7 @@ cd backend && make down
 | Port 8080/4000/8484 in use | Stop conflicting service or edit `backend/.env.dev` ports |
 | `nself build` not found | Install nSelf CLI: `brew install nself-org/tap/nself` |
 | Expo metro bundler error | Delete `apps/mobile/.expo/` and restart |
-| Vite dev server can't connect | Verify `apps/web/.env.local` env vars are set |
+| Vite dev server can't connect | Verify `web/ntask/.env.local` env vars are set (separate repo) |
 
 See [Backend-Troubleshooting](Backend-Troubleshooting) for more.
 
