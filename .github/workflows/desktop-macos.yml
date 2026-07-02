@@ -43,7 +43,7 @@ jobs:
       # (a mismatched pin is a hard error from pnpm/action-setup v6 on).
       - uses: pnpm/action-setup@v3
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'pnpm'
