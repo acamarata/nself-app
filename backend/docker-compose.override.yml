@@ -62,3 +62,24 @@ services:
       # port — see the functions service comment above), not 3001 (the host
       # published port used by FUNCTIONS_PORT/.env.dev for host-side tooling).
       ACTION_HANDLER_URL: http://functions:3000
+
+  # Fourth gap, same generator: nginx's healthcheck probes
+  # `https://127.0.0.1/health` with no SNI/Host header, so TLS falls to
+  # whichever `listen 443 ssl` vhost loads first (currently
+  # docs.task.local.nself.org via api-docs.conf) — that vhost has no
+  # `/health` location, so the probe 404s even though nginx itself and every
+  # real vhost are fine. The `/health` location that actually exists
+  # (conf.d/default.conf, `location /health { return 200 'OK' }`) is only
+  # bound on the plain-HTTP `listen 80 default_server` block, not 443.
+  # Fix: probe port 80 instead of 443 — same default_server block, same
+  # `/health` location, no TLS/SNI ambiguity.
+  # CLI gap filed: nself-nginx-healthcheck-sni-mismatch (compose generator's
+  # nginx healthcheck should target the plain-HTTP default_server, or
+  # nself.yaml needs a `services.nginx.healthcheck` override field).
+  nginx:
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

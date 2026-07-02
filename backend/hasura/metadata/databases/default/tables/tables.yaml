@@ -181,6 +181,13 @@
         table:
           schema: public
           name: np_recurring_rules
+  - name: activity
+    using:
+      foreign_key_constraint_on:
+        column: todo_id
+        table:
+          schema: public
+          name: np_activity
   insert_permissions:
   - role: user
     permission:
@@ -822,6 +829,9 @@
   - name: owner
     using:
       foreign_key_constraint_on: user_id
+  - name: group
+    using:
+      foreign_key_constraint_on: group_id
   array_relationships:
   - name: todos
     using:
@@ -867,6 +877,7 @@
       - color
       - icon
       - position
+      - group_id
       check:
         user_id:
           _eq: X-Hasura-User-Id
@@ -965,6 +976,7 @@
       - color
       - icon
       - position
+      - group_id
       filter:
         user_id:
           _eq: X-Hasura-User-Id
@@ -2297,9 +2309,23 @@
       - assigned_at
       - source_account_id
       check:
-        todo:
-          user_id:
+        _and:
+        - assigned_by:
             _eq: X-Hasura-User-Id
+        - _or:
+          - todo:
+              user_id:
+                _eq: X-Hasura-User-Id
+          - todo:
+              list:
+                shares:
+                  _and:
+                  - shared_with_user_id:
+                      _eq: X-Hasura-User-Id
+                  - permission:
+                      _in: [owner, editor]
+                  - accepted_at:
+                      _is_null: false
       set:
         assigned_by: X-Hasura-User-Id
   - role: owner
@@ -2333,6 +2359,14 @@
         - todo:
             user_id:
               _eq: X-Hasura-User-Id
+        - todo:
+            list:
+              shares:
+                _and:
+                - shared_with_user_id:
+                    _eq: X-Hasura-User-Id
+                - accepted_at:
+                    _is_null: false
   - role: owner
     permission:
       columns: &id049
@@ -2375,6 +2409,16 @@
         - todo:
             user_id:
               _eq: X-Hasura-User-Id
+        - todo:
+            list:
+              shares:
+                _and:
+                - shared_with_user_id:
+                    _eq: X-Hasura-User-Id
+                - permission:
+                    _in: [owner, editor]
+                - accepted_at:
+                    _is_null: false
   - role: owner
     permission:
       filter: {}
@@ -3078,3 +3122,206 @@
   - role: app_admin
     permission:
       filter: {}
+- table:
+    schema: public
+    name: np_list_groups
+  array_relationships:
+  - name: lists
+    using:
+      foreign_key_constraint_on:
+        column: group_id
+        table:
+          schema: public
+          name: np_lists
+  insert_permissions:
+  - role: user
+    permission:
+      columns:
+      - title
+      - color
+      - icon
+      - position
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: X-Hasura-User-Id
+  - role: owner
+    permission:
+      columns: &id065
+      - title
+      - color
+      - icon
+      - position
+      - user_id
+      check: {}
+  - role: app_admin
+    permission:
+      columns: *id065
+      check: {}
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - id
+      - user_id
+      - title
+      - color
+      - icon
+      - position
+      - source_account_id
+      - created_at
+      - updated_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: owner
+    permission:
+      columns: &id066
+      - id
+      - user_id
+      - title
+      - color
+      - icon
+      - position
+      - source_account_id
+      - created_at
+      - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: app_admin
+    permission:
+      columns: *id066
+      filter: {}
+      allow_aggregations: true
+  - role: mod
+    permission:
+      columns: *id066
+      filter: {}
+      allow_aggregations: true
+  - role: dev
+    permission:
+      columns: *id066
+      filter: {}
+      allow_aggregations: true
+  - role: support
+    permission:
+      columns: *id066
+      filter: {}
+      allow_aggregations: true
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - title
+      - color
+      - icon
+      - position
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+  - role: owner
+    permission:
+      columns: &id067
+      - title
+      - color
+      - icon
+      - position
+      filter: {}
+      check: null
+  - role: app_admin
+    permission:
+      columns: *id067
+      filter: {}
+      check: null
+  - role: mod
+    permission:
+      columns: *id067
+      filter: {}
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: owner
+    permission:
+      filter: {}
+  - role: app_admin
+    permission:
+      filter: {}
+- table:
+    schema: public
+    name: np_activity
+  object_relationships:
+  - name: todo
+    using:
+      foreign_key_constraint_on: todo_id
+  - name: actor
+    using:
+      foreign_key_constraint_on: actor_id
+  insert_permissions:
+  - role: user
+    permission:
+      columns:
+      - todo_id
+      - action
+      - metadata
+      check:
+        actor_id:
+          _eq: X-Hasura-User-Id
+      set:
+        actor_id: X-Hasura-User-Id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - id
+      - todo_id
+      - actor_id
+      - action
+      - metadata
+      - created_at
+      filter:
+        _or:
+        - todo:
+            user_id:
+              _eq: X-Hasura-User-Id
+        - todo:
+            list:
+              shares:
+                shared_with_user_id:
+                  _eq: X-Hasura-User-Id
+  - role: owner
+    permission:
+      columns: &id068
+      - id
+      - todo_id
+      - actor_id
+      - action
+      - metadata
+      - created_at
+      filter: {}
+      allow_aggregations: true
+  - role: app_admin
+    permission:
+      columns: *id068
+      filter: {}
+      allow_aggregations: true
+  - role: mod
+    permission:
+      columns: *id068
+      filter: {}
+      allow_aggregations: true
+  - role: dev
+    permission:
+      columns: *id068
+      filter: {}
+      allow_aggregations: true
+  - role: support
+    permission:
+      columns: *id068
+      filter: {}
+      allow_aggregations: true

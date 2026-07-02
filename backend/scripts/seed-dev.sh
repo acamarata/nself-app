@@ -25,7 +25,7 @@ esac
 AUTH_URL="${AUTH_URL:-http://localhost:4000}"
 PG_CONTAINER="${PG_CONTAINER:-${NSELF_PROJECT_NAME:-ntask}_postgres}"
 docker ps --format '{{.Names}}' | grep -qx "$PG_CONTAINER" || PG_CONTAINER="backend_postgres"
-PG_DB="${PG_DB:-nself}"
+PG_DB="${PG_DB:-ntask}"
 PW="password"
 
 # ============================================================================
