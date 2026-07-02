@@ -139,7 +139,7 @@ The console gives you:
 
 ## App Connection
 
-Client apps (`apps/mobile/`, `apps/web/`, `apps/desktop/`, `apps/tv/`) read their backend endpoint from environment configuration. For local dev, the defaults match the Docker Compose ports above. Override via the surface's `.env.local` file when running against staging or production.
+Client apps (`apps/mobile/`, `apps/desktop/`, `apps/tv/` here, plus `web/ntask/` in the separate `web` repo) read their backend endpoint from environment configuration. For local dev, the defaults match the Docker Compose ports above. Override via the surface's `.env.local` file when running against staging or production.
 
 See [RN-Setup](RN-Setup) (mobile), [Web-SPA](Web-SPA) (web), [Desktop](Desktop) (desktop), [TV](TV) (TV) for per-surface setup guides.
 

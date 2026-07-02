@@ -163,13 +163,13 @@ Most feature configuration is in per-surface app settings (per-user preferences)
 | Target | Status | Notes |
 |---|---|---|
 | Mobile (iOS + Android) | Building | React Native + Expo; EAS Build profiles configured |
-| Web SaaS | Building | React + Vite SPA; hosted at `task.nself.org` |
-| Desktop (macOS/Windows/Linux) | Planned | Tauri 2; Epic E target |
-| TV (Apple TV + Android TV) | Planned | react-native-tvos; Epic F target |
+| Web SaaS | Building | React + Vite SPA; hosted at `task.nself.org`, built in the separate `web/ntask` repo |
+| Desktop (macOS/Windows/Linux) | Shipped | Tauri 2 shell wrapping `web/ntask`, in `apps/desktop/` |
+| TV (Apple TV + Android TV) | Scaffolded | react-native-tvos in `apps/tv/`; package isolation solved, EAS build pending |
 
 ## Limitations
 
-- Desktop and TV surfaces are Planned (Epic E/F). Not yet shipped.
+- TV surface is Scaffolded, not fully built out — EAS release build not yet triggered.
 - iOS and Android store submissions are in progress. EAS Build configured but not yet submitted to App Store / Play Console.
 - Move-between-lists in bulk operations is Planned, not Active.
 - Free plugins only. The pro plugin set (ai, claw, mux, livekit, etc.) is intentionally out of scope per F03 and F12.
@@ -190,7 +190,7 @@ None currently tracked. Report issues at [github.com/nself-org/ntask/issues](htt
 
 **Symptom:** GraphQL calls fail with network errors.
 **Cause:** Backend not running, or app pointing at the wrong endpoint.
-**Fix:** `cd backend && make health`. If healthy, verify the client app's GraphQL endpoint matches the platform target (`apps/mobile/` or `apps/web/` per surface). Mobile simulators may need the host machine IP instead of `localhost`.
+**Fix:** `cd backend && make health`. If healthy, verify the client app's GraphQL endpoint matches the platform target (`apps/mobile/` in this repo, or `web/ntask/` in the separate `web` repo). Mobile simulators may need the host machine IP instead of `localhost`.
 
 ### Hasura migrations not applied
 

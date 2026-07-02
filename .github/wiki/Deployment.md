@@ -40,12 +40,12 @@ For the hosted `task.nself.org` demo, the same stack runs via `web/backend` (see
 
 ---
 
-## Web SaaS (React + Vite → Vercel)
+## Web SaaS (React + Vite → Vercel, separate repo)
 
-Auto-deployed: merges to `main` trigger Vercel deployment automatically (Vercel git integration, `unity-dev` team).
+The web SaaS is built and deployed from `web/ntask/` in the separate `nself-org/web` repo, not from `apps/` here. Auto-deployed: merges to `main` in that repo trigger Vercel deployment automatically (Vercel git integration, `unity-dev` team).
 
 ```bash
-cd apps/web
+cd web/ntask
 pnpm build     # must exit 0 before pushing
 ```
 
@@ -91,11 +91,7 @@ Never commit `.jks`, `.p12`, `.pem`, `.mobileprovision` files.
 
 ---
 
-## Desktop (Tauri 2) — Planned
-
-Status: Planned — Epic E. Not yet released.
-
-When implemented:
+## Desktop (Tauri 2) — Shipped
 
 ```bash
 cd apps/desktop
@@ -106,15 +102,13 @@ Distribute via GitHub Releases.
 
 ---
 
-## TV (rn-tvos) — Planned
+## TV (rn-tvos) — Scaffolded
 
-Status: Planned — Epic F. Not yet released.
-
-When implemented:
+Package isolation is solved and the app builds locally; no EAS release build has been triggered yet. See `apps/tv/SPIKE.md`.
 
 ```bash
 cd apps/tv
-eas build --platform ios --profile production  # tvOS
+eas build --platform ios --profile production  # tvOS, not yet run
 ```
 
 ---
@@ -122,7 +116,7 @@ eas build --platform ios --profile production  # tvOS
 ## Release Checklist (when version bump is authorized)
 
 1. Update `apps/mobile/package.json` version
-2. Update `apps/web/package.json` version (if releasing web)
+2. Update `web/ntask/package.json` version in the separate `web` repo (if releasing web)
 3. Update root `package.json` version (must match mobile)
 4. Update `.claude/docs/MASTER-VERSIONS.md` (ntask entry)
 5. Update `~/Sites/nself/.opencode/phases/sport/F01-MASTER-VERSIONS.md`
@@ -142,8 +136,8 @@ pnpm version-check                             # Verify root + mobile versions m
 cd apps/mobile
 pnpm lint && pnpm typecheck && pnpm test       # must all pass
 
-# Web SaaS gates
-cd apps/web
+# Web SaaS gates (separate repo)
+cd web/ntask
 pnpm build                                     # must exit 0
 ```
 

@@ -134,18 +134,18 @@ See the [Backend Architecture wiki page](https://github.com/nself-org/ntask/wiki
 |--------|--------|-------|
 | iOS | Active | `pnpm ios` (sim) or EAS build for device |
 | Android | Active | `pnpm android` (emulator) or EAS build |
-| Web SaaS | Active | `task.nself.org` — Vite app in `apps/web/` |
-| Desktop (macOS/Win/Linux) | Planned | Tauri 2 wrapping the web app — Epic E |
-| Apple TV / Android TV | Planned | react-native-tvos in `apps/tv/` — Epic F |
+| Web SaaS | Active | `task.nself.org` — built and deployed from the separate `web/ntask` repo, not from this repo |
+| Desktop (macOS/Win/Linux) | Shipped | `apps/desktop/` — Tauri 2 shell wrapping the `web/ntask` Vite SPA |
+| Apple TV / Android TV | Scaffolded | `apps/tv/` — react-native-tvos; package isolation solved, EAS build not yet triggered |
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
 | Mobile (iOS/Android) | React Native 0.79 + Expo 53 (TypeScript) |
-| Web SaaS | React 19 + Vite 6 (TypeScript) |
-| Desktop | Tauri 2 wrapping the web app (Planned — Epic E) |
-| TV (Apple TV / Android TV) | react-native-tvos (Planned — Epic F) |
+| Web SaaS | React 19 + Vite 6 (TypeScript), built in the separate `web/ntask` repo |
+| Desktop | Tauri 2 wrapping the `web/ntask` Vite SPA (Shipped) |
+| TV (Apple TV / Android TV) | react-native-tvos (Scaffolded — EAS build pending) |
 | State management | Zustand |
 | Local storage | expo-secure-store + AsyncStorage (mobile) / localStorage (web) |
 | Networking | GraphQL over HTTP/WS (urql) |

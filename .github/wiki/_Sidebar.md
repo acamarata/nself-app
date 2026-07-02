@@ -21,6 +21,13 @@
 
 ---
 
+**CLI & Agents**
+
+- [[CLI]]
+- [[MCP-Server]]
+
+---
+
 **Backend**
 
 - [[Backend-Setup]]

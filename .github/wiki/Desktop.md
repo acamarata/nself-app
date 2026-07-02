@@ -2,11 +2,11 @@
 
 Setup guide for the Tauri 2 desktop app (`apps/desktop/`).
 
-> **Status: Planned — Epic E.** This guide reflects the intended setup; some sections are stubs pending Epic E completion.
+> **Status: Shipped.** The Tauri 2 shell wraps the web SPA and builds for macOS, Windows, and Linux.
 
 ## Overview
 
-The desktop app is a Tauri 2 wrapper around the Vite web SPA (`apps/web/`). It shares the same React 19 codebase, bundled into a native shell for macOS, Windows, and Linux.
+The desktop app is a Tauri 2 wrapper around the Vite web SPA (`web/ntask/` in the `web` monorepo — see [Web-SPA](Web-SPA)). It shares the same React 19 codebase, bundled into a native shell for macOS, Windows, and Linux.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ cd apps/desktop
 cp .env.example .env.local
 ```
 
-Desktop uses the same env vars as `apps/web/` (VITE_* vars) — Tauri embeds the Vite frontend.
+Desktop uses the same env vars as `web/ntask/` (VITE_* vars) — Tauri embeds the built Vite frontend.
 
 ## Run (Development)
 
@@ -60,6 +60,6 @@ Output:
 ## Related
 
 - [Monorepo-Setup](Monorepo-Setup): workspace layout
-- [Web-SPA](Web-SPA): the Vite frontend embedded in this app
+- [Web-SPA](Web-SPA): the Vite frontend embedded in this app (lives in the `web` monorepo)
 - [Backend-Setup](Backend-Setup): backend setup
 - [Deployment](Deployment): release guide
