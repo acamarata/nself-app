@@ -15,6 +15,7 @@
       {
         "label": "main",
         "title": "\u0273Task",
+        "url": "https://task.nself.org",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
@@ -41,12 +42,12 @@
       "iconAsTemplate": true
     },
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' tauri: ipc: http://localhost:* ws://localhost:* https://api.ntask.nself.org wss://api.ntask.nself.org https://*.nself.org; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: blob:"
+      "csp": "default-src 'self'; connect-src 'self' tauri: ipc: http://localhost:* ws://localhost:* https://api.ntask.nself.org wss://api.ntask.nself.org https://*.nself.org https://task.nself.org https://api.task.nself.org wss://api.task.nself.org https://auth.task.nself.org; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: blob:"
     }
   },
   "plugins": {
-    "window-state": {},
-    "autostart": {},
+    "window-state": null,
+    "autostart": null,
     "updater": {
       "endpoints": [
         "https://packages.nself.org/desktop/ntask/latest-{{target}}.json"
