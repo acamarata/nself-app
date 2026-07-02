@@ -35,7 +35,7 @@ jobs:
 
       # No version input: resolved from root package.json "packageManager"
       # (a mismatched pin is a hard error from pnpm/action-setup v6 on).
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v4
         with:
