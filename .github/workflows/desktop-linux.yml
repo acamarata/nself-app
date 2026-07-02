@@ -19,15 +19,18 @@ concurrency:
 jobs:
   build:
     name: Build (x86_64-unknown-linux-gnu)
+    # Needs NSELF_PACKAGES_TOKEN (private packages checkout) — unavailable to
+    # dependabot-triggered runs, which only see Dependabot secrets.
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-22.04
     timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
 
+      # No version input: resolved from root package.json "packageManager"
+      # (a mismatched pin is a hard error from pnpm/action-setup v6 on).
       - uses: pnpm/action-setup@v3
-        with:
-          version: '9'
 
       - uses: actions/setup-node@v4
         with:

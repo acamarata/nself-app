@@ -42,6 +42,9 @@ jobs:
 
   mobile-test:
     name: Mobile Tests (coverage gate ≥60%)
+    # Needs NSELF_PACKAGES_TOKEN (private packages checkout) — unavailable to
+    # dependabot-triggered runs, which only see Dependabot secrets.
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
