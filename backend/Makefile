@@ -3,13 +3,20 @@
 #
 # Quick commands for managing the backend stack.
 #
-# nSelf-First: backend starts via nself CLI, not docker compose directly.
-#   make up        — alias for `nself start` (nSelf-First)
-#   make down      — alias for `nself stop`
-#   make build     — alias for `nself build`
+# nSelf-First: backend operations route through the nself CLI (v1.2.1+),
+# not hand-rolled shell/psql/docker-compose.
+#   make up             — alias for `nself start`
+#   make down            — alias for `nself stop`
+#   make build           — alias for `nself build`
+#   make migrate         — `nself db migrate up --migration-dir postgres/migrations`
+#   make migrate-status  — `nself db migrate up --dry-run` (status has no --migration-dir yet)
+#   make status          — `nself deploy status` (falls back to `docker compose ps`)
+#   make health          — `nself deploy health` (falls back to the raw curl checks below)
 #
-# Legacy docker compose commands are preserved for reference apps forking
-# this codebase without the nSelf CLI.
+# A "no-CLI fallback" section further down preserves the legacy raw
+# docker-compose / psql targets so forks of this FOSS repo still work
+# without the nSelf CLI installed. The nself-CLI path above is the default;
+# the fallback section is explicit and clearly marked.
 # =============================================================================
 
 NSELF = nself
@@ -55,11 +62,15 @@ logs-auth: ## View auth service logs only
 	$(COMPOSE) logs -f auth
 
 .PHONY: status
-status: ## Show service status
-	$(COMPOSE) ps
+status: ## Show deployment status (nself deploy status; falls back to docker compose ps)
+	@$(NSELF) deploy status 2>/dev/null || (echo "(nself deploy status unavailable — falling back)"; $(COMPOSE) ps)
 
 .PHONY: health
-health: ## Check health of all services
+health: ## Check health of all services (nself deploy health; falls back to raw curl checks)
+	@$(NSELF) deploy health 2>/dev/null || (echo "(nself deploy health reported issues or is unavailable — see 'make health-raw' for the simple curl-based fallback)"; true)
+
+.PHONY: health-raw
+health-raw: ## Raw curl/pg_isready health checks (no-CLI fallback; always available)
 	@echo "--- PostgreSQL ---"
 	@docker compose exec postgres pg_isready -U $(POSTGRES_USER) 2>/dev/null || echo "DOWN"
 	@echo "--- Hasura ---"
@@ -126,15 +137,22 @@ dr-test: ## Disaster recovery drill: restore latest backup to scratch DB and ver
 console: ## Open Hasura Console (requires hasura-cli)
 	cd hasura && hasura console --admin-secret $(HASURA_ADMIN_SECRET)
 
-.PHONY: db-migrate
-db-migrate: ## Apply postgres/init.sql + all postgres/migrations/*.sql (idempotent psql runner)
-	@bash scripts/db-migrate.sh
+.PHONY: migrate
+migrate: ## Apply pending postgres/migrations/*.sql (nself db migrate up; falls back to db-migrate.sh)
+	@$(NSELF) db migrate up --migration-dir postgres/migrations 2>/dev/null \
+	  || (echo "(nself db migrate up unavailable — falling back to scripts/db-migrate.sh)"; bash scripts/db-migrate.sh)
 
 .PHONY: migrate-status
-migrate-status: ## Show which migrations have been applied
-	@docker compose exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
-	  -c "SELECT filename, applied_at FROM public.schema_migrations ORDER BY filename;" \
-	  2>/dev/null || echo "(schema_migrations table not yet created — run make db-migrate)"
+migrate-status: ## Show which migrations have been applied (nself db migrate up --dry-run; falls back to psql)
+	@$(NSELF) db migrate up --migration-dir postgres/migrations --dry-run 2>/dev/null \
+	  || (echo "(nself db migrate --dry-run unavailable — falling back to psql query)"; \
+	      docker compose exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
+	        -c "SELECT filename, applied_at FROM public.schema_migrations ORDER BY filename;" \
+	        2>/dev/null || echo "(schema_migrations table not yet created — run make migrate)")
+
+.PHONY: db-migrate
+db-migrate: ## [no-CLI fallback] Apply postgres/init.sql + migrations via the raw psql runner script
+	@bash scripts/db-migrate.sh
 
 .PHONY: metadata-apply
 metadata-apply: ## Apply Hasura metadata
@@ -145,39 +163,42 @@ metadata-export: ## Export current Hasura metadata
 	cd hasura && hasura metadata export --admin-secret $(HASURA_ADMIN_SECRET)
 
 .PHONY: seed
-seed: ## Seed LOCAL/STAGING test users + mock data (idempotent; refuses prod)
+seed: ## Seed LOCAL/STAGING ɳTasks dev users + mock data (idempotent; refuses prod)
 	@bash scripts/seed-dev.sh
+	@echo "(Note: 'nself db seed' also exists for generic/environment-aware fixture seeding;"
+	@echo " this target stays on scripts/seed-dev.sh because it seeds ɳTasks-specific dev data"
+	@echo " the generic CLI seeder doesn't know about.)"
 
 # ---------------------------------------------------------------------------
-# Staging
+# No-CLI fallback (for forks without nself) — Staging / Production
+#
+# Preferred path: `nself deploy staging` / `nself deploy production` (see
+# `nself deploy --help`). The raw docker-compose targets below are kept only
+# so forks of this FOSS repo work without the nSelf CLI installed.
 # ---------------------------------------------------------------------------
 
 .PHONY: staging-up
-staging-up: ## Start staging stack
+staging-up: ## [no-CLI fallback] Start staging stack via raw docker compose
 	$(COMPOSE_STAGING) up -d
 
 .PHONY: staging-down
-staging-down: ## Stop staging stack
+staging-down: ## [no-CLI fallback] Stop staging stack via raw docker compose
 	$(COMPOSE_STAGING) down
 
 .PHONY: staging-logs
-staging-logs: ## View staging logs
+staging-logs: ## [no-CLI fallback] View staging logs via raw docker compose
 	$(COMPOSE_STAGING) logs -f
 
-# ---------------------------------------------------------------------------
-# Production
-# ---------------------------------------------------------------------------
-
 .PHONY: prod-up
-prod-up: ## Start production stack
+prod-up: ## [no-CLI fallback] Start production stack via raw docker compose
 	$(COMPOSE_PROD) up -d
 
 .PHONY: prod-down
-prod-down: ## Stop production stack
+prod-down: ## [no-CLI fallback] Stop production stack via raw docker compose
 	$(COMPOSE_PROD) down
 
 .PHONY: prod-logs
-prod-logs: ## View production logs
+prod-logs: ## [no-CLI fallback] View production logs via raw docker compose
 	$(COMPOSE_PROD) logs -f
 
 # ---------------------------------------------------------------------------

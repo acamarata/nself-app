@@ -23,7 +23,7 @@ What you need:
 | Tool | Version | Install |
 |---|---|---|
 | Docker + Compose v2 | 20+ | [docker.com](https://www.docker.com/products/docker-desktop/) |
-| nSelf CLI | 1.0.9+ | `brew install nself-org/tap/nself` (macOS) or [nself.org/install](https://nself.org/install) |
+| nSelf CLI | 1.2.1+ | `brew install nself-org/tap/nself` (macOS) or [nself.org/install](https://nself.org/install) |
 | Node.js | 20+ | [nodejs.org](https://nodejs.org/) |
 | pnpm | 9+ | `npm install -g pnpm` |
 | Domain + DNS | — | Production only — for HTTPS via Traefik |

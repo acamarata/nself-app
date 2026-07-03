@@ -23,7 +23,7 @@ Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the
 ### 1. Prerequisites
 
 - Docker 20+ with Docker Compose v2
-- nSelf CLI v1.0.9+: `brew install nself-org/tap/nself` (macOS) or see [nself.org/install](https://nself.org/install)
+- nSelf CLI v1.2.1+: `brew install nself-org/tap/nself` (macOS) or see [nself.org/install](https://nself.org/install)
 - Node.js 20+ and pnpm 10+
 - (iOS/Android builds) Expo CLI: `pnpm add -g expo-cli`
 
@@ -34,9 +34,14 @@ git clone https://github.com/nself-org/ntask.git
 cd ntask
 cp backend/.env.example backend/.env.dev    # then edit secrets
 make build           # generates docker-compose.yml (run once)
-make up              # starts Postgres + Hasura + Auth + Storage
+make up              # starts Postgres + Hasura + Auth + Storage; auto-seeds dev/staging test accounts
 make health          # verify all services are green
 ```
+
+> `make up` automatically runs `scripts/seed-dev.sh` on local/staging (guarded — never runs against prod).
+> It creates 8 test accounts (`owner@`/`admin@`/`mod@`/`dev@`/`support@`/`user@`/`demo@`/`test@nself.org`,
+> all password `password`) plus sample lists/todos. This is separate from the optional `DEMO_SEED=1 make demo-seed`
+> below, which loads a different demo account and dataset — use whichever fits your test.
 
 ### 3. Mobile App (React Native / Expo)
 
@@ -51,6 +56,9 @@ pnpm start                       # Expo dev server
 ```
 
 ### 4. Demo Data (optional)
+
+`make up` already seeded dev test accounts (see note above). If you want the curated demo
+dataset instead/in addition:
 
 ```bash
 DEMO_SEED=1 make demo-seed      # loads example tasks and lists
@@ -68,7 +76,7 @@ DEMO_SEED=1 make demo-seed      # loads example tasks and lists
 ### Prerequisites
 
 - React Native/Expo environment ([setup guide](https://docs.expo.dev/get-started/installation/))
-- nSelf CLI v1.0.9+ ([install guide](https://nself.org/install))
+- nSelf CLI v1.2.1+ ([install guide](https://nself.org/install))
 - Docker 20+ with Docker Compose v2
 - GNU Make
 - Node.js 20+ and pnpm 10+
