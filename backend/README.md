@@ -110,11 +110,19 @@ the server URL set at first login — no hardcoded IPs in source.
 
 ## Bundle Configuration
 
-`backend/nself.yaml` is the canonical plugin manifest for this app.
-Edit it to add or remove plugins, then run `nself build` to apply changes.
+`backend/nself.yaml` documents plugin/service intent for this app, but
+**`nself build` does not read it** — the CLI has no YAML parser for this file
+(Config is populated only from the `.env` cascade). See the comments in
+`nself.yaml` for the full breakdown. Summary:
 
-Active free plugins: auth, storage, cron, notify, notifications, jobs,
-search, feature-flags, audit-log, webhooks, invitations, tokens.
+- **Active** (own containers, wired via `auth_mode: bundled`): auth, storage.
+- **Implemented natively** (no plugin container): cron (Hasura scheduled
+  triggers), notify (`functions/notify-dispatch.ts`), invitations
+  (`functions/collab-ops.ts`).
+- **Available in `plugins/free/` but not installed/wired**: notifications,
+  jobs, search, feature-flags, audit-log, webhooks, tokens. These activate
+  once nself's plugin-manifest injection ships (tracked:
+  `nself/plugin-injection-dropped`).
 
 ---
 
