@@ -182,6 +182,8 @@ cd backend && make down
 | `nself build` not found | Install nSelf CLI: `brew install nself-org/tap/nself` |
 | Expo metro bundler error | Delete `apps/mobile/.expo/` and restart |
 | Vite dev server can't connect | Verify `web/ntask/.env.local` env vars are set (separate repo) |
+| `make health` reports Storage: DOWN | Known gap — no Hasura Storage container is generated at `:8484` yet; MinIO (raw object storage) is up and file uploads still work. See `.claude/planning/nself-cli-gaps-from-ntask-dogfood.md` gap #8. |
+| `nginx`/`functions` show unhealthy | Expected on a backend-only checkout — the default vhost proxies to the separate `web/ntask` Vite dev server, which this backend doesn't start. |
 
 See [Backend-Troubleshooting](Backend-Troubleshooting) for more.
 

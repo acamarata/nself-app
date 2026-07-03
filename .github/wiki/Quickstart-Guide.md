@@ -124,6 +124,8 @@ cd backend && make down
 | Expo app can't connect | Verify `.env.local` env vars point to correct local URLs |
 | Auth token errors | Run `make down && make up` to reset auth service state |
 | GraphQL errors | Check `http://localhost:8080/console` for schema/permission issues |
+| `make health` reports Storage: DOWN | Known gap — the generated stack does not currently materialize a Hasura Storage container at `:8484`; MinIO itself (object storage backend) is up and file uploads work via `storage-presign.ts`. Tracked in `.claude/planning/nself-cli-gaps-from-ntask-dogfood.md` (gap #8). |
+| `nginx`/`functions` show unhealthy after `make up` | Expected for a backend-only checkout — the default nginx vhost proxies to the `web/ntask` Vite dev server, which lives in a separate repo and isn't started by this backend. Not a broken install. |
 
 ## Next Steps
 

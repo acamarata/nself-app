@@ -1,23 +1,32 @@
 # Backend Setup
 
-Step-by-step setup for the ɳTasks backend. The backend is a self-contained Docker Compose stack driven by a Makefile.
+Step-by-step setup for the ɳTasks backend. The backend is an nSelf CLI–orchestrated stack
+(Postgres, Hasura GraphQL, Hasura Auth, MinIO, functions, nginx) driven by `backend/nself.yaml`
+and a thin `Makefile` wrapper. Per the nSelf-First doctrine, all lifecycle operations route
+through the `nself` CLI — `make up`/`make down`/`make build` are aliases for
+`nself start`/`nself stop`/`nself build`, not hand-rolled Docker Compose.
 
 ## Prerequisites
 
 - Docker 20+ with Docker Compose v2
+- nSelf CLI v1.2.1+: `brew install nself-org/tap/nself` (macOS) or see [nself.org/install](https://nself.org/install)
 - GNU Make
-- (Optional) Hasura CLI for migration management
-- Free ports: 5432, 8080, 4000, 8484, 9000, 9001, 8025
+- Free ports: 5432, 8080, 4000, 8484 (reserved — see Known Gaps below), 9000, 9001, 8025
 
 ## What You Get
 
 - **PostgreSQL 16**: database
 - **Hasura GraphQL Engine**: instant GraphQL API + console
 - **Hasura Auth**: email + password JWT authentication
-- **Hasura Storage**: S3-compatible upload and download API
-- **MinIO**: object storage backend
-- **Mailpit**: dev email capture (UI at `http://localhost:8025`)
-- **Traefik**: HTTPS reverse proxy (only for staging and production profiles)
+- **MinIO**: S3-compatible object storage backend
+- **functions**: Hasura Action + event-trigger webhook handler (Node.js)
+- **nginx**: reverse proxy (dev profile); Traefik HTTPS for staging/production
+- **Mailhog**: dev email capture (UI at `http://localhost:8025`)
+
+> **Known gap:** `backend/nself.yaml` declares a Hasura Storage service, but the CLI does not
+> yet materialize it as a container in the generated stack — only MinIO (raw object storage)
+> comes up. File uploads still work via `backend/functions/storage-presign.ts` calling MinIO
+> directly. Tracked in `.claude/planning/nself-cli-gaps-from-ntask-dogfood.md` gap #8.
 
 ## Steps
 
@@ -25,22 +34,26 @@ Step-by-step setup for the ɳTasks backend. The backend is a self-contained Dock
 
 ```bash
 cd backend
-cp .env.example .env
+cp .env.example .env.dev
 ```
 
-Edit `.env` and set:
+Edit `.env.dev` and set, at minimum:
 - `POSTGRES_PASSWORD`: strong password for Postgres
-- `HASURA_GRAPHQL_ADMIN_SECRET`: required to access the Hasura console
-- `HASURA_GRAPHQL_JWT_SECRET`: JSON object with key + algorithm (see `.env.example` for the format)
-- Auth provider secrets (Google, GitHub, etc.) if you want OAuth
+- `HASURA_ADMIN_SECRET` (CLI-templated) / `HASURA_GRAPHQL_ADMIN_SECRET` (app-read runtime var — keep both in sync, see the naming-drift note in `.env.example`)
+- `AUTH_JWT_SECRET`: 64+ chars, `openssl rand -hex 64`
+- Auth provider secrets (Google, GitHub, etc.) if you want OAuth — optional
 
-### 2. Start the stack
+### 2. Build and start the stack
 
 ```bash
-make up
+nself build       # generates docker-compose.yml, nginx config, SSL certs (run once, or after nself.yaml changes)
+make up           # alias for `nself start`; also auto-runs scripts/seed-dev.sh (dev/staging only)
 ```
 
-This brings up Postgres, Hasura, Auth, Storage, MinIO, and Mailpit. First run pulls images and runs `postgres/init.sql` to create extensions, schemas, and application tables.
+`make up` brings up Postgres, Hasura, Auth, MinIO, functions, and nginx, then automatically
+seeds 8 test accounts (`owner@`/`admin@`/`mod@`/`dev@`/`support@`/`user@`/`demo@`/`test@nself.org`,
+all password `password`) plus sample lists/todos — this is guarded to never run against
+production. See [[Getting-Started]] for the separate `DEMO_SEED=1 make demo-seed` curated dataset.
 
 ### 3. Verify health
 
@@ -48,15 +61,17 @@ This brings up Postgres, Hasura, Auth, Storage, MinIO, and Mailpit. First run pu
 make health
 ```
 
-Expected output: all four checks (Postgres, Hasura, Auth, Storage) report OK.
+Runs `nself deploy health` (falls back to raw curl/pg_isready checks). Postgres, Hasura, and
+Auth should report OK. Storage currently reports DOWN — see the Known Gap above; this does not
+block app functionality. `nginx`/`functions` may show unhealthy on a backend-only checkout
+because the default vhost proxies to the separate `web/ntask` Vite dev server.
 
 ### 4. Apply Hasura migrations
 
 ```bash
-make migrate
+make db-migrate        # idempotent psql runner: postgres/init.sql + postgres/migrations/*.sql
+make migrate-status     # show which migrations have been applied
 ```
-
-Applies pending Hasura migrations from `backend/hasura/migrations/`. Run `make migrate-status` to see migration state.
 
 ### 5. Apply Hasura metadata
 
@@ -64,30 +79,30 @@ Applies pending Hasura migrations from `backend/hasura/migrations/`. Run `make m
 make metadata-apply
 ```
 
-Applies tracked tables, relationships, permissions, and remote schemas from `backend/hasura/metadata/`.
+Applies tracked tables, relationships, permissions, and remote schemas from `hasura/metadata/`
+(requires the Hasura CLI on your host).
 
-### 6. (Optional) Seed sample data
+### 6. (Optional) Seed additional demo data
 
 ```bash
-make seed
+DEMO_SEED=1 make demo-seed      # loads example tasks/lists under demo@example.com / DemoPass123!
 ```
-
-Runs the seed script from the app side to populate sample lists and todos for local testing.
 
 ## Useful Commands
 
 ```bash
-make up                  # start the stack
-make down                # stop the stack
+make up                  # start the stack (nself start + auto dev-seed)
+make down                # stop the stack (nself stop)
 make restart             # restart everything
 make logs                # tail logs from all services
 make logs-hasura         # tail Hasura logs only
 make logs-auth           # tail Auth logs only
-make status              # docker compose ps
-make health              # health endpoint check
+make status              # nself deploy status (falls back to docker compose ps)
+make health              # nself deploy health (falls back to raw curl checks)
+make health-raw          # raw curl/pg_isready checks, no CLI dependency
 make psql                # open a Postgres shell
 make console             # open Hasura console (requires hasura-cli on host)
-make migrate             # apply pending migrations
+make db-migrate          # apply postgres/init.sql + postgres/migrations/*.sql
 make migrate-status      # show migration state
 make metadata-apply      # apply Hasura metadata
 make metadata-export     # export current metadata
@@ -107,27 +122,28 @@ make clean               # destroy containers + volumes (DESTRUCTIVE)
 | Hasura GraphQL | `http://localhost:8080/v1/graphql` |
 | Hasura Console | `http://localhost:8080/console` |
 | Auth API | `http://localhost:4000` |
-| Storage API | `http://localhost:8484` |
-| MinIO Console | `http://localhost:9001` |
-| Mailpit UI | `http://localhost:8025` |
+| MinIO (object storage) | `http://localhost:9000` (API), `http://localhost:9001` (console) |
+| Mailhog UI | `http://localhost:8025` |
 | PostgreSQL | `localhost:5432` |
 
 ## Database Initialization
 
-On first start, `backend/postgres/init.sql` runs automatically and creates:
+On first start, `backend/postgres/init.sql` and `backend/postgres/migrations/*.sql` run via
+`make db-migrate` and create:
 
 - Required extensions (`uuid-ossp`, `pgcrypto`, `citext`)
 - Schemas (`auth`, `storage`, `public`)
-- Application tables (lists, todos, shares, presence, attachments)
+- Application tables (`np_*` prefix: lists, todos, shares, presence, attachments)
 - Indexes for query performance
 - Triggers for `updated_at` timestamps
 - Auto-profile creation on user signup
 
-If you change `init.sql` after the first run, you must `make clean` and `make up` again, or run the new statements via `make psql`.
+If you change migrations after the first run, add a new migration file rather than editing
+history — see [[Database-Schema]].
 
 ## Hasura Console
 
-Visit `http://localhost:8080/console`. Use your `HASURA_GRAPHQL_ADMIN_SECRET` to authenticate.
+Visit `http://localhost:8080/console`. Use your `HASURA_ADMIN_SECRET` to authenticate.
 
 The console gives you:
 
@@ -139,21 +155,21 @@ The console gives you:
 
 ## App Connection
 
-Client apps (`apps/mobile/`, `apps/desktop/`, `apps/tv/` here, plus `web/ntask/` in the separate `web` repo) read their backend endpoint from environment configuration. For local dev, the defaults match the Docker Compose ports above. Override via the surface's `.env.local` file when running against staging or production.
+Client apps (`apps/mobile/`, `apps/desktop/`, `apps/tv/` here, plus `web/ntask/` in the separate
+`web` repo) read their backend endpoint from environment configuration. For local dev, the
+defaults match the endpoints above. Override via the surface's `.env.local` file when running
+against staging or production.
 
-See [RN-Setup](RN-Setup) (mobile), [Web-SPA](Web-SPA) (web), [Desktop](Desktop) (desktop), [TV](TV) (TV) for per-surface setup guides.
-
-## Alternative for nSelf CLI Users
-
-If you already use the nSelf CLI elsewhere, you can substitute `nself start` against a generated config. The canonical, supported path for this repo, however, is `make up` against the included Compose files, since `task/` is the "any-stack" reference app and does not require the CLI.
+See [[RN-Setup]] (mobile), [[Web-SPA]] (web), [[Desktop]] (desktop), [[TV]] (TV) for per-surface
+setup guides.
 
 ## Next Steps
 
-- [Backend Architecture](Backend-Architecture): services, ports, and data flow
-- [Database Schema](Database-Schema): table reference
-- [Deployment](Deployment): staging and production deploy
-- [Features](Features): full app feature inventory
+- [[Backend-Architecture]]: services, ports, and data flow
+- [[Database-Schema]]: table reference
+- [[Deployment]]: staging and production deploy
+- [[Features]]: full app feature inventory
 
 ## Need help?
 
-Open an issue at [github.com/nself-org/task/issues](https://github.com/nself-org/task/issues).
+Open an issue at [github.com/nself-org/ntask/issues](https://github.com/nself-org/ntask/issues).
