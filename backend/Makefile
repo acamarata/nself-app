@@ -26,7 +26,7 @@ COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.production
 
 # Default values (override via .env.dev)
 POSTGRES_USER ?= postgres
-POSTGRES_DB ?= nself
+POSTGRES_DB ?= ntask
 HASURA_ADMIN_SECRET ?= nself-admin-secret
 
 # ---------------------------------------------------------------------------
