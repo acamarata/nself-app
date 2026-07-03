@@ -1,6 +1,6 @@
 {
   "name": "ntask-mobile",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "\u0273Task \u2014 self-hosted task management app powered by nSelf",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",

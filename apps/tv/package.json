@@ -1,6 +1,6 @@
 {
   "name": "ntask-tv",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "\u0273Task TV \u2014 read-focused glanceable dashboard for Apple TV and Android TV",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",

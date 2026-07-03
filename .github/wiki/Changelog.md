@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.2.1 — 2026-07-03
+
+Patch release. CI stabilization, RBAC/identity, CLI+MCP, and prod deploy fixes on top of v1.2.0.
+
+### Added
+
+- **CLI + MCP server** (`cli/`, `mcp/`) — manage tasks/lists from the terminal or expose them as MCP tools for AI agents (Claude, Cursor, etc.).
+- **Identity + dynamic RBAC** — elevated-role Hasura permissions, `auth.uid()` RLS helper.
+- Mobile prod remote-URL default: preview/production EAS builds now bake in `https://api.task.nself.org` so store builds work out of the box; self-host users can still override at first login.
+- Desktop (Tauri) prod remote-URL default + CSP endpoint config; fixed plugin null-config panics.
+- Mobile release runbook (`apps/mobile/RELEASING.md`).
+
+### Fixed
+
+- Backend: Hasura metadata (sources/actions), seed data, nginx config, pg_cron-free migrations, hardcoded `\c nself` in postgres init scripts.
+- CI: desktop build workflows (dist placeholder path, pnpm workspace symlinks, Windows runner, Dependabot secret access), removed dead workflows.
+- Restored main content lost in a prior squash-merge (#75).
+- Dependabot: unblocked PRs by skipping private-token jobs on dependabot-triggered runs; bumped `actions/cache`, `actions/setup-node`, `actions/download-artifact`, `pnpm/action-setup`, `expo/expo-github-action` to current majors.
+
+### Changed
+
+- `apps/tv/SPIKE.md` status corrected — the TypeScript/React layer (6 screens, D-pad focus navigation, GraphQL client, 77 passing tests) is implemented and tested, not just a scaffold; only on-device EAS build/provisioning remains.
+
+---
+
 ## v1.2.0 — 2026-06-28
 
 ɳTask's biggest release: a complete, multi-surface task manager — free, self-hostable, and FOSS.

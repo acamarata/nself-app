@@ -1,6 +1,6 @@
 {
   "name": "@ntask/desktop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "\u0273Task Desktop \u2014 Tauri 2 shell wrapping web/ntask Vite SPA",
   "scripts": {
