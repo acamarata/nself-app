@@ -6,6 +6,9 @@
  *   Uses @nself/graphql-client (urql) per D-P3-REACT19 / E2 package wiring.
  *   Token injection: static Bearer token via a lightweight exchange closure (AuthExchangeFn).
  *   Auth-core NativeAuthStrategy manages SecureStore lifecycle in useAuth.ts.
+ *   getServerUrl() falls back to build-time EXPO_PUBLIC_DEFAULT_SERVER_URL (set in eas.json /
+ *   .env) when no server has been persisted yet — lets prod/preview builds ship pre-wired to
+ *   api.task.nself.org while self-host users can still override at first login.
  * SPORT: Replaces hand-rolled ApolloClient; @nself/graphql-client wraps urql (SDK 53 upgrade)
  */
 
@@ -17,7 +20,10 @@ import * as SecureStore from 'expo-secure-store';
 const SERVER_URL_KEY = 'ntask_server_url';
 
 export async function getServerUrl(): Promise<string | null> {
-  return SecureStore.getItemAsync(SERVER_URL_KEY);
+  const stored = await SecureStore.getItemAsync(SERVER_URL_KEY);
+  if (stored) return stored;
+  const buildDefault = process.env.EXPO_PUBLIC_DEFAULT_SERVER_URL;
+  return buildDefault ? buildDefault.trim().replace(/\/$/, '') : null;
 }
 
 export async function setServerUrl(url: string): Promise<void> {

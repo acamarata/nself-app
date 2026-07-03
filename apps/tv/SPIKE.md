@@ -1,9 +1,37 @@
 # react-native-tvos Integration Spike — ɳTask TV
 
-**Epic:** F — TV app  
-**Date:** 2026-06-27  
-**Branch:** p5/wave3-f-tv  
-**Status:** Scaffold complete; EAS build not yet triggered (external gates below)
+**Epic:** F — TV app
+**Date:** 2026-06-27 (status re-verified 2026-07-02)
+**Branch:** p5/wave3-f-tv
+**Status:** App code is further along than "spike" implies — see honest status below.
+EAS build not yet triggered (external gates in §8 remain unresolved).
+
+## Honest status (2026-07-02)
+
+This is NOT just a scaffold. Verified locally:
+- `apps/tv` is already listed in `pnpm-workspace.yaml` (the §2 blocker note below is stale —
+  the workspace update happened after this doc was first written; left in place as history).
+- `pnpm ls react-native` inside `apps/tv` confirms the override resolves correctly:
+  `react-native@npm:react-native-tvos@0.79.2-0`.
+- `pnpm typecheck` (`tsc --noEmit`) passes with zero errors.
+- `pnpm test` passes: 7 suites / 77 tests green (App, Dashboard/List/TaskDetail/Connect
+  screens, TVNavigator, FocusContext, GlanceCard, TaskRowTV, useTVTasks, useTVAuth, theme,
+  taskBucket util).
+- Real screens exist: `ConnectScreen`, `DashboardScreen`, `ListViewScreen`, `TaskDetailScreen`,
+  D-pad focus navigation (`FocusContext` + `TVNavigator`), and a GraphQL API client
+  (`src/lib/api.ts`) mirroring the mobile app's shape.
+
+What is still genuinely missing (blocks a real device build, not code-complete-blocking):
+- No EAS session/build has ever been triggered for this app (see §8 External Gates — Apple TV
+  provisioning, `eas init`, Android TV banner asset, and all brand assets are still stubs).
+- Never run on a physical Apple TV or Android TV device — CI/local verification is
+  typecheck + Jest only, no on-device or simulator smoke test performed.
+- Brand assets (`icon.png`, `splash.png`, `adaptive-icon.png`, `android-tv-banner.png`,
+  `top-shelf.png`) are placeholder stubs per §7 — a native build will fail until replaced.
+
+Bottom line: the TV app's TypeScript/React layer is implemented and tested; it has never been
+compiled to a native tvOS/Android TV binary or run on hardware. Treat "scaffold" in older specs
+as outdated — this is a working, untested-on-device app pending EAS provisioning.
 
 ---
 

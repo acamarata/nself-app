@@ -6,7 +6,7 @@
  * SPORT: Port of app/lib/screens/login_screen.dart
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, KeyboardAvoidingView,
@@ -21,11 +21,19 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
   const { colors } = useTheme();
-  const { signIn, loading, error } = useAuth();
+  const { serverUrl: persistedServerUrl, signIn, loading, error } = useAuth();
   const [serverUrl, setServerUrl] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tosAccepted, setTosAccepted] = useState(false);
+
+  // Prefill from persisted/build-default server URL (useAuth resolves SecureStore ->
+  // EXPO_PUBLIC_DEFAULT_SERVER_URL) once it loads. Only prefills while the field is
+  // still untouched so it never clobbers a value the user is actively typing.
+  useEffect(() => {
+    if (persistedServerUrl && !serverUrl) setServerUrl(persistedServerUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persistedServerUrl]);
 
   const handleSignIn = async () => {
     if (!serverUrl.trim() || !email.trim() || !password) {
