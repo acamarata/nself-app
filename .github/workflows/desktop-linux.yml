@@ -31,6 +31,7 @@ jobs:
       # No version input: resolved from root package.json "packageManager"
       # (a mismatched pin is a hard error from pnpm/action-setup v6 on).
       - name: Checkout shared @nself packages (sibling workspace dir)
+        shell: bash
         # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo that
         # CI never checked out, so @nself/* workspace deps were unresolvable (TS2307).
         working-directory: '.'
@@ -89,6 +90,7 @@ jobs:
           ln -s "$GITHUB_WORKSPACE/_nself_packages" "$PARENT_DIR/packages"
 
       - name: Install sibling packages deps (their own lockfile)
+        shell: bash
         # app typecheck walks into ../packages/@nself/* source, which imports
         # third-party deps resolved by the packages repo's OWN lockfile
         working-directory: '.'

@@ -34,6 +34,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Checkout shared @nself packages (sibling workspace dir)
+        shell: bash
         # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo that
         # CI never checked out, so @nself/ntask-core etc. were unresolvable (TS2307).
         working-directory: '.'
@@ -52,6 +53,7 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install sibling packages deps (their own lockfile)
+        shell: bash
         # app typecheck walks into ../packages/@nself/* source, which imports
         # third-party deps resolved by the packages repo's OWN lockfile
         working-directory: '.'
