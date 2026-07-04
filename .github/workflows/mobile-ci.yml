@@ -49,6 +49,12 @@ jobs:
           # Root lockfile is canonical for workspace (apps/mobile is a workspace package)
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Install sibling packages deps (their own lockfile)
+        # app typecheck walks into ../packages/@nself/* source, which imports
+        # third-party deps resolved by the packages repo's OWN lockfile
+        working-directory: '.'
+        run: pnpm install --frozen-lockfile --dir ../packages
+
       - name: Install dependencies
         # Run from repo root so workspace overrides (form-data, js-yaml) are applied
         working-directory: '.'
