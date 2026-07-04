@@ -31,7 +31,6 @@ import { useTVAuth } from '../hooks/useTVAuth'
 export function ConnectScreen() {
   const { signIn, loading, error } = useTVAuth()
   const { t } = useTranslation('screens')
-  const { t: tCommon } = useTranslation('common')
 
   const [serverUrl, setServerUrl] = useState('')
   const [email, setEmail] = useState('')

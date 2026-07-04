@@ -21,7 +21,7 @@ function setFocused(state: FocusState, id: string): FocusState {
   return { focusedId: id }
 }
 
-function clearFocus(state: FocusState): FocusState {
+function clearFocus(_state: FocusState): FocusState {
   return { focusedId: null }
 }
 
@@ -111,7 +111,7 @@ describe('TVFocusable — props contract', () => {
     }
 
     // Each 'right' target must be a key in the graph (no dangling link)
-    for (const [id, nav] of Object.entries(graph)) {
+    for (const [, nav] of Object.entries(graph)) {
       if (nav.right) {
         expect(graph).toHaveProperty(nav.right)
       }

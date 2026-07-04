@@ -22,7 +22,6 @@
 
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { useTranslation } from 'react-i18next'
 import { tvTheme } from '../theme'
 
 export interface RemoteHint {

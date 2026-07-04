@@ -32,7 +32,6 @@ export function LoginScreen({ navigation }: Props) {
   // still untouched so it never clobbers a value the user is actively typing.
   useEffect(() => {
     if (persistedServerUrl && !serverUrl) setServerUrl(persistedServerUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistedServerUrl]);
 
   const handleSignIn = async () => {
