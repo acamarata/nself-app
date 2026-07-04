@@ -82,6 +82,12 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: apps/mobile/pnpm-lock.yaml
+      - name: Install sibling packages deps (their own lockfile)
+        # app typecheck walks into ../packages/@nself/* source, which imports
+        # third-party deps resolved by the packages repo's OWN lockfile
+        working-directory: '.'
+        run: pnpm install --frozen-lockfile --dir ../packages
+
       - name: Install mobile dependencies
         run: pnpm install --frozen-lockfile
         working-directory: apps/mobile

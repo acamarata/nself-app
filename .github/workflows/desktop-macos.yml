@@ -85,6 +85,12 @@ jobs:
           PARENT_DIR="$(dirname "$GITHUB_WORKSPACE")"
           ln -s "$GITHUB_WORKSPACE/_nself_packages" "$PARENT_DIR/packages"
 
+      - name: Install sibling packages deps (their own lockfile)
+        # app typecheck walks into ../packages/@nself/* source, which imports
+        # third-party deps resolved by the packages repo's OWN lockfile
+        working-directory: '.'
+        run: pnpm install --frozen-lockfile --dir ../packages
+
       - name: Install pnpm deps (workspace root)
         run: pnpm install --frozen-lockfile
 

@@ -51,6 +51,12 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Install sibling packages deps (their own lockfile)
+        # app typecheck walks into ../packages/@nself/* source, which imports
+        # third-party deps resolved by the packages repo's OWN lockfile
+        working-directory: '.'
+        run: pnpm install --frozen-lockfile --dir ../packages
+
       - name: Install dependencies (workspace root)
         working-directory: '.'
         run: pnpm install --frozen-lockfile
