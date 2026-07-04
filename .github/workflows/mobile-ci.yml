@@ -32,6 +32,7 @@ jobs:
       - name: Checkout shared @nself packages (sibling workspace dir)
         # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo that
         # CI never checked out, so @nself/ntask-core etc. were unresolvable (TS2307).
+        working-directory: '.'
         run: |
           rm -rf ../packages
           git clone --depth 1 https://x-access-token:${{ secrets.NSELF_PACKAGES_TOKEN }}@github.com/nself-org/packages.git ../packages
