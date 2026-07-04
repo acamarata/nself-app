@@ -7,7 +7,7 @@ import { typeScale, spacing, focusRing, darkColors, priorityColors, tvTheme } fr
 
 describe('TV theme — 10-foot type scale minimums', () => {
   test('all TypeScale values are ≥ 28 (hint is the minimum)', () => {
-    for (const [name, size] of Object.entries(typeScale)) {
+    for (const [, size] of Object.entries(typeScale)) {
       expect(size).toBeGreaterThanOrEqual(28)
     }
   })
@@ -39,7 +39,7 @@ describe('TV theme — 10-foot type scale minimums', () => {
 
 describe('TV theme — spacing scale', () => {
   test('all spacing values are positive numbers', () => {
-    for (const [name, value] of Object.entries(spacing)) {
+    for (const [, value] of Object.entries(spacing)) {
       expect(typeof value).toBe('number')
       expect(value).toBeGreaterThan(0)
     }
@@ -71,7 +71,7 @@ describe('TV theme — focus ring', () => {
 
 describe('TV theme — color palette', () => {
   test('all darkColors values are valid 6-digit hex strings', () => {
-    for (const [name, value] of Object.entries(darkColors)) {
+    for (const [, value] of Object.entries(darkColors)) {
       expect(value).toMatch(/^#[0-9a-fA-F]{6}$/)
     }
   })

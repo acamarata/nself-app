@@ -45,6 +45,9 @@ const config = {
       ')',
   ],
   moduleNameMapper: {
+    // Sibling-workspace: ../packages/@nself/* source resolves babel runtime
+    // helpers from this app's tree (theirs may lack @babel/runtime).
+    '^@babel/runtime/(.*)$': '<rootDir>/../../node_modules/@babel/runtime/$1',
     // Map @nself/* workspace packages to their src entry points for Jest.
     // Sub-path exports (e.g. @nself/offline-queue/adapters) must come BEFORE
     // the catch-all so they match first.

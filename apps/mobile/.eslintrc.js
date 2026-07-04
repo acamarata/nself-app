@@ -28,5 +28,13 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'no-console': 'warn',
   },
+  overrides: [
+    {
+      // Jest mock factories must use require() — static imports get hoisted
+      // above jest.mock() and break the mock (documented Jest behavior).
+      files: ['src/**/__tests__/**', 'src/**/*.test.*'],
+      rules: { '@typescript-eslint/no-var-requires': 'off' },
+    },
+  ],
   ignorePatterns: ['node_modules/', 'android/', 'ios/'],
 };
