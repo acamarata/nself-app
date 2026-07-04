@@ -33,6 +33,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout shared @nself packages (sibling workspace dir)
+        # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo that
+        # CI never checked out, so @nself/ntask-core etc. were unresolvable (TS2307).
+        run: |
+          rm -rf ../packages
+          git clone --depth 1 https://x-access-token:${{ secrets.NSELF_PACKAGES_TOKEN }}@github.com/nself-org/packages.git ../packages
+
       - uses: pnpm/action-setup@v6
         with:
           version: '10.30.1'
