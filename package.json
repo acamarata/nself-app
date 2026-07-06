@@ -1,9 +1,9 @@
 {
   "name": "ntask",
   "private": true,
-  "version": "1.2.1",
+  "version": "1.3.0",
   "packageManager": "pnpm@10.30.1",
-  "description": "\u0273Task monorepo workspace root",
+  "description": "ɳTask monorepo workspace root",
   "pnpm": {
     "overrides": {
       "js-yaml@<4.2.0": "^4.2.0",

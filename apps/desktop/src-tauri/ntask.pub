@@ -1,5 +1,1 @@
-untrusted comment: minisign public key — PLACEHOLDER
-REPLACE_THIS_WITH_OUTPUT_OF: minisign -G -s ntask.key -p ntask.pub -W
-Then copy the literal content of ntask.pub into tauri.conf.json plugins.updater.pubkey.
-NEVER reference it as a $ENV_VAR — Tauri 2 does not resolve env vars in that field.
-See PROC-3 in E-desktop-tauri.md for keypair generation instructions.
+dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFRkY3RjEyQjI5RDM5RkYKUldUL09aMnlFbi8vWHVTc2VndnZjZUo3YW94TWdBSWY2YzdzeWJ3ckNNTGc5WjVvS29nWGxDelcK
