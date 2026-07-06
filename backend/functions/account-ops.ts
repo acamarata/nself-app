@@ -326,6 +326,16 @@ export async function enableMfa(
       { userId }
     );
 
+    // Persist server-visible MFA state (task_users.mfa_enabled) so any
+    // client (web SecurityTab, mobile) can read real status, not just the
+    // local TOTP-setup flow state. See migration 027.
+    await adminGql(
+      `mutation SetMfaEnabled($userId: uuid!) {
+        update_task_users_by_pk(pk_columns: { user_id: $userId }, _set: { mfa_enabled: true }) { user_id }
+      }`,
+      { userId }
+    );
+
     return {
       success: true,
       totpSecret: data?.totpSecret,
@@ -377,6 +387,14 @@ export async function disableMfa(
           action: "mfa_disabled"
           metadata: {}
         }) { id }
+      }`,
+      { userId }
+    );
+
+    // Persist server-visible MFA state (task_users.mfa_enabled). See migration 027.
+    await adminGql(
+      `mutation SetMfaDisabled($userId: uuid!) {
+        update_task_users_by_pk(pk_columns: { user_id: $userId }, _set: { mfa_enabled: false }) { user_id }
       }`,
       { userId }
     );

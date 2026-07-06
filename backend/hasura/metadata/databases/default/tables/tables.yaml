@@ -3024,6 +3024,7 @@
       - source_account_id
       - created_at
       - updated_at
+      - mfa_enabled
       filter:
         user_id:
           _eq: X-Hasura-User-Id
@@ -3046,6 +3047,7 @@
       - source_account_id
       - created_at
       - updated_at
+      - mfa_enabled
       filter: {}
       allow_aggregations: true
   - role: app_admin
