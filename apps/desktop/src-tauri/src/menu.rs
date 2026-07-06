@@ -116,7 +116,12 @@ pub fn build_app_menu<R: tauri::Runtime>(app: &impl tauri::Manager<R>) -> tauri:
 pub fn handle_menu_event(app: &AppHandle, event_id: &str) {
     match event_id {
         "prefs" => {
-            if let Some(win) = app.get_webview_window("settings") {
+            // Single-window app: navigate the main webview's SPA router to
+            // /settings instead of opening a second OS window. Native app
+            // feel = one window; the settings screen already exists as an
+            // in-app route (web/ntask App.tsx `settings` route).
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.eval("window.location.pathname = '/settings'");
                 let _ = win.show();
                 let _ = win.set_focus();
             }

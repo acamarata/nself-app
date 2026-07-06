@@ -46,8 +46,10 @@ pub fn build_tray(app: &mut tauri::App) -> tauri::Result<()> {
                 let _ = app.emit("tray://sync-now", ());
             }
             "prefs" => {
-                // Open settings window if registered.
-                if let Some(win) = app.get_webview_window("settings") {
+                // Single-window app: navigate the main webview to /settings
+                // rather than opening a second OS window (native app feel).
+                if let Some(win) = app.get_webview_window("main") {
+                    let _ = win.eval("window.location.pathname = '/settings'");
                     let _ = win.show();
                     let _ = win.set_focus();
                 }
