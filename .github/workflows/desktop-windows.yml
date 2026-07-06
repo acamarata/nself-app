@@ -110,6 +110,25 @@ jobs:
       # EV code-signing via SSL.com eSigner.
       # Only runs when SSL_COM_USERNAME secret is configured (PROC-2 gate).
       # Without EV cert: skip silently — MSI is valid but unsigned.
+      # MSI filename is versioned (nTask_<version>_x64_en-US.msi) and the
+      # version here must never be hand-maintained — it drifted from the real
+      # build output before (hardcoded 1.2.0 while tauri.conf.json had moved
+      # on), which made the signing step silently miss the file (a glob with
+      # no matches is not a failure by itself) and ship an unsigned MSI.
+      - name: Resolve built MSI path
+        id: msi
+        shell: bash
+        run: |
+          MSI_DIR="apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi"
+          MSI_PATH=$(ls "$MSI_DIR"/nTask_*_x64_en-US.msi 2>/dev/null | head -1)
+          if [[ -z "$MSI_PATH" ]]; then
+            echo "ERROR: no nTask_*_x64_en-US.msi found in $MSI_DIR"
+            ls -la "$MSI_DIR" || true
+            exit 1
+          fi
+          echo "Resolved MSI: $MSI_PATH"
+          echo "path=$MSI_PATH" >> "$GITHUB_OUTPUT"
+
       - name: Sign Windows MSI (SSL.com EV — conditional)
         if: env.SSL_COM_USERNAME != ''
         env:
@@ -125,9 +144,10 @@ jobs:
           credential_id: ${{ secrets.SSL_COM_CREDENTIAL_ID }}
           totp_secret: ${{ secrets.SSL_COM_TOTP_SECRET }}
           # productName is "nTask" on Windows (tauri.windows.conf.json) — WiX3 light.exe
-          # chokes on the non-ASCII ɳ. Keep this path in sync with app version.
-          file_path: >-
-            apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/nTask_1.2.0_x64_en-US.msi
+          # chokes on the non-ASCII ɳ. Path resolved above from the actual build
+          # output (glob), not hardcoded — a hardcoded version silently drifted
+          # from the real build once before, shipping an unsigned MSI.
+          file_path: ${{ steps.msi.outputs.path }}
           override: true
 
       - name: Upload MSI + NSIS artifacts

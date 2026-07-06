@@ -12,6 +12,8 @@
 mod commands;
 mod downgrade_guard;
 mod menu;
+mod offline_fallback;
+mod spa_nav;
 mod tray;
 
 use tauri::{Emitter, Listener, Manager, WindowEvent};
@@ -69,6 +71,11 @@ pub fn run() {
 
             // System tray with 3-state icon swap.
             tray::build_tray(app)?;
+
+            // Offline/unreachable fallback: if the live task.nself.org host is
+            // down or unreachable at launch, replace the ugly native webview
+            // error with a branded "can't reach ɳTask, Retry" screen instead.
+            offline_fallback::check_and_apply(app.handle().clone());
 
             // Global shortcuts: Cmd/Ctrl+Shift+N (quick-add) + Cmd/Ctrl+Shift+T (show/hide).
             // Registered via string parse so CmdOrCtrl resolves correctly on each OS.

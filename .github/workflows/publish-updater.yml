@@ -66,7 +66,10 @@ jobs:
           echo "Offered version: $VERSION"
 
           # Downgrade guard: fetch current published manifest.
-          MANIFEST_URL="https://packages.nself.org/desktop/ntask/latest-ntask-darwin-aarch64.json"
+          # Filename matches tauri.conf.json plugins.updater.endpoints scheme
+          # (latest-{{target}}.json — no "ntask-" prefix, since the R2 path
+          # already namespaces by /desktop/ntask/).
+          MANIFEST_URL="https://packages.nself.org/desktop/ntask/latest-darwin-aarch64.json"
           CURRENT=$(curl -sf "$MANIFEST_URL" | jq -r '.version' 2>/dev/null || echo "0.0.0")
           echo "Current published version: $CURRENT"
 
@@ -157,21 +160,27 @@ jobs:
           PYEOF
           }
 
-          write_manifest "latest-ntask-darwin-aarch64" \
+          # Filenames MUST match tauri.conf.json plugins.updater.endpoints:
+          # "https://packages.nself.org/desktop/ntask/latest-{{target}}.json"
+          # Tauri substitutes {{target}} with e.g. "darwin-aarch64" and does NOT
+          # add an "ntask-" prefix (that's already the R2 path segment), so the
+          # manifest filenames here must not include it either — otherwise the
+          # updater 404s against a manifest that was never written.
+          write_manifest "latest-darwin-aarch64" \
             "darwin-aarch64" "$SIG_MAC_ARM" "$MAC_ARM_URL" \
-            > manifests/latest-ntask-darwin-aarch64.json
+            > manifests/latest-darwin-aarch64.json
 
-          write_manifest "latest-ntask-darwin-x86_64" \
+          write_manifest "latest-darwin-x86_64" \
             "darwin-x86_64" "$SIG_MAC_X64" "$MAC_X64_URL" \
-            > manifests/latest-ntask-darwin-x86_64.json
+            > manifests/latest-darwin-x86_64.json
 
-          write_manifest "latest-ntask-windows-x86_64" \
+          write_manifest "latest-windows-x86_64" \
             "windows-x86_64" "$SIG_WIN_X64" "$WIN_X64_URL" \
-            > manifests/latest-ntask-windows-x86_64.json
+            > manifests/latest-windows-x86_64.json
 
-          write_manifest "latest-ntask-linux-x86_64" \
+          write_manifest "latest-linux-x86_64" \
             "linux-x86_64" "$SIG_LINUX_X64" "$LINUX_X64_URL" \
-            > manifests/latest-ntask-linux-x86_64.json
+            > manifests/latest-linux-x86_64.json
 
           rm /tmp/ntask_minisign_key
           echo "Generated manifests:"
@@ -208,10 +217,10 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{
               "files": [
-                "https://packages.nself.org/desktop/ntask/latest-ntask-darwin-aarch64.json",
-                "https://packages.nself.org/desktop/ntask/latest-ntask-darwin-x86_64.json",
-                "https://packages.nself.org/desktop/ntask/latest-ntask-windows-x86_64.json",
-                "https://packages.nself.org/desktop/ntask/latest-ntask-linux-x86_64.json"
+                "https://packages.nself.org/desktop/ntask/latest-darwin-aarch64.json",
+                "https://packages.nself.org/desktop/ntask/latest-darwin-x86_64.json",
+                "https://packages.nself.org/desktop/ntask/latest-windows-x86_64.json",
+                "https://packages.nself.org/desktop/ntask/latest-linux-x86_64.json"
               ]
             }'
           echo "Cloudflare cache purged for ntask updater endpoints."

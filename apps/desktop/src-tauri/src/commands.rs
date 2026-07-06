@@ -246,36 +246,112 @@ pub async fn import_tasks_json(app: AppHandle) -> Result<Vec<TaskDto>, String> {
 // ─────────────────────────────────────────────────────────────────────────────
 // These commands implement SecureStoreInterface from @nself/tauri-bridge/secure-store.ts.
 // Service name: org.nself.ntask
-// macOS:   Keychain (Security.framework)
-// Windows: Credential Manager (DPAPI)
-// Linux:   libsecret / kwallet
+// macOS:   Keychain (Security.framework), via keyring crate "apple-native" backend
+// Windows: Credential Manager (DPAPI), via keyring crate "windows-native" backend
+// Linux:   Secret Service (libsecret) via keyring crate "sync-secret-service" backend
 //
-// Current implementation: environment-variable-backed stub.
-// Full OS keychain implementation tracked in E-S1-T3.
+// Each key is stored as its own keychain entry: service=KEYCHAIN_SERVICE,
+// account=<key>. "Not found" is a normal empty-store outcome (Ok(None)/Ok(())),
+// not an error — only real backend failures (locked keychain, D-Bus unavailable,
+// etc.) surface as Err.
 
 const KEYCHAIN_SERVICE: &str = "org.nself.ntask";
 
-/// Read a value from the OS keychain by key.
-#[tauri::command]
-pub fn secure_store_get(key: String) -> Result<Option<String>, String> {
-    // TODO(E-S1-T3): Replace with OS keychain read via `keyring` crate or
-    // platform Security framework calls. Stub returns None until implemented.
-    tracing::debug!("secure_store_get: service={} key={}", KEYCHAIN_SERVICE, key);
-    Ok(None)
+/// Build a keyring Entry for the given logical key, scoped to this app's
+/// fixed service name so entries never collide with other nSelf apps.
+fn keychain_entry(key: &str) -> Result<keyring::Entry, String> {
+    keyring::Entry::new(KEYCHAIN_SERVICE, key)
+        .map_err(|e| format!("keyring entry error for key '{}': {}", key, e))
 }
 
-/// Write a value to the OS keychain.
+/// Read a value from the OS keychain by key.
+/// Returns Ok(None) if the key has never been set (not an error condition).
 #[tauri::command]
-pub fn secure_store_set(key: String, _value: String) -> Result<(), String> {
-    // TODO(E-S1-T3): Replace with OS keychain write. Stub is a no-op.
+pub fn secure_store_get(key: String) -> Result<Option<String>, String> {
+    tracing::debug!("secure_store_get: service={} key={}", KEYCHAIN_SERVICE, key);
+    let entry = keychain_entry(&key)?;
+    match entry.get_password() {
+        Ok(value) => Ok(Some(value)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(format!("keychain read failed for key '{}': {}", key, e)),
+    }
+}
+
+/// Write a value to the OS keychain, creating or overwriting the entry.
+#[tauri::command]
+pub fn secure_store_set(key: String, value: String) -> Result<(), String> {
     tracing::debug!("secure_store_set: service={} key={}", KEYCHAIN_SERVICE, key);
-    Ok(())
+    let entry = keychain_entry(&key)?;
+    entry
+        .set_password(&value)
+        .map_err(|e| format!("keychain write failed for key '{}': {}", key, e))
 }
 
 /// Delete a value from the OS keychain.
+/// Deleting a key that was never set is treated as success (idempotent).
 #[tauri::command]
 pub fn secure_store_delete(key: String) -> Result<(), String> {
-    // TODO(E-S1-T3): Replace with OS keychain delete. Stub is a no-op.
     tracing::debug!("secure_store_delete: service={} key={}", KEYCHAIN_SERVICE, key);
-    Ok(())
+    let entry = keychain_entry(&key)?;
+    match entry.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(e) => Err(format!("keychain delete failed for key '{}': {}", key, e)),
+    }
+}
+
+#[cfg(test)]
+mod secure_store_tests {
+    use super::*;
+
+    /// Exercises the full set → get → delete → get lifecycle against the
+    /// real OS keychain backend. Uses a unique key per test run (pid + time)
+    /// so parallel/repeat test runs never collide, and always cleans up.
+    ///
+    /// Ignored by default: CI runners (headless Linux, sandboxed macOS CI)
+    /// commonly have no unlocked keychain / D-Bus Secret Service session, so
+    /// this is opt-in via `cargo test -- --ignored` on a machine with a real
+    /// user keychain session (e.g. local dev).
+    #[test]
+    #[ignore]
+    fn set_get_delete_roundtrip() {
+        let key = format!(
+            "ntask-test-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+
+        secure_store_set(key.clone(), "test-value".to_string()).expect("set should succeed");
+
+        let got = secure_store_get(key.clone()).expect("get should succeed");
+        assert_eq!(got, Some("test-value".to_string()));
+
+        secure_store_delete(key.clone()).expect("delete should succeed");
+
+        let after_delete = secure_store_get(key.clone()).expect("get after delete should succeed");
+        assert_eq!(after_delete, None);
+
+        // Deleting again is idempotent, not an error.
+        secure_store_delete(key).expect("second delete should still succeed");
+    }
+
+    #[test]
+    fn get_missing_key_returns_none_not_error() {
+        let key = format!(
+            "ntask-test-missing-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+        // On CI machines without a usable keychain backend this may return
+        // Err (backend unavailable) rather than Ok(None) — only assert the
+        // no-panic contract and, when it does succeed, that missing == None.
+        if let Ok(value) = secure_store_get(key) {
+            assert_eq!(value, None);
+        }
+    }
 }

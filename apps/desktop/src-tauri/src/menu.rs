@@ -8,6 +8,7 @@
 //              Paste, etc.) — do not re-implement them manually.
 // SPORT: no new entries (menu is UI surface, not a tracked service).
 
+use crate::spa_nav::spa_navigate_js;
 use tauri::{
     menu::{Menu, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder},
     AppHandle, Emitter, Manager,
@@ -121,7 +122,7 @@ pub fn handle_menu_event(app: &AppHandle, event_id: &str) {
             // feel = one window; the settings screen already exists as an
             // in-app route (web/ntask App.tsx `settings` route).
             if let Some(win) = app.get_webview_window("main") {
-                let _ = win.eval("window.location.pathname = '/settings'");
+                let _ = win.eval(spa_navigate_js("/settings"));
                 let _ = win.show();
                 let _ = win.set_focus();
             }
