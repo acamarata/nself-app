@@ -42,6 +42,7 @@
         "backgroundColor": "#030712"
       },
       "package": "dev.nself.ntask",
+      "googleServicesFile": "${GOOGLE_SERVICES_JSON:-./google-services.json}",
       "intentFilters": [
         {
           "action": "VIEW",

@@ -28,6 +28,7 @@ import { NselfI18nProvider } from '@nself/i18n';
 import type { Locale } from '@nself/i18n';
 import { getLocales } from 'expo-localization';
 import * as SentryRN from '@sentry/react-native';
+import * as Notifications from 'expo-notifications';
 import type { SentrySdk } from '@nself/observability';
 import { initObservability } from '@nself/observability';
 import { useAuth } from '../hooks/useAuth';
@@ -38,6 +39,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoginScreen } from './LoginScreen';
 import { HomeScreen } from './HomeScreen';
 import { ListScreen } from './ListScreen';
+import { SmartViewScreen } from './SmartViewScreen';
 import { TaskDetailScreen } from './TaskDetailScreen';
 import { SettingsScreen } from './SettingsScreen';
 import { ProfileScreen } from './ProfileScreen';
@@ -52,6 +54,20 @@ import { DeleteAccountScreen } from './DeleteAccountScreen';
 import type { RootStackParamList } from '../types';
 import { initializeI18n } from '../i18n';
 import { ThemeProvider, getThemePreference, setThemePreference, type ThemePreference } from '../theme';
+
+// ─── Notification foreground behavior (module level) ─────────────────────────
+// Show alert + play sound even while the app is foregrounded, so due-date
+// reminders (useReminders) and backend-pushed notifications are never silently
+// swallowed just because the user already has the app open.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 // ─── RTL init (module level — before first render) ────────────────────────────
 // initializeI18n detects locale via I18nManager constants and calls
@@ -113,6 +129,16 @@ function OfflineSyncDriver() {
 }
 
 /**
+ * App-level push-token registration driver. Rendered inside UrqlProvider so
+ * usePushToken's RegisterDeviceToken mutation has a live urql client.
+ * Renders nothing.
+ */
+function PushTokenDriver({ accessToken }: { accessToken: string }) {
+  usePushToken({ accessToken });
+  return null;
+}
+
+/**
  * Parse ntask:// or https://task.nself.org deep link into navigation target.
  * Handles: ntask://list/:listId → List; ntask://task/:taskId → TaskDetail.
  */
@@ -131,16 +157,15 @@ function parseDeepLink(url: string): { screen: 'List'; params: { listId: string;
 function AuthenticatedApp({ serverUrl, accessToken }: { serverUrl: string; accessToken: string }) {
   const client = useMemo(() => createUrqlClient(serverUrl, accessToken), [serverUrl, accessToken]);
 
-  // Register Expo push token with backend (graceful no-op if permissions not granted)
-  usePushToken({ userId: null, serverUrl, accessToken });
-
   return (
     <UrqlProvider value={client}>
       <OfflineSyncDriver />
+      <PushTokenDriver accessToken={accessToken} />
       <ErrorBoundary onError={sentryOnError}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="List" component={ListScreen} />
+          <Stack.Screen name="SmartView" component={SmartViewScreen} />
           <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
@@ -173,6 +198,37 @@ function App() {
     void Linking.getInitialURL().then((url) => { if (url) handle(url); });
     const sub = Linking.addEventListener('url', ({ url }) => handle(url));
     return () => sub.remove();
+  }, [navigationRef]);
+
+  // Handle notification taps — both cold-start (getLastNotificationResponseAsync)
+  // and foreground/background taps (addNotificationResponseReceivedListener).
+  // The reminder + backend payloads both carry `data.url` in ntask:// deep-link
+  // form (see useReminders.ts), so tap navigation reuses parseDeepLink.
+  useEffect(() => {
+    const handleResponse = (response: Notifications.NotificationResponse) => {
+      const url = response.notification.request.content.data?.['url'];
+      if (typeof url !== 'string') return;
+      const target = parseDeepLink(url);
+      if (!target || !navigationRef.isReady()) return;
+      navigationRef.navigate(target.screen, target.params as never);
+    };
+
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) handleResponse(response);
+    });
+    const responseSub = Notifications.addNotificationResponseReceivedListener(handleResponse);
+
+    // Received-while-foregrounded listener — no navigation, but keeps a hook
+    // point for future badge/analytics wiring without silently dropping events.
+    const receivedSub = Notifications.addNotificationReceivedListener(() => {
+      // Intentionally no-op beyond the OS-level banner (setNotificationHandler
+      // above already shows alert + sound while foregrounded).
+    });
+
+    return () => {
+      responseSub.remove();
+      receivedSub.remove();
+    };
   }, [navigationRef]);
 
   const handlePreferenceChange = (pref: ThemePreference) => {

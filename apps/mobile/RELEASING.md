@@ -75,6 +75,29 @@ npx eas-cli submit -p ios --profile production
 `FILL_FROM_APPLE_DEVELOPER_ACCOUNT`, `./google-services-key.json`) that must be filled in before
 `submit` will work — see [EAS Submit docs](https://docs.expo.dev/submit/introduction/).
 
+## Push notification credentials (FCM + APNs)
+
+The push registration code path (`usePushToken.ts` → `RegisterDeviceToken` mutation →
+`np_device_tokens`) is complete and wired end-to-end, but it is inert until real push
+credentials exist — this is a manual step tied to paid Apple/Google developer accounts,
+not something that can be scaffolded from this repo:
+
+- **Android (FCM):** `app.json` references `android.googleServicesFile` via the
+  `GOOGLE_SERVICES_JSON` env var (defaults to `./google-services.json`, which is
+  gitignored and not present in this repo). Generate it from the Firebase console for
+  the `dev.nself.ntask` package name, place it at `apps/mobile/google-services.json`
+  (or point `GOOGLE_SERVICES_JSON` at it in EAS secrets), then re-run `eas build`.
+- **iOS (APNs):** No local file is needed — `eas build` provisions the APNs key
+  automatically once an Apple Developer account is linked (`eas credentials`). The
+  `aps-environment: production` entitlement is already set in `app.json`.
+- **Expo push service:** Both platforms route through Expo's push service
+  (`getExpoPushTokenAsync`), so no separate FCM/APNs server keys are needed in
+  application code — only the two credential artifacts above, uploaded once via EAS.
+
+Until the FCM file exists, `usePushToken` no-ops gracefully in production Android builds
+(permission request still fires; `getExpoPushTokenAsync` throws and is caught, so the
+app never crashes — see the try/catch in `usePushToken.ts`).
+
 ## Verifying a build
 
 ```bash

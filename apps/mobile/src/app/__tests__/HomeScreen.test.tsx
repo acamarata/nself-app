@@ -101,6 +101,11 @@ describe('HomeScreen', () => {
       expect(getByText('ɳTask')).toBeTruthy();
     });
 
+    it('renders Smart views button in header', () => {
+      const { getByLabelText } = renderScreen();
+      expect(getByLabelText('Smart views')).toBeTruthy();
+    });
+
     it('renders Notifications button in header', () => {
       const { getByLabelText } = renderScreen();
       expect(getByLabelText('Notifications')).toBeTruthy();

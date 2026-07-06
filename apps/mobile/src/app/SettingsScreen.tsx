@@ -1,12 +1,16 @@
 /**
  * Purpose: Settings screen — server URL, language, appearance, notification preferences.
- * Inputs: useSettings hook (MMKV-backed); navigation for back action.
- * Outputs: Persisted settings; urql client reinit on server URL change.
+ * Inputs: useSettings hook (SecureStore-backed serverUrl; MMKV for language/appearance);
+ *   useAuth for the sign-out that follows a server URL change; navigation for back action.
+ * Outputs: Persisted settings. Changing + saving the server URL signs the user out so the
+ *   app re-authenticates against the new backend — this is what actually reinitializes the
+ *   urql client (AuthenticatedApp builds it from useAuth's serverUrl+accessToken), not a
+ *   cosmetic MMKV write.
  * Constraints: ≤300L. Language change = immediate; RTL (ar) prompts restart.
  *   Appearance change notified to ThemeProvider via route param callback.
  * SPORT: C-S3-T1
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, Switch, Alert, Platform,
@@ -15,6 +19,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { useSettings, type AppLanguage, type AppAppearance } from '../hooks/useSettings';
 import { useNotificationPrefs } from '../hooks/useNotificationPrefs';
+import { useAuth } from '../hooks/useAuth';
 import { useTheme, type ColorTokens } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
@@ -35,9 +40,17 @@ const APPEARANCES: { value: AppAppearance; label: string }[] = [
 export function SettingsScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const { serverUrl, setServerUrl, language, setLanguage, appearance, setAppearance } = useSettings();
+  const { signOut } = useAuth();
   const { prefs, setMasterEnabled, setComments, setAssigned, setReminders } = useNotificationPrefs();
   const [urlDraft, setUrlDraft] = useState(serverUrl);
   const [urlStatus, setUrlStatus] = useState<'idle' | 'testing' | 'ok' | 'fail'>('idle');
+  const [urlTouched, setUrlTouched] = useState(false);
+
+  // serverUrl resolves asynchronously from SecureStore (starts as ''). Sync the
+  // draft once it loads, but never clobber text the user has already started typing.
+  useEffect(() => {
+    if (!urlTouched && serverUrl) setUrlDraft(serverUrl);
+  }, [serverUrl, urlTouched]);
 
   const testAndSaveUrl = useCallback(async () => {
     const url = urlDraft.trim().replace(/\/$/, '');
@@ -46,15 +59,29 @@ export function SettingsScreen({ navigation }: Props) {
     try {
       const resp = await fetch(`${url}/healthz`, { method: 'GET' });
       if (resp.ok) {
+        const changed = url !== serverUrl;
         setServerUrl(url);
         setUrlStatus('ok');
+        if (changed) {
+          // The urql client is built once from useAuth's serverUrl+accessToken
+          // (AuthenticatedApp in app/index.tsx) — it does not watch for further
+          // serverUrl changes. Signing out forces the auth gate to re-render
+          // against the newly persisted server URL, which is what actually
+          // reinitializes the GraphQL client rather than leaving this as a
+          // cosmetic setting.
+          Alert.alert(
+            'Server changed',
+            'You will be signed out to connect to the new server.',
+            [{ text: 'OK', onPress: () => void signOut() }],
+          );
+        }
       } else {
         setUrlStatus('fail');
       }
     } catch {
       setUrlStatus('fail');
     }
-  }, [urlDraft, setServerUrl]);
+  }, [urlDraft, serverUrl, setServerUrl, signOut]);
 
   const handleLanguageChange = useCallback((lang: AppLanguage) => {
     setLanguage(lang);

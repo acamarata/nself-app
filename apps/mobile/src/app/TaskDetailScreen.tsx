@@ -15,6 +15,8 @@ import type { RootStackParamList, Priority } from '../types';
 import { GET_TODO } from '../lib/hasura';
 import { useTaskMutations } from '../hooks/useTaskMutations';
 import { useNetworkState } from '../hooks/useNetworkState';
+import { enqueue } from '../lib/offline-queue';
+import { generateIdempotencyKey } from '../lib/idempotency';
 import { TaskStatus } from '../components/TaskStatus';
 import { AssigneeSelector } from '../components/AssigneeSelector';
 import { SubtaskList } from '../components/SubtaskList';
@@ -85,14 +87,24 @@ export function TaskDetailScreen({ route, navigation }: Props) {
     if (saving || !task) return;
     setSaving(true);
     try {
-      await updateTask(task.id, {
+      const fields = {
         title: title.trim() || task.title,
         description: notes.trim(),
         notes: notes.trim(),
         completed,
         priority,
         dueDate: dueDate || null,
-      });
+      };
+
+      if (!isConnected) {
+        // Offline path — enqueue and let OfflineSyncDriver replay on reconnect
+        // (mirrors ListScreen's create/toggle/delete offline handling).
+        void enqueue('update_task', { id: task.id, fields }, generateIdempotencyKey('update_task', task.id));
+        navigation.goBack();
+        return;
+      }
+
+      await updateTask(task.id, fields);
       navigation.goBack();
     } finally {
       setSaving(false);
@@ -106,6 +118,11 @@ export function TaskDetailScreen({ route, navigation }: Props) {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
           if (!task) return;
+          if (!isConnected) {
+            void enqueue('delete_task', { id: task.id }, generateIdempotencyKey('delete_task', task.id));
+            navigation.goBack();
+            return;
+          }
           await deleteTask(task.id);
           navigation.goBack();
         },

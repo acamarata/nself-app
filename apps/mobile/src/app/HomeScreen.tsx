@@ -138,6 +138,14 @@ export function HomeScreen({ navigation }: Props) {
         <Text style={[styles.headerTitle, { color: colors.primary }]}>ɳTask</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
+            onPress={() => navigation.navigate('SmartView')}
+            accessibilityLabel="Smart views"
+            accessibilityRole="button"
+            style={styles.headerIcon}
+          >
+            <Text style={styles.headerIconText}>🗓️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => navigation.navigate('Notifications')}
             accessibilityLabel="Notifications"
             accessibilityRole="button"

@@ -24,6 +24,17 @@ jest.mock('../hooks/useNotificationPrefs', () => ({
   }),
 }));
 
+jest.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({
+    serverUrl: 'https://example.com',
+    accessToken: 'test-token',
+    loading: false,
+    error: null,
+    signIn: jest.fn(),
+    signOut: jest.fn(),
+  }),
+}));
+
 const mockNavigation = { goBack: jest.fn(), navigate: jest.fn() };
 
 describe('SettingsScreen', () => {

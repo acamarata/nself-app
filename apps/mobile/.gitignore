@@ -6,3 +6,7 @@
 .env.staging
 
 # .env.example IS intentionally committed — it is the template for new devs
+
+# Push notification credentials — real Firebase project secrets, never commit
+google-services.json
+GoogleService-Info.plist
