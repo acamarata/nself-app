@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  ntask-tv>react-native: npm:react-native-tvos@^0.79.2-0
   js-yaml@<4.2.0: ^4.2.0
   form-data@<3.0.5: ^3.0.5
   form-data@>=4.0.0 <4.0.6: ^4.0.6
@@ -19,6 +20,14 @@ overrides:
   fast-xml-parser: ^5.7.0
   joi: ^17.13.4
   send: ^0.19.0
+
+patchedDependencies:
+  '@expo/plist@0.2.2':
+    hash: 468264243a2bbb049c36e4297dc52f04039dc9a7051958fa5e4b6481711b402f
+    path: patches/@expo__plist@0.2.2.patch
+  '@expo/plist@0.3.5':
+    hash: db1a1af84cf4198c368b703089aa4ca8c603875badc1babe236c6abd4fa8e8ba
+    path: patches/@expo__plist@0.3.5.patch
 
 importers:
 
@@ -8179,7 +8188,7 @@ snapshots:
       '@expo/metro-config': 0.20.18
       '@expo/osascript': 2.6.0
       '@expo/package-manager': 1.12.1
-      '@expo/plist': 0.3.5
+      '@expo/plist': 0.3.5(patch_hash=db1a1af84cf4198c368b703089aa4ca8c603875badc1babe236c6abd4fa8e8ba)
       '@expo/prebuild-config': 9.0.12
       '@expo/schema-utils': 0.1.8
       '@expo/spawn-async': 1.8.0
@@ -8187,7 +8196,7 @@ snapshots:
       '@expo/xcpretty': 4.4.4
       '@react-native/dev-middleware': 0.79.6
       '@urql/core': 5.2.0(graphql@16.14.2)
-      '@urql/exchange-retry': 1.3.2(@urql/core@5.2.0(graphql@16.14.2))
+      '@urql/exchange-retry': 1.3.2(@urql/core@5.2.0)
       accepts: 1.3.8
       arg: 5.0.2
       better-opn: 3.0.2
@@ -8243,7 +8252,7 @@ snapshots:
     dependencies:
       '@expo/config-types': 53.0.5
       '@expo/json-file': 9.1.5
-      '@expo/plist': 0.3.5
+      '@expo/plist': 0.3.5(patch_hash=db1a1af84cf4198c368b703089aa4ca8c603875badc1babe236c6abd4fa8e8ba)
       '@expo/sdk-runtime-versions': 1.0.0
       chalk: 4.1.2
       debug: 4.4.3
@@ -8262,7 +8271,7 @@ snapshots:
     dependencies:
       '@expo/config-types': 52.0.5
       '@expo/json-file': 9.0.2
-      '@expo/plist': 0.2.2
+      '@expo/plist': 0.2.2(patch_hash=468264243a2bbb049c36e4297dc52f04039dc9a7051958fa5e4b6481711b402f)
       '@expo/sdk-runtime-versions': 1.0.0
       chalk: 4.1.2
       debug: 4.4.3
@@ -8439,13 +8448,13 @@ snapshots:
       ora: 3.4.0
       resolve-workspace-root: 2.0.1
 
-  '@expo/plist@0.2.2':
+  '@expo/plist@0.2.2(patch_hash=468264243a2bbb049c36e4297dc52f04039dc9a7051958fa5e4b6481711b402f)':
     dependencies:
       '@xmldom/xmldom': 0.9.10
       base64-js: 1.5.1
       xmlbuilder: 14.0.0
 
-  '@expo/plist@0.3.5':
+  '@expo/plist@0.3.5(patch_hash=db1a1af84cf4198c368b703089aa4ca8c603875badc1babe236c6abd4fa8e8ba)':
     dependencies:
       '@xmldom/xmldom': 0.9.10
       base64-js: 1.5.1
@@ -10529,7 +10538,7 @@ snapshots:
     transitivePeerDependencies:
       - graphql
 
-  '@urql/exchange-retry@1.3.2(@urql/core@5.2.0(graphql@16.14.2))':
+  '@urql/exchange-retry@1.3.2(@urql/core@5.2.0)':
     dependencies:
       '@urql/core': 5.2.0(graphql@16.14.2)
       wonka: 6.3.6

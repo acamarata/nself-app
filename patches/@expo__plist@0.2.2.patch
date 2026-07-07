@@ -1,0 +1,18 @@
+diff --git a/build/parse.js b/build/parse.js
+index f404850c2f856b6ada09b86fb4854786bb7aeea5..07f18b23e8209fd260e14226b04c8a61cf6dfb82 100644
+--- a/build/parse.js
++++ b/build/parse.js
+@@ -66,7 +66,12 @@ function isEmptyNode(node) {
+  */
+ function parse(xml) {
+     // prevent the parser from logging non-fatal errors
+-    const doc = new xmldom_1.DOMParser({ errorHandler() { } }).parseFromString(xml);
++    // xmldom@0.9.x's DOMParser is stricter than the spec: it treats
++    // whitespace before the leading <?xml ...?> declaration as a fatal
++    // error ("processing instruction ... is only at the start of the
++    // document"). @expo/plist's own build() output (via xmlbuilder) can
++    // emit a leading newline, so trim before parsing.
++    const doc = new xmldom_1.DOMParser({ errorHandler() { } }).parseFromString(xml.trim(), 'application/xml');
+     (0, assert_1.default)(doc.documentElement.nodeName === 'plist', 'malformed document. First element should be <plist>');
+     let plist = parsePlistXML(doc.documentElement);
+     // the root <plist> node gets interpreted as an Array,
