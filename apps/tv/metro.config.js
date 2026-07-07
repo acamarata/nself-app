@@ -1,8 +1,12 @@
 /**
  * Purpose: Metro bundler config for react-native-tvos.
  * Constraints: Must alias 'react-native' → 'react-native-tvos' for workspace isolation.
- *   The pnpm override handles npm resolution; Metro needs the explicit alias so the
- *   bundler does not accidentally resolve standard react-native from a hoisted location.
+ *   The root pnpm.overrides entry ("ntask-tv>react-native": "npm:react-native-tvos@...")
+ *   makes pnpm install the tvos fork's contents INTO node_modules/react-native (npm-alias
+ *   semantics — its package.json "name" field reads "react-native-tvos", but the directory
+ *   itself is still named "react-native"). There is no separate node_modules/react-native-tvos
+ *   directory, so Metro must resolve the 'react-native' specifier, not the literal string
+ *   'react-native-tvos' (which would fail to resolve — see fix history in git log).
  *   react-native-tvos ships its own platform-specific files (*.ios.js, *.android.js)
  *   so no additional platform extension changes are needed.
  * SPORT: Epic F — TV scaffold.
@@ -18,7 +22,7 @@ config.resolver = {
   ...config.resolver,
   resolverMainFields: ['react-native', 'browser', 'main'],
   extraNodeModules: {
-    'react-native': require.resolve('react-native-tvos'),
+    'react-native': require.resolve('react-native'),
   },
 };
 

@@ -3,7 +3,7 @@
   "version": "1.3.0",
   "description": "ɳTask TV — read-focused glanceable dashboard for Apple TV and Android TV",
   "private": true,
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "index.ts",
   "scripts": {
     "start": "expo start --ios",
     "tvos": "expo start --ios",
