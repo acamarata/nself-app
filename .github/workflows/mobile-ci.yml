@@ -43,7 +43,7 @@ jobs:
           # Pin to workspace root packageManager version to avoid "multiple versions" conflict
           version: '10.30.1'
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'pnpm'
