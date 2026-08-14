@@ -1,84 +1,79 @@
-# Getting Started — ɳTasks
+# Getting Started
 
-Get ɳTasks running on your machine in minutes. ɳTasks is a multi-surface app: React Native + Expo (mobile), React 19 + Vite SPA (web, built in the separate `web/ntask` repo), a shipped Tauri 2 desktop shell, and a scaffolded rn-tvos TV surface.
+There are two ways to get going with ɳTasks. Pick one.
 
----
+## Path A: use the hosted version
 
-## Prerequisites
+Go to [task.nself.org](https://task.nself.org), create an account, and start using it. Nothing to install, nothing to run. This is the fastest path if you just want a task manager.
+
+Skip the rest of this page and read [[Features]] to see what's available.
+
+## Path B: self-host
+
+Run your own backend and connect any app surface (web, desktop, mobile, TV) to it. You own the data, and it's free.
+
+### Prerequisites
 
 | Tool | Version | Install |
 |---|---|---|
 | Node.js | 20+ | [nodejs.org](https://nodejs.org/) |
 | pnpm | 10+ | `npm install -g pnpm` |
-| Expo CLI | Latest | `pnpm add -g expo-cli` |
-| EAS CLI | Latest | `pnpm add -g eas-cli` |
-| Docker Desktop | 20+ | [docker.com](https://docker.com) |
-| nSelf CLI | Latest | `brew install nself-org/tap/nself` |
-| Make | — | macOS: `xcode-select --install` |
+| Docker | 20+ | [docker.com](https://docker.com) |
+| GNU Make | any | macOS: `xcode-select --install` |
+| nSelf CLI | v1.2.1+ | `brew install nself-org/tap/nself` |
 
-Optional for mobile:
-- **Xcode** — iOS simulator (macOS only)
-- **Android Studio** — Android emulator
+Optional, only needed if you're building the mobile or TV apps:
+- Expo CLI: `npm install -g expo-cli`
+- EAS CLI: `npm install -g eas-cli` (for cloud builds)
+- Xcode (macOS only, iOS simulator)
+- Android Studio (Android emulator)
 
----
-
-## Installation
-
-### 1. Clone the Repository
+### 1. Clone the repo
 
 ```bash
 git clone https://github.com/nself-org/ntask.git
 cd ntask
 ```
 
-### 2. Start the Backend
-
-The backend stack runs locally via Docker (managed by nSelf CLI):
+### 2. Start the backend
 
 ```bash
 cd backend
-cp .env.example .env.dev     # Edit passwords for any non-local environment
-nself build                  # Generate docker-compose.yml (first time only)
-make up                      # Start Postgres, Hasura, Auth, Storage, MinIO, Mailpit
-make health                  # Verify all services are up
+cp .env.example .env.dev     # edit passwords before using this anywhere but local dev
+nself build                  # generates docker-compose.yml (first time only)
+make up                      # starts Postgres, Hasura, Auth, MinIO, functions, nginx
+make health                  # confirm everything is up
 ```
 
-Backend services:
+`make up` also auto-seeds a set of dev test accounts (`owner@`, `admin@`, `mod@`, `dev@`, `support@`, `user@`, `demo@`, `test@nself.org`, all password `password`) plus sample lists and todos on local and staging. It's guarded to never run against production.
+
+Backend services once it's up:
 
 | Service | Local URL |
 |---|---|
 | GraphQL API | http://localhost:8080/v1/graphql |
 | Hasura Console | http://localhost:8080/console |
 | Auth API | http://localhost:4000 |
-| Storage API | http://localhost:8484 |
-| MinIO Console | http://localhost:9001 |
-| Mailpit (email) | http://localhost:8025 |
+| MinIO (object storage) | http://localhost:9000 (API), http://localhost:9001 (console) |
+| Mailpit (dev email capture) | http://localhost:8025 |
+| PostgreSQL | localhost:5432 |
 
-### 3. Run the Mobile App
+See [[Self-Hosting]] for the full backend walkthrough including migrations, metadata, and backups.
+
+### 3. Run an app against it
+
+Pick whichever surface you want to try. Each needs the backend running first.
+
+**Mobile (React Native + Expo):**
 
 ```bash
 cd apps/mobile
 cp .env.example .env.local
 pnpm install
-pnpm start          # Expo dev server
+pnpm start          # Expo dev server, press i for iOS sim, a for Android emulator
 ```
 
-Press `i` for iOS simulator, `a` for Android emulator.
-
-Environment (`apps/mobile/.env.local`):
-
-```bash
-EXPO_PUBLIC_HASURA_URL=http://localhost:8080/v1/graphql
-EXPO_PUBLIC_HASURA_WS_URL=ws://localhost:8080/v1/graphql
-EXPO_PUBLIC_AUTH_URL=http://localhost:4000
-EXPO_PUBLIC_STORAGE_URL=http://localhost:8484
-```
-
-See [[RN-Setup]] for the full React Native setup guide.
-
-### 4. Run the Web SaaS
-
-The web SaaS lives in a separate repo (`web/ntask/` in the `nself-org/web` monorepo), not in `ntask`:
+**Web (React + Vite):** the web app lives in a separate repo, `nself-org/web`, at `web/ntask/`.
 
 ```bash
 git clone https://github.com/nself-org/web.git
@@ -88,40 +83,38 @@ pnpm install
 pnpm dev            # http://localhost:5173
 ```
 
-Environment (`web/ntask/.env.local`):
+**Desktop (Tauri 2):** wraps the same Vite frontend as web.
 
 ```bash
-VITE_HASURA_URL=http://localhost:8080/v1/graphql
-VITE_HASURA_WS_URL=ws://localhost:8080/v1/graphql
-VITE_AUTH_URL=http://localhost:4000
-VITE_STORAGE_URL=http://localhost:8484
+cd apps/desktop
+pnpm tauri dev
 ```
 
-See [[Web-SPA]] for the full Vite web SaaS setup guide.
+**TV (react-native-tvos):** early preview, see [[Apps]] for current status.
 
----
+```bash
+cd apps/tv
+pnpm start
+```
 
-## First Steps
+Full per-surface guides: [[RN-Setup]] (mobile), [[Web-SPA]] (web), [[Desktop]] (desktop), [[TV]] (TV).
 
-### 1. Create an Account
+### 4. Create an account and explore
 
-- **Mobile:** tap the Register button in the app.
-- **Web:** navigate to http://localhost:5173/register.
+- **Mobile/Desktop:** tap Register in the app.
+- **Web:** go to http://localhost:5173/register.
 
-Emails are caught locally by Mailpit at http://localhost:8025.
+Dev emails (verification, invites) are caught locally by Mailpit at http://localhost:8025, not sent anywhere real.
 
-### 2. Explore the App
+After signing in you'll see:
+- **Today**: tasks due today
+- **Overdue**: past-due tasks
+- **Upcoming**: tasks due soon
+- **List detail**: tap a list to see its tasks, add or edit tasks, share the list with someone else
 
-After signing in:
-- **Today** — tasks due today
-- **Overdue** — past-due tasks
-- **Calendar** — date-based view
-- **Notifications** — task activity feed
-- **List detail** — tap any list to see tasks; create/edit/complete tasks; share lists
+### 5. Poke at the GraphQL API directly
 
-### 3. Explore the GraphQL API
-
-Open http://localhost:8080/console → **API** tab:
+Open http://localhost:8080/console, go to the API tab, and try:
 
 ```graphql
 query MyLists {
@@ -138,55 +131,25 @@ query MyLists {
 }
 ```
 
-Schema prefix: `np_*`. Tables: `np_lists`, `np_todos`, `np_shares`, `np_attachments`, `np_comments`, `np_subtasks`, `np_presence`.
+The app schema uses the `np_*` prefix: `np_lists`, `np_todos`, `np_shares`, `np_attachments`, `np_comments`, `np_subtasks`, `np_presence`.
 
----
-
-## Project Structure
-
-```
-ntask/
-├── apps/
-│   ├── mobile/       # React Native + Expo (iOS, Android)
-│   ├── desktop/      # Tauri 2 shell wrapping web/ntask (Shipped)
-│   └── tv/           # rn-tvos (Scaffolded)
-├── backend/
-│   ├── hasura/       # GraphQL metadata + migrations
-│   ├── nginx/        # Reverse proxy config
-│   └── postgres/     # Init scripts + migrations (np_* schema)
-├── cli/              # ntask terminal CLI
-├── mcp/              # MCP server for AI agents
-└── .github/
-    ├── wiki/         # This documentation
-    └── workflows/    # CI/CD
-```
-
-The web SaaS (`task.nself.org`) is built in a separate repo: `web/ntask/` in `nself-org/web`, not in this repo.
-
----
-
-## Stop the Backend
+### Stop the backend
 
 ```bash
 cd backend && make down
 ```
 
----
-
-## Common Issues
+### Common issues
 
 | Symptom | Fix |
 |---|---|
-| `make up` hangs | Run `make down` first, then `make up` |
-| Port 8080/4000/8484 in use | Stop conflicting service or edit `backend/.env.dev` ports |
-| `nself build` not found | Install nSelf CLI: `brew install nself-org/tap/nself` |
+| `make up` hangs | `make down`, then `make up` again |
+| Port 8080/4000/8484/5432/9000 in use | Free the port, or edit `backend/.env.dev` |
+| `nself build` not found | Install the nSelf CLI: `brew install nself-org/tap/nself` |
 | Expo metro bundler error | Delete `apps/mobile/.expo/` and restart |
-| Vite dev server can't connect | Verify `web/ntask/.env.local` env vars are set (separate repo) |
-| `make health` reports Storage: DOWN | Known gap — no Hasura Storage container is generated at `:8484` yet; MinIO (raw object storage) is up and file uploads still work. See `.claude/planning/nself-cli-gaps-from-ntask-dogfood.md` gap #8. |
-| `nginx`/`functions` show unhealthy | Expected on a backend-only checkout — the default vhost proxies to the separate `web/ntask` Vite dev server, which this backend doesn't start. |
+| Vite dev server can't connect | Check `web/ntask/.env.local` (separate repo) has the right endpoints |
+| `make health` reports Storage: DOWN | Known gap: the CLI generates a Hasura Storage config but doesn't materialize the container yet. MinIO is up and file uploads still work through it. |
 
-See [Backend-Troubleshooting](Backend-Troubleshooting) for more.
+More detail: [[Backend-Troubleshooting]].
 
----
-
-**Next:** [[Backend-Setup]] | [[RN-Setup]] | [[Web-SPA]] | [[Features]]
+**Next:** [[Self-Hosting]] | [[Features]] | [[Apps]]

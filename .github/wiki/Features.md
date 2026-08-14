@@ -1,211 +1,179 @@
 # Features
 
-**Status:** Active
-
-## Overview
-
-ɳTasks is a self-hosted, collaborative task management app. Built on a React Native/Vite/Tauri multi-surface client and a Postgres + Hasura + Auth backend, it ships a deep feature set across list management, advanced todos, real-time collaboration, sharing, search/filtering, smart views, attachments, notifications, and user preferences.
-
-This page is the canonical inventory of every shipped capability. Each feature has a status, a one-line description, and (where relevant) configuration and usage notes. Status uses the master-list scheme: Active, Beta, Planned, Deprecated.
+**Status:** Active. This is the canonical inventory of what ɳTasks does today, checked against the actual mobile, web, and backend code. Every entry is either shipped and working (Active), working but not fully rolled out everywhere (Beta), on the roadmap (Planned), or explicitly noted as backend-only or partial.
 
 ## Requirements
 
 | Item | Required | Notes |
 |---|---|---|
-| pnpm 10+ + Node 20+ | Required | Per `apps/mobile/package.json` |
-| Expo CLI | Required (mobile) | `npm install -g expo-cli` |
-| Backend stack | Required | `cd backend && make up` (Postgres + Hasura + Auth + Storage + MinIO + Mailpit) |
-| Tier | Free | `ntask` is free-plugins-only by design (per F03, F12) |
-| Bundle | None | No paid bundle required |
+| pnpm 10+ and Node 20+ | Required | Per `apps/mobile/package.json` |
+| Expo CLI | Required (mobile/TV) | `npm install -g expo-cli` |
+| Backend stack | Required for self-host | `cd backend && make up`, or use the hosted [task.nself.org](https://task.nself.org) |
+| Tier | Free | ɳTasks is free-plugins-only by design, no paid bundles |
 
-## Configuration
-
-Most feature configuration is in per-surface app settings (per-user preferences) and in `backend/.env.dev` (server-side defaults). The full env reference lives in [Backend Setup](Backend-Setup) and [Environment Variables](Environment-Variables).
-
-| Env Var | Default | Description |
-|---|---|---|
-| `POSTGRES_DB` | `nself` | Postgres database name |
-| `HASURA_GRAPHQL_ADMIN_SECRET` | (set in `.env.dev`) | Required to access the Hasura console |
-| `AUTH_JWT_CUSTOM_CLAIMS` | (set in `.env.dev`) | Custom JWT claims for app permissions |
-
-## Feature Inventory
-
-### List Management
+## Lists
 
 | Feature | Status | Description |
 |---|---|---|
-| Multiple lists | Active | Create unlimited lists with custom colors, icons, and descriptions |
-| Smart organization | Active | Drag-and-drop reordering, default list support |
+| Multiple lists | Active | Create any number of lists with custom colors, icons, and descriptions |
+| Drag-and-drop reordering | Active | Manual list ordering, plus a default-list setting |
 | List templates | Active | Shopping list, work tasks, travel checklist, and more |
-| Location-based lists | Active | Attach geo-coordinates to lists (e.g., "Grocery, Whole Foods") |
+| Location-based lists | Active | Attach geo-coordinates to a list |
 | Arrival reminders | Active | Notify when entering a list's location radius (100m default) |
 
-### Advanced Todo Features
+## Tasks
 
 | Feature | Status | Description |
 |---|---|---|
 | Due dates | Active | Natural-language input ("tomorrow", "next monday", "in 3 days") |
-| Priority levels | Active | None, Low, Medium, High (color-coded) |
-| Tags | Active | Autocomplete, multi-select, filter by tags |
-| Notes | Active | Long-form notes attached to each todo |
-| Attachments | Active | Multiple files per todo (images, PDFs, etc.) |
-| Geolocation | Active | Per-todo coordinates with radius-based reminders |
-| Recurring tasks | Active | Daily, weekly, monthly patterns |
-| Recurring auto-reset | Active | Resets at 3:00 AM daily |
-| Due reminders | Active | Customizable timing (60 / 30 / 15 minutes before) |
-| Evening digest | Active | 8:00 PM daily digest of tomorrow's tasks |
-| Location reminders | Active | Haversine distance-based proximity alerts |
-| Overdue highlighting | Active | Color-coded urgency for past-due todos |
+| Priority levels | Active | None, Low, Medium, High, color-coded |
+| Tags | Active | Autocomplete, multi-select, filter by tag |
+| Notes | Active | Long-form notes on each task |
+| Subtasks | Active | Tasks can have child subtasks |
+| Comments | Active | Discussion thread on a task, used for collaboration |
+| Attachments | Active | Multiple files per task (images, PDFs, etc.), via `np_attachments` |
+| Assignees | Active | Assign a task to a collaborator on a shared list |
+| Recurring tasks | Active | Daily, weekly, monthly patterns, auto-reset at 3:00 AM daily |
+| Snooze / reminders | Active | Configurable due-date reminders (60 / 30 / 15 minutes before) |
+| Geolocation | Active | Per-task coordinates with proximity-based reminders |
+| Evening digest | Active | Daily 8:00 PM summary of tomorrow's tasks |
+| Overdue highlighting | Active | Color-coded urgency for past-due tasks |
 
-### Real-Time Collaboration
+## Collaboration
 
 | Feature | Status | Description |
 |---|---|---|
-| Live presence | Active | See who is viewing or editing each list in real time |
-| User avatars | Active | Overlapping avatar stack (max 5 visible, "+N" overflow) |
-| Editing indicators | Active | Visual cues when someone is editing a specific todo |
-| Instant sync | Active | Changes propagate to collaborators within 500ms |
+| List sharing | Active | Share a list with another account; permission levels are Owner / Editor / Viewer |
+| Invites | Active | Email-based invites with pending and accepted states |
+| Public share links | Active | Generate a read-only shareable link; the backend auto-generates the link token (`np_list_shares.token`) on creation |
+| Presence | Active | See who's viewing or editing a list in real time, avatar stack (max 5 visible, "+N" overflow), editing indicators |
+| Live sync | Active | Changes propagate to collaborators via GraphQL subscriptions |
 | Conflict resolution | Active | Last-write-wins with optimistic updates |
+| Shared-with-me view | Active | Dedicated view for lists other people have shared with you |
 
-### Sharing
-
-| Feature | Status | Description |
-|---|---|---|
-| Granular permissions | Active | Owner / Editor / Viewer roles per list |
-| Invite system | Active | Email-based invites with pending and accepted states |
-| Public links | Active | Generate shareable links for read-only views |
-| Permission management | Active | Change permissions or revoke access at any time |
-| Shared-with-me dashboard | Active | Dedicated view for lists shared with you |
-
-### Search and Filtering
+## Smart views
 
 | Feature | Status | Description |
 |---|---|---|
-| Real-time search | Active | Search across todos, notes, and tags as you type |
-| Filter by status | Active | Active vs Completed |
-| Filter by priority | Active | High / Medium / Low |
-| Filter by tags | Active | Multi-select |
-| Filter by due date range | Active | Date picker range |
-| Active filter badges | Active | Visible chips with quick-remove |
-| Filter persistence | Active | Filters stay active while navigating |
+| Today | Active | Tasks due today, grouped by list |
+| Overdue | Active | Past-due incomplete tasks, sorted by due date |
+| Upcoming | Active | Tasks due soon |
+| Calendar | Active | Week-at-a-glance, color-coded by list |
 
-### Sorting
+## Search, filtering, and sorting
 
 | Feature | Status | Description |
 |---|---|---|
-| Manual order | Active | Drag-and-drop position |
-| Sort by created date | Active | Newest first / Oldest first |
-| Sort by due date | Active | Soonest first / Latest first |
-| Sort by priority | Active | High to Low |
-| Sort by title | Active | A-Z |
-| Persistent sort | Active | Sort preference remembered across sessions |
-| Visual sort indicator | Active | Current sort order shown in the list header |
+| Real-time search | Active | Search across task titles, notes, and tags as you type |
+| Filter by status/priority/tags/due date | Active | Multi-select filters with active-filter badges and quick-remove |
+| Filter persistence | Active | Filters stay applied while navigating |
+| Sort by created date, due date, priority, or title | Active | Persistent per-session sort preference |
+| Manual drag-and-drop order | Active | Custom ordering within a list |
 
-### Bulk Operations
+## Bulk operations
 
 | Feature | Status | Description |
 |---|---|---|
-| Multi-select mode | Active | Toggle selection mode with one tap |
-| Floating action toolbar | Active | Appears when items are selected |
-| Bulk complete | Active | Complete multiple todos at once |
-| Bulk uncomplete | Active | Uncomplete multiple todos |
-| Bulk delete | Active | Delete multiple todos with confirmation |
-| Move between lists | Planned | Relocate selected todos to another list |
-| Selection count badge | Active | Shows the number of selected items |
+| Multi-select mode | Active | Toggle selection with a single tap |
+| Bulk complete / uncomplete / delete | Active | Act on multiple tasks at once, with confirmation on delete |
+| Move between lists | Planned | Not yet built |
 
-### Smart Views
+## Offline support
 
 | Feature | Status | Description |
 |---|---|---|
-| Today view | Active | All todos due today across lists, grouped by list |
-| Overdue view | Active | All past-due incomplete todos, sorted by due date |
-| Calendar view | Active | Week-at-a-glance, color-coded by list, today highlighted |
+| Offline mutation queue (mobile) | Active | Task and list mutations made while offline (create, update, toggle, delete, subtasks) are queued locally with `@nself/offline-queue` on an MMKV-backed store and replayed when connectivity returns |
+| Offline banner | Active | Mobile shows a persistent banner when the device is offline |
+| Desktop offline fallback | Active | Desktop app shows a fallback screen when it can't reach the backend, instead of a blank window |
 
-### Attachments
-
-| Feature | Status | Description |
-|---|---|---|
-| Drag-and-drop upload | Active | Drop files directly onto todos |
-| File preview | Active | Type-aware icons (images, documents, etc.) |
-| Download and delete | Active | Full file lifecycle |
-| File metadata | Active | Size, upload date, mime type |
-| Upload progress | Active | Visual indicator during uploads |
-| Per-attachment size limit | Active | 10MB default, configurable |
-
-### Notifications
+## Push notifications
 
 | Feature | Status | Description |
 |---|---|---|
-| New-todo-assigned | Active | When someone assigns you a todo |
-| Due-date reminder | Active | Configurable timing |
-| List-shared notification | Active | When a list is shared with you |
-| Evening reminder | Active | Daily digest |
-| Location reminder | Active | Triggered by entering a list's geo radius |
-| List-updated by collaborator | Active | When a shared list changes |
-| Multi-channel delivery | Active | Push, email, in-app |
+| Mobile push (iOS/Android) | Active | Real Expo push token registration against `np_device_tokens`, tap-to-navigate from a notification into the relevant task |
+| Notification types | Active | Task assigned, due-date reminder, list shared, evening digest, list updated by a collaborator |
+| Multi-channel delivery | Active | Push, email, and in-app |
 | Notification center | Active | Bell icon with unread badge |
-| Smart batching | Active | Prevents notification spam |
+| Smart batching | Active | Groups notifications to avoid spam |
+| Web push | Planned | Not yet implemented; web currently relies on in-app and email notifications |
 
-### User Preferences
+## Account security
 
 | Feature | Status | Description |
 |---|---|---|
-| Time format | Active | 12-hour vs 24-hour |
-| Auto-hide completed | Active | Toggle visibility of completed tasks |
+| Email + password auth | Active | Hasura Auth, JWT-based |
+| MFA | Active | Both backend and frontend UI are real: the backend tracks state in `task_users.mfa_enabled` (server source of truth, read-only to the app), and there's a dedicated setup screen on mobile (`MfaSetupScreen`) and a Security tab on web (`SecurityTab`) that reads and reflects that server state |
+| Account lifecycle | Active | Change email, change password, delete account, export data, exposed as backend API routes on web |
+| Server-URL switching (mobile) | Active | Point the mobile app at a different backend (self-hosted or hosted) without reinstalling |
+
+## Internationalization
+
+| Feature | Status | Description |
+|---|---|---|
+| Supported locales | Active | English, Spanish, French, Arabic (`en`, `es`, `fr`, `ar`) on mobile, web, and TV |
+| RTL support | Active | Arabic locale includes right-to-left layout handling |
+| Locale completeness checks | Active | `scripts/check-i18n-completeness.ts` verifies no missing keys across locales in CI |
+
+## Attachments
+
+| Feature | Status | Description |
+|---|---|---|
+| Drag-and-drop upload | Active | Drop files directly onto a task (web) |
+| File preview | Active | Type-aware icons for images, documents, etc. |
+| Download and delete | Active | Full file lifecycle |
+| Per-attachment size limit | Active | 10MB default, configurable server-side |
+
+## User preferences
+
+| Feature | Status | Description |
+|---|---|---|
 | Theme | Active | Light, Dark, System |
+| Time format | Active | 12-hour or 24-hour |
 | Default list | Active | Choose which list opens first |
 | Notification settings | Active | Per-channel, per-type controls |
-| Evening reminder time | Active | Customize the daily digest hour |
-| Due reminder timing | Active | 15 / 30 / 60 minutes before |
+| Auto-hide completed tasks | Active | Toggle visibility |
 
-### Cross-Platform Targets
+## Cross-platform targets
 
-| Target | Status | Notes |
-|---|---|---|
-| Mobile (iOS + Android) | Building | React Native + Expo; EAS Build profiles configured |
-| Web SaaS | Building | React + Vite SPA; hosted at `task.nself.org`, built in the separate `web/ntask` repo |
-| Desktop (macOS/Windows/Linux) | Shipped | Tauri 2 shell wrapping `web/ntask`, in `apps/desktop/` |
-| TV (Apple TV + Android TV) | Scaffolded | react-native-tvos in `apps/tv/`; package isolation solved, EAS build pending |
+See [[Apps]] for a full breakdown of what's shipped, in progress, or blocked on credentials for each surface.
+
+| Target | Status |
+|---|---|
+| Web (task.nself.org) | Active |
+| Desktop (macOS/Windows/Linux) | Shipped, unsigned builds; signed/notarized builds pending Apple and Windows certs |
+| Mobile (Android) | Active, APK available |
+| Mobile (iOS) | Blocked on Apple Developer signing and a dependency fix, see [[Apps]] |
+| TV (Apple TV / Android TV) | Early preview, builds locally, no store release yet |
 
 ## Limitations
 
-- TV surface is Scaffolded, not fully built out — EAS release build not yet triggered.
-- iOS and Android store submissions are in progress. EAS Build configured but not yet submitted to App Store / Play Console.
-- Move-between-lists in bulk operations is Planned, not Active.
-- Free plugins only. The pro plugin set (ai, claw, mux, livekit, etc.) is intentionally out of scope per F03 and F12.
-
-## Known Issues
-
-None currently tracked. Report issues at [github.com/nself-org/ntask/issues](https://github.com/nself-org/ntask/issues).
+- Move-between-lists in bulk operations is Planned, not built.
+- Web push notifications are not implemented; web relies on in-app and email.
+- TV is an early preview, not a finished app.
+- iOS builds are currently blocked, see [[Apps]] for the specifics.
+- Free plugins only. Paid bundles and pro plugins are out of scope for this repo by design.
 
 ## Troubleshooting
 
 ### Backend services don't start
 
 **Symptom:** `make up` fails or services exit immediately.
-**Cause:** `.env.dev` not created from `.env.example`, or required ports already in use.
-**Fix:** `cd backend && cp .env.example .env.dev`, then `lsof -i :8080,4000,8484,5432,9000` to free conflicting ports, then `make up` again.
+**Fix:** confirm `.env.dev` exists (`cp backend/.env.example backend/.env.dev`), free any conflicting ports (`lsof -i :8080,4000,5432,9000`), then `make up` again.
 
-### App can't reach Hasura
+### App can't reach the backend
 
 **Symptom:** GraphQL calls fail with network errors.
-**Cause:** Backend not running, or app pointing at the wrong endpoint.
-**Fix:** `cd backend && make health`. If healthy, verify the client app's GraphQL endpoint matches the platform target (`apps/mobile/` in this repo, or `web/ntask/` in the separate `web` repo). Mobile simulators may need the host machine IP instead of `localhost`.
+**Fix:** run `cd backend && make health`. If it's healthy, check the app's `.env.local` points at the right endpoint. Mobile simulators sometimes need your host machine's LAN IP instead of `localhost`.
 
-### Hasura migrations not applied
+### Migrations out of date
 
-**Symptom:** Tables missing or schema out of date.
-**Cause:** Initial `init.sql` ran but Hasura YAML migrations weren't applied.
-**Fix:** `cd backend && make migrate`. Confirm with `make migrate-status`.
+**Symptom:** tables missing or schema doesn't match what's expected.
+**Fix:** `cd backend && make migrate`, then confirm with `make migrate-status`.
 
 ## Related
 
-- [Backend Setup](Backend-Setup): operator-facing setup walkthrough
-- [Backend Architecture](Backend-Architecture): operator-facing architecture
-- [Database Schema](Database-Schema): schema reference
-- [Deployment](Deployment): staging and production deploy
-- [Home](Home): wiki home
-
-## Bottom nav
-
-[Home](Home) | [Backend Setup](Backend-Setup) | [Backend Architecture](Backend-Architecture)
+- [[Self-Hosting]]: running your own backend
+- [[Apps]]: per-surface status
+- [[Backend-Architecture]]: services, ports, and data flow
+- [[Database-Schema]]: table reference
+- [[Home]]: wiki home

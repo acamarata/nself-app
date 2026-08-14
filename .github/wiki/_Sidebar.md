@@ -6,6 +6,7 @@
 
 - [[Getting-Started]]
 - [[Quickstart-Guide]]
+- [[Self-Hosting]]
 - [[RN-Setup]]
 - [[Web-SPA]]
 - [[Desktop]]
@@ -15,9 +16,10 @@
 
 ---
 
-**Features**
+**Features & Apps**
 
 - [[Features]]
+- [[Apps]]
 
 ---
 
