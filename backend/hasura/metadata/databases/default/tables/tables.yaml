@@ -74,7 +74,7 @@
       filter:
         id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id002
@@ -87,17 +87,17 @@
       - notification_settings
       - theme_preference
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id002
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id002
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -224,10 +224,14 @@
       - user_id
       - position
       check: {}
+      set:
+        user_id: x-hasura-User-Id
   - role: app_admin
     permission:
       columns: *id003
       check: {}
+      set:
+        user_id: x-hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -357,7 +361,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id005
@@ -367,17 +371,17 @@
       - is_public
       - position
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id005
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id005
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -473,23 +477,23 @@
         todo:
           user_id:
             _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id008
       - permission
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id008
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id008
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -566,23 +570,23 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id010
       - read
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id010
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id010
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: owner
     permission:
@@ -652,24 +656,24 @@
         todo:
           user_id:
             _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id012
       - completed
       - completed_at
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id012
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id012
       filter: {}
-      check: null
+      check:
   insert_permissions:
   - role: user
     permission:
@@ -766,7 +770,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id015
@@ -776,17 +780,17 @@
       - default_list_id
       - notification_settings
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id015
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id015
       filter: {}
-      check: null
+      check:
   insert_permissions:
   - role: user
     permission:
@@ -811,10 +815,14 @@
       - notification_settings
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id016
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   delete_permissions:
   - role: owner
     permission:
@@ -893,10 +901,14 @@
       - position
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id017
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -980,7 +992,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id019
@@ -990,17 +1002,17 @@
       - icon
       - position
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id019
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id019
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -1041,10 +1053,14 @@
       - permission
       - invited_by
       check: {}
+      set:
+        invited_by: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id020
       check: {}
+      set:
+        invited_by: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -1107,23 +1123,23 @@
         list:
           user_id:
             _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id022
       - permission
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id022
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id022
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -1167,10 +1183,14 @@
       - editing_todo_id
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id023
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -1232,7 +1252,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id025
@@ -1240,17 +1260,17 @@
       - editing_todo_id
       - last_seen_at
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id025
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id025
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -1294,10 +1314,14 @@
       - role
       - added_by
       check: {}
+      set:
+        added_by: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id026
       check: {}
+      set:
+        added_by: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -1359,23 +1383,23 @@
         list:
           user_id:
             _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id028
       - role
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id028
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id028
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -1482,7 +1506,7 @@
         todo:
           user_id:
             _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id031
@@ -1490,17 +1514,17 @@
       - is_done
       - position
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id031
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id031
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -1570,10 +1594,14 @@
       - source_account_id
       - author_id
       check: {}
+      set:
+        author_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id032
       check: {}
+      set:
+        author_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -1638,24 +1666,24 @@
       filter:
         author_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id034
       - body
       - edited_at
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id034
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id034
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -1713,10 +1741,14 @@
       - source_account_id
       - uploader_id
       check: {}
+      set:
+        uploader_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id035
       check: {}
+      set:
+        uploader_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -1817,10 +1849,14 @@
       - source_account_id
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id037
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -1876,24 +1912,24 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id039
       - name
       - color
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id039
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id039
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -2026,10 +2062,14 @@
       - source_account_id
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id042
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -2089,24 +2129,24 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id044
       - remind_at
       - channel
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id044
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id044
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -2247,7 +2287,7 @@
         todo:
           user_id:
             _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id047
@@ -2262,17 +2302,17 @@
       - start_date
       - end_date
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id047
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id047
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -2337,10 +2377,14 @@
       - assigned_at
       - source_account_id
       check: {}
+      set:
+        assigned_by: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id048
       check: {}
+      set:
+        assigned_by: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -2454,10 +2498,14 @@
       - source_account_id
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id050
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -2520,23 +2568,23 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id052
       - status
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id052
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id052
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -2578,10 +2626,14 @@
       - source_account_id
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id053
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -2640,7 +2692,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id055
@@ -2648,17 +2700,17 @@
       - platform
       - last_seen_at
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id055
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id055
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -2708,10 +2760,14 @@
       - role
       - invited_by
       check: {}
+      set:
+        invited_by: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id056
       check: {}
+      set:
+        invited_by: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -2789,23 +2845,23 @@
                 _in:
                 - owner
                 - admin
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id058
       - status
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id058
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id058
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -2848,10 +2904,14 @@
       - source_account_id
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id059
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -2910,7 +2970,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id061
@@ -2918,17 +2978,17 @@
       - filters
       - sort
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id061
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id061
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
@@ -3000,10 +3060,14 @@
       - source_account_id
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id062
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -3089,7 +3153,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id064
@@ -3106,17 +3170,17 @@
       - tos_accepted_at
       - tos_version
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id064
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id064
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: owner
     permission:
@@ -3157,10 +3221,14 @@
       - position
       - user_id
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   - role: app_admin
     permission:
       columns: *id065
       check: {}
+      set:
+        user_id: X-Hasura-User-Id
   select_permissions:
   - role: user
     permission:
@@ -3222,7 +3290,7 @@
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
   - role: owner
     permission:
       columns: &id067
@@ -3231,17 +3299,17 @@
       - icon
       - position
       filter: {}
-      check: null
+      check:
   - role: app_admin
     permission:
       columns: *id067
       filter: {}
-      check: null
+      check:
   - role: mod
     permission:
       columns: *id067
       filter: {}
-      check: null
+      check:
   delete_permissions:
   - role: user
     permission:
