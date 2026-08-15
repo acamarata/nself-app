@@ -1,30 +1,21 @@
 # OSV Scanner configuration for ntask-mobile
 # See: https://google.github.io/osv-scanner/configuration/
+#
+# Policy: prefer fixing over ignoring. Every entry below must state WHY no fix
+# was applied and carry a review date. If a fixed version ships upstream, remove
+# the entry and bump instead (root package.json pnpm.overrides — pnpm only
+# honours overrides at the workspace root, never per-package).
+#
+# The seven tar@6.x entries that used to live here were removed 2026-08-15: tar
+# is now 7.5.21 via a root override, so those advisories no longer apply. The
+# original concern (tar@7 breaking expo prebuild's .extract() CJS API) was about
+# the 6 -> 7 major jump; staying within 7.x is a patch-level move and prebuild
+# still succeeds.
 
 [[IgnoredVulns]]
-id = "GHSA-34x7-hfp2-rc4v"
-reason = "tar@6.x path-traversal CVEs: expo-cli@0.18.31 declares tar@^6.0.5 and tar@7 breaks the .extract() CJS API used by expo prebuild. Runtime app bundle does not include tar. Tracking: upgrade to expo 52+ which adopts tar@7."
+id = "GHSA-5p2g-fcmc-qvqq"
+reason = "image-size@1.2.1 — no fixed version published upstream as of 2026-08-15. Transitive build-time dependency of the Expo/Metro asset pipeline; it is not declared by any workspace package and is not included in the shipped app bundle, so it is not reachable at runtime. Re-check when image-size publishes a fix."
 
 [[IgnoredVulns]]
-id = "GHSA-83g3-92jg-28cx"
-reason = "tar@6.x path-traversal CVEs: same as GHSA-34x7-hfp2-rc4v."
-
-[[IgnoredVulns]]
-id = "GHSA-8qq5-rm4j-mr97"
-reason = "tar@6.x path-traversal CVEs: same as GHSA-34x7-hfp2-rc4v."
-
-[[IgnoredVulns]]
-id = "GHSA-9ppj-qmqm-q256"
-reason = "tar@6.x path-traversal CVEs: same as GHSA-34x7-hfp2-rc4v."
-
-[[IgnoredVulns]]
-id = "GHSA-qffp-2rhf-9h96"
-reason = "tar@6.x path-traversal CVEs: same as GHSA-34x7-hfp2-rc4v."
-
-[[IgnoredVulns]]
-id = "GHSA-r6q2-hw4h-h46w"
-reason = "tar@6.x path-traversal CVEs: same as GHSA-34x7-hfp2-rc4v."
-
-[[IgnoredVulns]]
-id = "GHSA-vmf3-w455-68vh"
-reason = "tar@6.x CVE: same root cause as GHSA-34x7-hfp2-rc4v. expo-cli@0.18.31 pins tar@^6.0.5; tar@7 breaks expo prebuild CJS API. Runtime app bundle does not include tar. Tracking: upgrade to expo 52+ which adopts tar@7."
+id = "GHSA-w3rx-r6r6-pgpr"
+reason = "image-size@1.2.1 — same advisory pair as GHSA-5p2g-fcmc-qvqq: no upstream fix, build-time only, not in the runtime bundle. Re-check when image-size publishes a fix."
