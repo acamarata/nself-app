@@ -171,21 +171,45 @@ jobs:
           name: desktop-macos-${{ matrix.target }}
           path: artifacts/
 
+      # Notarization supports two auth methods. The App Store Connect API key is
+      # preferred: it does not expire the way app-specific passwords do, it is not
+      # tied to one person's Apple ID (so it survives staff changes), and it is the
+      # documented path for organization publishing. If the API-key secrets are
+      # absent we fall back to Apple ID + app-specific password.
+      #
+      # App-specific passwords are ALWAYS formatted abcd-efgh-ijkl-mnop (16 lowercase
+      # letters, four hyphenated groups). Anything else is not an app-specific
+      # password and Apple will reject it with HTTP 401 — validate before trusting it:
+      #   xcrun notarytool history --apple-id <id> --password <asp> --team-id <team>
       - name: Notarize DMG
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
         run: |
+          set -euo pipefail
+
+          if [[ -n "${APPLE_API_KEY_P8:-}" ]]; then
+            echo "Notarizing with App Store Connect API key (${APPLE_API_KEY_ID})"
+            KEY_FILE="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+            printf '%s' "$APPLE_API_KEY_P8" | base64 --decode > "$KEY_FILE"
+            chmod 600 "$KEY_FILE"
+            auth_args=(--key "$KEY_FILE" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER_ID")
+          else
+            echo "Notarizing with Apple ID + app-specific password"
+            auth_args=(--apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD")
+          fi
+
           for dmg in artifacts/*.dmg; do
             [[ -f "$dmg" ]] || continue
-            xcrun notarytool submit "$dmg" \
-              --apple-id "$APPLE_ID" \
-              --team-id "$APPLE_TEAM_ID" \
-              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
-              --wait
+            xcrun notarytool submit "$dmg" "${auth_args[@]}" --wait
             xcrun stapler staple "$dmg"
           done
+
+          [[ -n "${APPLE_API_KEY_P8:-}" ]] && rm -f "$KEY_FILE" || true
 
       - name: Upload notarized artifacts
         uses: actions/upload-artifact@v4
