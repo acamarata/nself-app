@@ -40,7 +40,7 @@ jobs:
         # The root lockfile applies overrides for form-data, js-yaml, tar (see pnpm.overrides
         # in package.json). apps/mobile/pnpm-lock.yaml is a stale standalone lockfile and
         # does not benefit from workspace-level overrides.
-        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
+        uses: google/osv-scanner-action/osv-scanner-action@v2.5.0
         with:
           scan-args: |-
             --lockfile=pnpm-lock.yaml
