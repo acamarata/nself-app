@@ -43,7 +43,7 @@
       "endpoints": [
         "https://packages.nself.org/desktop/ntask/latest-{{target}}.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFRkY3RjEyQjI5RDM5RkYKUldUL09aMnlFbi8vWHVTc2VndnZjZUo3YW94TWdBSWY2YzdzeWJ3ckNNTGc5WjVvS29nWGxDelcK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXkgMDRCRDY0OEMxNDMxMUJDNwpSV1RIR3pFVWpHUzlCQVFLL3FyVHAzeEwwdFM5UFM4OTdBNjlLNEJPK080cGt2WUN5NksrVEppUAo=",
       "dialog": true
     },
     "deep-link": {
