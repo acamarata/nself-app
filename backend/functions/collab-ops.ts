@@ -16,9 +16,9 @@
 // SPORT: F08 backend functions; L-S1-T1..T4, L-S2-T1..T2, L-S3-T1..T4, L-S4-T1..T2
 
 import { Sentry } from './sentry';
+import { adminGql } from './lib/admin-gql';
+import { unauthorized } from './lib/action-error';
 
-const HASURA_URL   = process.env.HASURA_GRAPHQL_URL           || 'http://hasura:8080/v1/graphql';
-const ADMIN_SECRET = process.env.HASURA_GRAPHQL_ADMIN_SECRET  || '';
 const APP_BASE_URL = process.env.NTASK_APP_BASE_URL           || 'https://task.nself.org';
 const SMTP_FROM    = process.env.SMTP_FROM_ADDRESS            || '';
 const AUTH_URL     = process.env.HASURA_AUTH_URL              || 'http://auth:4000';
@@ -34,40 +34,28 @@ interface HasuraActionPayload {
 }
 
 type InviteResult   = { success: boolean; inviteId?: string; message?: string };
-type ShareLinkResult = { success: boolean; shareUrl?: string; token?: string; expiresAt?: string };
+type ShareLinkResult = { success: boolean; shareUrl?: string; token?: string; expiresAt?: string; message?: string };
 type MemberResult   = { success: boolean; message?: string };
 type PresenceResult = { success: boolean };
 
 // ---------------------------------------------------------------------------
-// Admin GraphQL helper
+// Admin GraphQL access
 // ---------------------------------------------------------------------------
-
-async function adminQuery(
-  query: string,
-  variables: Record<string, unknown>
-): Promise<{ data?: Record<string, unknown>; errors?: Array<{ message: string }> }> {
-  const res = await fetch(HASURA_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-hasura-admin-secret': ADMIN_SECRET,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  return res.json();
-}
+// Provided by lib/admin-gql, shared with every other handler. It returns the
+// `data` payload and throws on the HTTP-200 `{ errors: [...] }` bodies that the
+// local helper here used to hand back as an ordinary result — callers read
+// `result.x`, got undefined, and carried on as if the write had landed.
 
 // ---------------------------------------------------------------------------
 // Auth helper: resolve email from user ID via admin query
 // ---------------------------------------------------------------------------
 
 async function getUserEmail(userId: string): Promise<string | null> {
-  const result = await adminQuery(
+  const result = await adminGql<{ users_by_pk: { email?: string } | null }>(
     `query GetUserEmail($id: uuid!) { users_by_pk(id: $id) { email } }`,
     { id: userId }
   );
-  const user = (result.data?.users_by_pk ?? null) as { email?: string } | null;
-  return user?.email ?? null;
+  return result.users_by_pk?.email ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -79,7 +67,7 @@ async function requireOwnerOrAdmin(
   userId: string,
   requiredRole: 'owner' | 'owner_or_admin' = 'owner_or_admin'
 ): Promise<{ allowed: boolean; role?: string }> {
-  const result = await adminQuery(
+  const result = await adminGql<{ np_list_members: Array<{ role: string }> }>(
     `query CheckRole($listId: uuid!, $userId: uuid!) {
       np_list_members(where: { list_id: {_eq: $listId}, user_id: {_eq: $userId} }) {
         role
@@ -87,7 +75,7 @@ async function requireOwnerOrAdmin(
     }`,
     { listId, userId }
   );
-  const members = (result.data?.np_list_members ?? []) as Array<{ role: string }>;
+  const members = result.np_list_members ?? [];
   const member  = members[0];
   if (!member) return { allowed: false };
   const roles = requiredRole === 'owner' ? ['owner'] : ['owner', 'admin'];
@@ -99,7 +87,9 @@ async function requireOwnerOrAdmin(
 // ---------------------------------------------------------------------------
 
 async function countOwners(listId: string): Promise<number> {
-  const result = await adminQuery(
+  const result = await adminGql<{
+    np_list_members_aggregate: { aggregate?: { count?: number } } | null;
+  }>(
     `query CountOwners($listId: uuid!) {
       np_list_members_aggregate(where: { list_id: {_eq: $listId}, role: {_eq: "owner"} }) {
         aggregate { count }
@@ -107,7 +97,7 @@ async function countOwners(listId: string): Promise<number> {
     }`,
     { listId }
   );
-  return (result.data?.np_list_members_aggregate as { aggregate?: { count?: number } })?.aggregate?.count ?? 0;
+  return result.np_list_members_aggregate?.aggregate?.count ?? 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -174,7 +164,9 @@ export async function handleCreateListInvite(payload: HasuraActionPayload): Prom
   }
 
   // Upsert invite (ON CONFLICT: update token + status + role + expires_at to re-send)
-  const inviteResult = await adminQuery(
+  let inviteResult: { insert_np_list_invites_one?: unknown };
+  try {
+    inviteResult = await adminGql<{ insert_np_list_invites_one?: unknown }>(
     `mutation CreateInvite($listId: uuid!, $email: String!, $role: String!, $invitedBy: uuid!) {
       insert_np_list_invites_one(
         object: {
@@ -191,37 +183,50 @@ export async function handleCreateListInvite(payload: HasuraActionPayload): Prom
       ) { id token }
     }`,
     { listId, email, role, invitedBy: userId }
-  );
-
-  if (inviteResult.errors?.length) {
-    Sentry.captureException(new Error(inviteResult.errors[0].message));
+    );
+  } catch (err) {
+    Sentry.captureException(err, { tags: { function: 'collab-ops', op: 'createListInvite' } });
     return { success: false, message: 'Failed to create invite.' };
   }
 
-  const invite = (inviteResult.data?.insert_np_list_invites_one ?? null) as { id: string; token: string } | null;
+  const invite = (inviteResult.insert_np_list_invites_one ?? null) as { id: string; token: string } | null;
   if (!invite) return { success: false, message: 'Invite creation failed.' };
 
-  // Fetch list title + inviter display name for the email
-  const metaResult = await adminQuery(
-    `query InviteMeta($listId: uuid!, $userId: uuid!) {
-      np_lists_by_pk(id: $listId) { title }
-      np_profiles(where: { id: {_eq: $userId} }) { display_name email }
-    }`,
-    { listId, userId }
-  );
-  const listTitle   = (metaResult.data?.np_lists_by_pk as { title?: string })?.title ?? 'a list';
-  const profile     = ((metaResult.data?.np_profiles ?? []) as Array<{ display_name?: string; email?: string }>)[0];
-  const inviterName = profile?.display_name ?? profile?.email ?? 'Someone';
+  // Fetch list title + inviter display name for the email. Cosmetic — fall back
+  // to generic copy rather than sinking an invite that has already been created.
+  let listTitle = 'a list';
+  let inviterName = 'Someone';
+  try {
+    const metaResult = await adminGql<{
+      np_lists_by_pk: { title?: string } | null;
+      np_profiles: Array<{ display_name?: string; email?: string }>;
+    }>(
+      `query InviteMeta($listId: uuid!, $userId: uuid!) {
+        np_lists_by_pk(id: $listId) { title }
+        np_profiles(where: { id: {_eq: $userId} }) { display_name email }
+      }`,
+      { listId, userId }
+    );
+    listTitle = metaResult.np_lists_by_pk?.title ?? listTitle;
+    const profile = (metaResult.np_profiles ?? [])[0];
+    inviterName = profile?.display_name || profile?.email || inviterName;
+  } catch (err) {
+    Sentry.captureException(err, { tags: { function: 'collab-ops', op: 'createListInvite', step: 'meta' } });
+  }
 
-  // Audit
-  await adminQuery(
-    `mutation AuditInvite($userId: uuid!, $meta: jsonb) {
-      insert_np_account_activity_one(object: {
-        user_id: $userId, action: "list_invite_sent", metadata: $meta
-      }) { id }
-    }`,
-    { userId, meta: { listId, email, role, inviteId: invite.id } }
-  );
+  // Audit — best effort; the invite already exists.
+  try {
+    await adminGql(
+      `mutation AuditInvite($userId: uuid!, $meta: jsonb) {
+        insert_np_account_activity_one(object: {
+          user_id: $userId, action: "list_invite_sent", metadata: $meta
+        }) { id }
+      }`,
+      { userId, meta: { listId, email, role, inviteId: invite.id } }
+    );
+  } catch (err) {
+    Sentry.captureException(err, { tags: { function: 'collab-ops', op: 'createListInvite', step: 'audit' } });
+  }
 
   // Send email (non-blocking; stub if SMTP not configured)
   const emailResult = await sendInviteEmail({
@@ -244,7 +249,11 @@ export async function handleAcceptListInvite(payload: HasuraActionPayload): Prom
   if (!callerEmail) return { success: false, message: 'Could not resolve user email.' };
 
   // Fetch invite by token
-  const invResult = await adminQuery(
+  const invResult = await adminGql<{
+    np_list_invites: Array<{
+      id: string; list_id: string; invited_email: string; role: string; status: string; expires_at: string;
+    }>;
+  }>(
     `query GetInvite($token: String!) {
       np_list_invites(where: { token: {_eq: $token} }) {
         id list_id invited_email role status expires_at
@@ -252,9 +261,7 @@ export async function handleAcceptListInvite(payload: HasuraActionPayload): Prom
     }`,
     { token }
   );
-  const invite = ((invResult.data?.np_list_invites ?? []) as Array<{
-    id: string; list_id: string; invited_email: string; role: string; status: string; expires_at: string;
-  }>)[0];
+  const invite = (invResult.np_list_invites ?? [])[0];
 
   if (!invite) return { success: false, message: 'Invite not found.' };
   if (invite.invited_email.toLowerCase() !== callerEmail.toLowerCase()) {
@@ -271,7 +278,7 @@ export async function handleAcceptListInvite(payload: HasuraActionPayload): Prom
   const memberRole = invite.role === 'editor' ? 'admin' : 'member';
 
   // Atomically: mark accepted, add member, link share record
-  await adminQuery(
+  await adminGql(
     `mutation AcceptInvite($id: uuid!, $userId: uuid!, $listId: uuid!, $role: String!, $memberRole: String!) {
       update_np_list_invites_by_pk(pk_columns: {id: $id}, _set: { status: "accepted" }) { id }
       insert_np_list_members_one(
@@ -297,15 +304,15 @@ export async function handleDeclineListInvite(payload: HasuraActionPayload): Pro
   const callerEmail = await getUserEmail(userId);
   if (!callerEmail) return { success: false, message: 'Could not resolve user email.' };
 
-  const invResult = await adminQuery(
+  const invResult = await adminGql<{
+    np_list_invites: Array<{ id: string; invited_email: string; status: string }>;
+  }>(
     `query GetInvite($token: String!) {
       np_list_invites(where: { token: {_eq: $token} }) { id invited_email status }
     }`,
     { token }
   );
-  const invite = ((invResult.data?.np_list_invites ?? []) as Array<{
-    id: string; invited_email: string; status: string;
-  }>)[0];
+  const invite = (invResult.np_list_invites ?? [])[0];
 
   if (!invite) return { success: false, message: 'Invite not found.' };
   if (invite.invited_email.toLowerCase() !== callerEmail.toLowerCase()) {
@@ -315,7 +322,7 @@ export async function handleDeclineListInvite(payload: HasuraActionPayload): Pro
     return { success: false, message: `Invite is already ${invite.status}.` };
   }
 
-  await adminQuery(
+  await adminGql(
     `mutation DeclineInvite($id: uuid!) {
       update_np_list_invites_by_pk(pk_columns: {id: $id}, _set: { status: "declined" }) { id }
     }`,
@@ -330,15 +337,15 @@ export async function handleRevokeListInvite(payload: HasuraActionPayload): Prom
   const userId    = payload.session_variables['x-hasura-user-id'];
   const { inviteId } = payload.input as { inviteId: string };
 
-  const invResult = await adminQuery(
+  const invResult = await adminGql<{
+    np_list_invites_by_pk: { id: string; list_id: string; status: string } | null;
+  }>(
     `query GetInvite($id: uuid!) {
       np_list_invites_by_pk(id: $id) { id list_id status }
     }`,
     { id: inviteId }
   );
-  const invite = (invResult.data?.np_list_invites_by_pk ?? null) as {
-    id: string; list_id: string; status: string;
-  } | null;
+  const invite = invResult.np_list_invites_by_pk ?? null;
 
   if (!invite) return { success: false, message: 'Invite not found.' };
 
@@ -349,7 +356,7 @@ export async function handleRevokeListInvite(payload: HasuraActionPayload): Prom
     return { success: false, message: `Invite is already ${invite.status}.` };
   }
 
-  await adminQuery(
+  await adminGql(
     `mutation RevokeInvite($id: uuid!) {
       update_np_list_invites_by_pk(pk_columns: {id: $id}, _set: { status: "revoked" }) { id }
     }`,
@@ -383,7 +390,9 @@ export async function handleCreateShareLink(payload: HasuraActionPayload): Promi
     : null;
 
   // Upsert share-link row (no specific email — share_with_email='__sharelink__' sentinel)
-  const result = await adminQuery(
+  let result: { insert_np_list_shares_one?: unknown };
+  try {
+    result = await adminGql<{ insert_np_list_shares_one?: unknown }>(
     `mutation UpsertShareLink($listId: uuid!, $token: String!, $perm: String!, $invitedBy: uuid!, $exp: timestamptz) {
       insert_np_list_shares_one(
         object: {
@@ -401,14 +410,13 @@ export async function handleCreateShareLink(payload: HasuraActionPayload): Promi
       ) { id token }
     }`,
     { listId, token, perm: permission, invitedBy: userId, exp: expiresAt }
-  );
-
-  if (result.errors?.length) {
-    Sentry.captureException(new Error(result.errors[0].message));
+    );
+  } catch (err) {
+    Sentry.captureException(err, { tags: { function: 'collab-ops', op: 'createShareLink' } });
     return { success: false, message: 'Failed to create share link.' };
   }
 
-  const share = (result.data?.insert_np_list_shares_one ?? null) as { id: string; token: string } | null;
+  const share = (result.insert_np_list_shares_one ?? null) as { id: string; token: string } | null;
   if (!share) return { success: false, message: 'Share link creation failed.' };
 
   const shareUrl = `${APP_BASE_URL}/shared/${share.token}`;
@@ -423,7 +431,7 @@ export async function handleRevokeShareLink(payload: HasuraActionPayload): Promi
   const { allowed } = await requireOwnerOrAdmin(listId, userId);
   if (!allowed) return { success: false, message: 'Only list owners and admins can revoke share links.' };
 
-  await adminQuery(
+  await adminGql(
     `mutation RevokeShareLink($listId: uuid!) {
       update_np_list_shares(
         where: { list_id: {_eq: $listId}, shared_with_email: {_eq: "__sharelink__"} }
@@ -463,7 +471,7 @@ export async function handleUpdateMemberRole(payload: HasuraActionPayload): Prom
     }
   }
 
-  await adminQuery(
+  await adminGql(
     `mutation UpdateRole($listId: uuid!, $userId: uuid!, $role: String!) {
       update_np_list_members(
         where: { list_id: {_eq: $listId}, user_id: {_eq: $userId} }
@@ -491,7 +499,7 @@ export async function handleRemoveMember(payload: HasuraActionPayload): Promise<
     return { success: false, message: 'Cannot remove the sole owner. Transfer ownership first.' };
   }
 
-  await adminQuery(
+  await adminGql(
     `mutation RemoveMember($listId: uuid!, $userId: uuid!) {
       delete_np_list_members(
         where: { list_id: {_eq: $listId}, user_id: {_eq: $userId} }
@@ -521,7 +529,7 @@ export async function handleLeaveList(payload: HasuraActionPayload): Promise<Mem
     };
   }
 
-  await adminQuery(
+  await adminGql(
     `mutation LeaveList($listId: uuid!, $userId: uuid!) {
       delete_np_list_members(
         where: { list_id: {_eq: $listId}, user_id: {_eq: $userId} }
@@ -550,19 +558,19 @@ export async function handleTransferOwnership(payload: HasuraActionPayload): Pro
   }
 
   // Verify new owner is a member
-  const memberCheck = await adminQuery(
+  const memberCheck = await adminGql<{ np_list_members: Array<{ id: string; role: string }> }>(
     `query CheckMember($listId: uuid!, $userId: uuid!) {
       np_list_members(where: { list_id: {_eq: $listId}, user_id: {_eq: $userId} }) { id role }
     }`,
     { listId, userId: newOwnerId }
   );
-  const newOwnerMember = ((memberCheck.data?.np_list_members ?? []) as Array<{ id: string; role: string }>)[0];
+  const newOwnerMember = (memberCheck.np_list_members ?? [])[0];
   if (!newOwnerMember) {
     return { success: false, message: 'Target user is not a member of this list.' };
   }
 
   // Atomic: demote current owner → editor, promote new owner → owner
-  await adminQuery(
+  await adminGql(
     `mutation TransferOwnership($listId: uuid!, $oldOwnerId: uuid!, $newOwnerId: uuid!) {
       demote: update_np_list_members(
         where: { list_id: {_eq: $listId}, user_id: {_eq: $oldOwnerId} }
@@ -594,7 +602,7 @@ export async function handleUpsertPresence(payload: HasuraActionPayload): Promis
     return { success: false };
   }
 
-  await adminQuery(
+  await adminGql(
     `mutation UpsertPresence($listId: uuid!, $userId: uuid!, $status: String!, $editingTodoId: uuid) {
       insert_np_list_presence_one(
         object: {
@@ -621,7 +629,7 @@ export async function handleRemovePresence(payload: HasuraActionPayload): Promis
   const userId = payload.session_variables['x-hasura-user-id'];
   const { listId } = payload.input as { listId: string };
 
-  await adminQuery(
+  await adminGql(
     `mutation RemovePresence($listId: uuid!, $userId: uuid!) {
       delete_np_list_presence(
         where: { list_id: {_eq: $listId}, user_id: {_eq: $userId} }

@@ -21,6 +21,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/delete-account'
       timeout: 60
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -32,6 +38,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/export-data'
       timeout: 120
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -43,6 +55,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/change-email'
       timeout: 30
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -54,17 +72,30 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/change-password'
       timeout: 30
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
-      J-S2-T2: Proxies to hasura-auth PATCH /user with new password.
-      Min 8 chars enforced. Session stays valid on success.
+      J-S2-T2: Verifies currentPassword against hasura-auth, applies the new
+      password, then revokes every refresh token so other sessions end.
+      Min 8 chars enforced. The caller may need to sign in again.
 
   - name: revokeSession
     definition:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/revoke-session'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: Proxies to hasura-auth DELETE /user/sessions/{id}. Idempotent.
@@ -74,6 +105,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/enable-mfa'
       timeout: 30
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: Proxies to hasura-auth POST /user/mfa/totp/generate. Returns TOTP secret + QR URL.
@@ -83,6 +120,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/disable-mfa'
       timeout: 30
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: Proxies to hasura-auth POST /user/mfa/totp/disable. Requires OTP confirmation.
@@ -92,6 +135,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/list-sessions'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
       type: query
     permissions:
       - role: user
@@ -104,6 +153,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-create'
       timeout: 30
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -116,6 +171,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-accept'
       timeout: 30
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -128,6 +189,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-decline'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -139,6 +206,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/invite-revoke'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -152,6 +225,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/share-create'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -164,6 +243,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/share-revoke'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -177,6 +262,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/member-role-update'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -188,6 +279,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/member-remove'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -199,6 +296,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/list-leave'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -210,6 +313,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/list-transfer-ownership'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -224,6 +333,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/presence-upsert'
       timeout: 10
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -235,6 +350,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/presence-remove'
       timeout: 10
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -247,6 +368,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/get-upload-url'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >
@@ -260,6 +387,12 @@ actions:
       kind: synchronous
       handler: '{{ACTION_HANDLER_URL}}/api/actions/get-download-url'
       timeout: 15
+      headers:
+        # Shared secret proving the caller is Hasura. functions/server.ts rejects a
+        # mismatch with 401 (lib/webhook-auth.ts). Set NHOST_WEBHOOK_SECRET on both
+        # the hasura and functions services — see backend/.env.example.
+        - name: x-nself-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
     permissions:
       - role: user
     comment: >

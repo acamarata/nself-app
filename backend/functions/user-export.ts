@@ -10,9 +10,9 @@
 // SPORT: F08 backend functions; J-S3-T2
 
 import { Sentry } from './sentry';
+import { adminGql } from './lib/admin-gql';
+import { unauthorized } from './lib/action-error';
 
-const HASURA_URL = process.env.HASURA_GRAPHQL_URL || 'http://hasura:8080/v1/graphql';
-const ADMIN_SECRET = process.env.HASURA_GRAPHQL_ADMIN_SECRET || '';
 const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
 const MINIO_ENDPOINT_PUBLIC = process.env.MINIO_ENDPOINT_PUBLIC || 'http://localhost:9000';
 const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || '';
@@ -34,28 +34,11 @@ interface ExportResult {
   expiresAt: string;
 }
 
-async function adminGql(
-  query: string,
-  variables: Record<string, unknown>
-): Promise<unknown> {
-  const res = await fetch(HASURA_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-hasura-admin-secret': ADMIN_SECRET,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) {
-    throw new Error(`Hasura request failed: ${res.status} ${await res.text()}`);
-  }
-  return res.json();
-}
-
 interface UserDataExport {
   exportedAt: string;
   userId: string;
   profile: unknown;
+  taskProfile: unknown;
   preferences: unknown;
   lists: unknown[];
   todos: unknown[];
@@ -69,75 +52,105 @@ interface UserDataExport {
   activityLog: unknown[];
 }
 
-/** Aggregate all np_* data for the user into a structured export object. */
+/**
+ * Aggregate all np_* data for the user into a structured export object.
+ *
+ * Every field below is checked against the real schema — backend/postgres/init.sql
+ * plus migrations 003-027 — not against the client-facing GraphQL aliases:
+ *   - np_profiles is keyed by `id` (it IS the auth.users id); there is no user_id.
+ *   - np_lists is keyed by `user_id` and its glyph column is `icon`, not `emoji`.
+ *     (Migration 019 refers to a np_lists.owner_id FK, but the column was never
+ *     created — its guard clause simply never matches. init.sql is authoritative.)
+ *   - np_todos has `completed`; there is no `status` and no `is_completed`.
+ *   - np_reminders has `sent`/`sent_at`/`channel`; no `is_sent`, no `recurrence`.
+ *   - np_recurring_rules uses `interval_count`/`by_day`/`count_limit`.
+ * task_users is the successor to np_profiles (migration 023) and carries the
+ * ToS-acceptance fields this export originally tried to read off np_profiles.
+ */
 async function aggregateUserData(userId: string): Promise<UserDataExport> {
-  const result = (await adminGql(
+  const d = await adminGql<{
+    np_profiles: unknown[];
+    task_users: unknown[];
+    np_user_preferences: unknown[];
+    np_lists: unknown[];
+    np_todos: unknown[];
+    np_subtasks: unknown[];
+    np_tags: unknown[];
+    np_todo_tags: unknown[];
+    np_comments: unknown[];
+    np_attachments: unknown[];
+    np_reminders: unknown[];
+    np_recurring_rules: unknown[];
+    np_account_activity: unknown[];
+  }>(
     `query ExportUserData($userId: uuid!) {
-      np_profiles(where: { user_id: { _eq: $userId } }) {
-        id user_id display_name avatar_url tos_accepted_at tos_version created_at updated_at
+      np_profiles(where: { id: { _eq: $userId } }) {
+        id email display_name bio avatar_url time_format auto_hide_completed
+        theme_preference default_list_id notification_settings
+        source_account_id created_at updated_at
+      }
+      task_users(where: { user_id: { _eq: $userId } }) {
+        user_id display_name avatar_url prefs onboarding_done timezone
+        time_format auto_hide_completed default_list_id notification_settings
+        theme_preference mfa_enabled tos_accepted_at tos_version
+        source_account_id created_at updated_at
       }
       np_user_preferences(where: { user_id: { _eq: $userId } }) {
         id user_id time_format auto_hide_completed theme_preference
-        default_list_id notification_settings created_at updated_at
+        default_list_id notification_settings source_account_id created_at updated_at
       }
-      np_lists(where: { owner_id: { _eq: $userId } }) {
-        id title color emoji is_default position source_account_id created_at updated_at
+      np_lists(where: { user_id: { _eq: $userId } }) {
+        id user_id title description color icon is_default position group_id
+        location_name location_lat location_lng location_radius reminder_on_arrival
+        source_account_id created_at updated_at
       }
       np_todos(where: { user_id: { _eq: $userId } }) {
-        id list_id title notes status priority due_date is_completed completed_at
-        location_name location_lat location_lng reminder_time source_account_id
-        created_at updated_at
+        id user_id list_id title description notes completed completed_at
+        priority due_date tags position is_public
+        location_name location_lat location_lng location_radius
+        reminder_time recurrence_rule recurrence_parent_id attachments
+        requires_approval requires_photo completed_by
+        approved approved_by approved_at completion_photo_url completion_notes
+        rejected_by rejected_at rejection_reason idempotency_key
+        source_account_id created_at updated_at
       }
       np_subtasks(where: { todo: { user_id: { _eq: $userId } } }) {
         id todo_id title is_done position source_account_id created_at updated_at
       }
       np_tags(where: { user_id: { _eq: $userId } }) {
-        id name color source_account_id created_at
+        id user_id name color source_account_id created_at updated_at
       }
       np_todo_tags(where: { todo: { user_id: { _eq: $userId } } }) {
-        id todo_id tag_id
+        id todo_id tag_id source_account_id created_at
       }
       np_comments(where: { author_id: { _eq: $userId } }) {
-        id todo_id body edited_at source_account_id created_at updated_at
+        id todo_id author_id parent_comment_id body edited_at deleted_at
+        source_account_id created_at updated_at
       }
       np_attachments(where: { uploader_id: { _eq: $userId } }) {
         id todo_id comment_id storage_key bucket file_name mime_type
         file_size_bytes acl source_account_id created_at
       }
       np_reminders(where: { todo: { user_id: { _eq: $userId } } }) {
-        id todo_id remind_at is_sent recurrence source_account_id created_at
+        id todo_id user_id channel remind_at sent sent_at source_account_id created_at
       }
       np_recurring_rules(where: { todo: { user_id: { _eq: $userId } } }) {
-        id todo_id frequency interval days_of_week end_date max_occurrences
+        id todo_id frequency interval_count by_day by_month by_month_day
+        rrule start_date end_date until_date count_limit
         source_account_id created_at updated_at
       }
       np_account_activity(where: { user_id: { _eq: $userId } }) {
-        id action metadata created_at
+        id action metadata ip_address created_at
       }
     }`,
     { userId }
-  )) as {
-    data: {
-      np_profiles: unknown[];
-      np_user_preferences: unknown[];
-      np_lists: unknown[];
-      np_todos: unknown[];
-      np_subtasks: unknown[];
-      np_tags: unknown[];
-      np_todo_tags: unknown[];
-      np_comments: unknown[];
-      np_attachments: unknown[];
-      np_reminders: unknown[];
-      np_recurring_rules: unknown[];
-      np_account_activity: unknown[];
-    };
-  };
+  );
 
-  const d = result.data;
   return {
     exportedAt: new Date().toISOString(),
     userId,
     profile: d.np_profiles?.[0] ?? null,
+    taskProfile: d.task_users?.[0] ?? null,
     preferences: d.np_user_preferences?.[0] ?? null,
     lists: d.np_lists ?? [],
     todos: d.np_todos ?? [],
@@ -198,7 +211,8 @@ export async function requestDataExport(
 ): Promise<ExportResult> {
   const userId = payload.session_variables['x-hasura-user-id'];
   if (!userId) {
-    throw new Error('Missing x-hasura-user-id in session variables');
+    // Caller fault, not a server fault — must not surface as a 500.
+    throw unauthorized('Missing x-hasura-user-id in session variables', 'MISSING_USER_ID');
   }
 
   // Rate limit: 1 export per 24h per user
@@ -220,27 +234,38 @@ export async function requestDataExport(
     const exportData = await aggregateUserData(userId);
     const { downloadUrl, expiresAt } = await storeExportAndPresign(userId, exportData);
 
-    // Audit log
-    await adminGql(
-      `mutation LogExport($userId: uuid!, $meta: jsonb) {
-        insert_np_account_activity_one(object: {
-          user_id: $userId
-          action: "data_export_ready"
-          metadata: $meta
-        }) { id }
-      }`,
-      {
-        userId,
-        meta: {
-          expiresAt,
-          todoCount: (exportData.todos as unknown[]).length,
-          attachmentCount: (exportData.attachments as unknown[]).length,
-        },
-      }
-    );
+    // Audit log — best effort. The export already exists and the URL is valid,
+    // so a failed audit insert must not deny the user their data. It is reported
+    // rather than swallowed (adminGql now throws on Hasura's HTTP-200 errors).
+    try {
+      await adminGql(
+        `mutation LogExport($userId: uuid!, $meta: jsonb) {
+          insert_np_account_activity_one(object: {
+            user_id: $userId
+            action: "data_export_ready"
+            metadata: $meta
+          }) { id }
+        }`,
+        {
+          userId,
+          meta: {
+            expiresAt,
+            todoCount: (exportData.todos as unknown[]).length,
+            attachmentCount: (exportData.attachments as unknown[]).length,
+          },
+        }
+      );
+    } catch (auditErr) {
+      console.error('[user-export] audit log insert failed:', auditErr);
+      Sentry.captureException(auditErr, {
+        tags: { function: 'user-export', step: 'audit' },
+      });
+    }
 
     return { downloadUrl, expiresAt };
   } catch (err) {
+    // A failed export must not burn the caller's 24h allowance.
+    exportRateMap.delete(userId);
     Sentry.captureException(err, { tags: { function: 'user-export' } });
     throw err;
   } finally {

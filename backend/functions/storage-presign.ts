@@ -24,10 +24,10 @@
 
 import { createHmac, createHash } from 'crypto';
 import { Sentry } from './sentry';
+import { adminGql } from './lib/admin-gql';
+import { badRequest, unauthorized } from './lib/action-error';
 
 // ── Env ────────────────────────────────────────────────────────────────────────
-const HASURA_URL      = process.env.HASURA_GRAPHQL_URL     || 'http://hasura:8080/v1/graphql';
-const ADMIN_SECRET    = process.env.HASURA_GRAPHQL_ADMIN_SECRET || '';
 // Internal endpoint (Docker network) — used to validate the request and fetch metadata
 const MINIO_ENDPOINT  = process.env.MINIO_ENDPOINT         || 'http://minio:9000';
 // Public endpoint — returned to clients for presigned download URLs
@@ -82,26 +82,7 @@ interface DownloadUrlResult {
   expiresAt: string;
 }
 
-// ── Admin GraphQL helper ───────────────────────────────────────────────────────
-
-async function adminGql(query: string, variables: Record<string, unknown>): Promise<unknown> {
-  const res = await fetch(HASURA_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-hasura-admin-secret': ADMIN_SECRET,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) {
-    throw new Error(`Hasura admin request failed: ${res.status} ${await res.text()}`);
-  }
-  const json = (await res.json()) as { data?: unknown; errors?: Array<{ message: string }> };
-  if (json.errors?.length) {
-    throw new Error(`Hasura GQL error: ${json.errors.map((e) => e.message).join(', ')}`);
-  }
-  return json.data;
-}
+// Admin GraphQL access comes from lib/admin-gql (shared by every handler).
 
 // ── AWS Signature V4 presign ───────────────────────────────────────────────────
 
@@ -244,7 +225,9 @@ export async function getUploadUrl(
   payload: HasuraActionPayload
 ): Promise<UploadUrlResult> {
   const userId = payload.session_variables['x-hasura-user-id'];
-  if (!userId) throw new Error('Missing x-hasura-user-id');
+  if (!userId) {
+    throw unauthorized('Missing x-hasura-user-id', 'MISSING_USER_ID');
+  }
 
   const { fileName, mimeType, todoId } = payload.input as {
     fileName: string;
@@ -253,7 +236,7 @@ export async function getUploadUrl(
   };
 
   if (!fileName || !mimeType || !todoId) {
-    throw new Error('fileName, mimeType, and todoId are required');
+    throw badRequest('fileName, mimeType, and todoId are required', 'MISSING_INPUT');
   }
 
   // Validate MIME type
@@ -265,7 +248,7 @@ export async function getUploadUrl(
   }
 
   // Verify todoId belongs to the calling user
-  const data = (await adminGql(
+  const data = await adminGql<{ np_todos_by_pk: { id: string; user_id: string } | null }>(
     `query VerifyTodoOwner($todoId: uuid!, $userId: uuid!) {
       np_todos_by_pk(id: $todoId) {
         id
@@ -273,7 +256,7 @@ export async function getUploadUrl(
       }
     }`,
     { todoId, userId }
-  )) as { np_todos_by_pk: { id: string; user_id: string } | null };
+  );
 
   const todo = data?.np_todos_by_pk;
   if (!todo) {
@@ -317,13 +300,31 @@ export async function getDownloadUrl(
   payload: HasuraActionPayload
 ): Promise<DownloadUrlResult> {
   const userId = payload.session_variables['x-hasura-user-id'];
-  if (!userId) throw new Error('Missing x-hasura-user-id');
+  if (!userId) {
+    throw unauthorized('Missing x-hasura-user-id', 'MISSING_USER_ID');
+  }
 
   const { attachmentId } = payload.input as { attachmentId: string };
-  if (!attachmentId) throw new Error('attachmentId is required');
+  if (!attachmentId) throw badRequest('attachmentId is required', 'MISSING_ATTACHMENT_ID');
 
   // Fetch attachment + access check via admin query
-  const data = (await adminGql(
+  // `shares` is the array relationship np_lists -> np_list_shares (metadata
+  // databases/default/tables/tables.yaml). It was previously spelled
+  // `list_shares`, which no relationship answers to — the query was rejected.
+  const data = await adminGql<{
+    np_attachments_by_pk: {
+      id: string;
+      storage_key: string;
+      bucket: string;
+      uploader_id: string;
+      todo: {
+        user_id: string;
+        list: {
+          shares: Array<{ shared_with_user_id: string | null }>;
+        } | null;
+      } | null;
+    } | null;
+  }>(
     `query FetchAttachment($attachmentId: uuid!) {
       np_attachments_by_pk(id: $attachmentId) {
         id
@@ -333,7 +334,7 @@ export async function getDownloadUrl(
         todo {
           user_id
           list {
-            list_shares(where: { accepted_at: { _is_null: false } }) {
+            shares(where: { accepted_at: { _is_null: false } }) {
               shared_with_user_id
             }
           }
@@ -341,20 +342,7 @@ export async function getDownloadUrl(
       }
     }`,
     { attachmentId }
-  )) as {
-    np_attachments_by_pk: {
-      id: string;
-      storage_key: string;
-      bucket: string;
-      uploader_id: string;
-      todo: {
-        user_id: string;
-        list: {
-          list_shares: Array<{ shared_with_user_id: string }>;
-        } | null;
-      } | null;
-    } | null;
-  };
+  );
 
   const attachment = data?.np_attachments_by_pk;
   if (!attachment) {
@@ -366,7 +354,7 @@ export async function getDownloadUrl(
   // Access check: uploader OR todo owner OR list member
   const isUploader  = attachment.uploader_id === userId;
   const isTodoOwner = attachment.todo?.user_id === userId;
-  const isListMember = attachment.todo?.list?.list_shares?.some(
+  const isListMember = attachment.todo?.list?.shares?.some(
     (s) => s.shared_with_user_id === userId
   ) ?? false;
 

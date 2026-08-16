@@ -118,10 +118,12 @@ type Mutation {
 
   """
   J-S2-T2: Change the authenticated user's password.
-  Requires a valid access token (re-auth is built into the JWT validation).
+  Requires the CURRENT password: the handler re-authenticates against hasura-auth
+  before applying the change, so a stolen access token alone cannot take over the
+  account. Every refresh token is revoked on success, ending other sessions.
   Minimum 8 characters enforced server-side.
   """
-  changePassword(newPassword: String!): ChangePasswordResult
+  changePassword(currentPassword: String!, newPassword: String!): ChangePasswordResult
 
   """
   Revoke a specific session by ID (MFA/session management).

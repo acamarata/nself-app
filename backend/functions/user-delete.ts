@@ -9,8 +9,9 @@
 // SPORT: F08 backend functions; J-S3-T1
 
 import { Sentry } from './sentry';
+import { adminGql } from './lib/admin-gql';
+import { unauthorized } from './lib/action-error';
 
-const HASURA_URL = process.env.HASURA_GRAPHQL_URL || 'http://hasura:8080/v1/graphql';
 const ADMIN_SECRET = process.env.HASURA_GRAPHQL_ADMIN_SECRET || '';
 // HASURA_AUTH_URL: the auth service endpoint used by user-delete (admin DELETE /users/{id}).
 //   AUTH_MODE=bundled (default): http://auth:4000 (local hasura-auth container)
@@ -33,28 +34,11 @@ interface DeleteAccountResult {
   deletedAt: string;
 }
 
-/** Execute a GraphQL mutation against Hasura with the admin secret. */
-async function adminGql(
-  query: string,
-  variables: Record<string, unknown>
-): Promise<unknown> {
-  const res = await fetch(HASURA_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-hasura-admin-secret': ADMIN_SECRET,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) {
-    throw new Error(`Hasura request failed: ${res.status} ${await res.text()}`);
-  }
-  return res.json();
-}
-
 /** Fetch all MinIO storage_key values owned by the user before deletion. */
 async function fetchAttachmentKeys(userId: string): Promise<string[]> {
-  const result = (await adminGql(
+  const data = await adminGql<{
+    np_attachments: Array<{ storage_key: string; bucket: string }>;
+  }>(
     `query GetAttachments($userId: uuid!) {
       np_attachments(where: { uploader_id: { _eq: $userId } }) {
         storage_key
@@ -62,8 +46,8 @@ async function fetchAttachmentKeys(userId: string): Promise<string[]> {
       }
     }`,
     { userId }
-  )) as { data: { np_attachments: Array<{ storage_key: string; bucket: string }> } };
-  return result.data?.np_attachments?.map((a) => a.storage_key) ?? [];
+  );
+  return data.np_attachments?.map((a) => a.storage_key) ?? [];
 }
 
 /** Delete a single MinIO object via the S3-compatible DELETE API. */
@@ -88,7 +72,11 @@ async function deleteMinioObject(storageKey: string): Promise<void> {
   }
 }
 
-/** Write an audit record to np_account_activity (admin insert bypasses RLS). */
+/**
+ * Write an audit record to np_account_activity (admin insert bypasses RLS).
+ * Deliberately fatal: this records the intent to destroy data BEFORE anything is
+ * destroyed, so a failure here must abort the deletion rather than proceed unlogged.
+ */
 async function logAccountActivity(
   userId: string,
   action: string,
@@ -136,7 +124,8 @@ export async function deleteAccount(
 ): Promise<DeleteAccountResult> {
   const userId = payload.session_variables['x-hasura-user-id'];
   if (!userId) {
-    throw new Error('Missing x-hasura-user-id in session variables');
+    // Caller fault, not a server fault — must not surface as a 500.
+    throw unauthorized('Missing x-hasura-user-id in session variables', 'MISSING_USER_ID');
   }
 
   try {
@@ -179,9 +168,16 @@ export async function deleteAccount(
         delete_np_offline_outbox(where: { user_id: { _eq: $userId } }) { affected_rows }
         delete_np_device_tokens(where: { user_id: { _eq: $userId } }) { affected_rows }
         delete_np_user_preferences(where: { user_id: { _eq: $userId } }) { affected_rows }
+        #
+        # Column names below are checked against backend/postgres/init.sql:
+        #   np_lists is keyed by user_id (there is no owner_id column — migration
+        #   019's np_lists_owner_id_fkey guard never matches), and np_profiles's
+        #   PK column id IS the auth.users id (there is no user_id column).
         delete_np_todos(where: { user_id: { _eq: $userId } }) { affected_rows }
-        delete_np_lists(where: { owner_id: { _eq: $userId } }) { affected_rows }
-        delete_np_profiles(where: { user_id: { _eq: $userId } }) { affected_rows }
+        delete_np_lists(where: { user_id: { _eq: $userId } }) { affected_rows }
+        delete_np_tags(where: { user_id: { _eq: $userId } }) { affected_rows }
+        delete_task_users(where: { user_id: { _eq: $userId } }) { affected_rows }
+        delete_np_profiles(where: { id: { _eq: $userId } }) { affected_rows }
       }`,
       { userId }
     );

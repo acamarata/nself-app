@@ -26,7 +26,11 @@
     num_retries: 3
     interval_sec: 10
     timeout_sec: 60
-  headers: []
+  headers:
+    # Shared secret proving the caller is Hasura — functions/server.ts rejects a
+    # mismatch with 401. Set NHOST_WEBHOOK_SECRET on hasura and functions.
+    - name: x-nself-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
   cleanup_config:
     batch_size: 10000
     clean_invocation_logs: true
@@ -53,7 +57,11 @@
     num_retries: 3
     interval_sec: 30
     timeout_sec: 60
-  headers: []
+  headers:
+    # Shared secret proving the caller is Hasura — functions/server.ts rejects a
+    # mismatch with 401. Set NHOST_WEBHOOK_SECRET on hasura and functions.
+    - name: x-nself-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
   cleanup_config:
     batch_size: 10000
     clean_invocation_logs: true

@@ -34,6 +34,15 @@
 # nself.yaml needs a `services.functions.healthcheck` override field).
 services:
   functions:
+    # Fifth gap, same generator: `nself build` forwards only a fixed set of env
+    # vars into the functions service, so NHOST_WEBHOOK_SECRET — the shared secret
+    # that stops anyone who can reach this port from impersonating any user via
+    # session_variables.x-hasura-user-id — never arrives. Both this service and
+    # hasura (below) must see the SAME value, or every action call 401s.
+    # Empty is allowed and means "check disabled" (server.ts warns at boot).
+    # CLI gap filed: nself-functions-env-passthrough.
+    environment:
+      NHOST_WEBHOOK_SECRET: ${NHOST_WEBHOOK_SECRET:-}
     read_only: false
     tmpfs:
       - /tmp
@@ -71,6 +80,11 @@ services:
       # port — see the functions service comment above), not 3001 (the host
       # published port used by FUNCTIONS_PORT/.env.dev for host-side tooling).
       ACTION_HANDLER_URL: http://functions:3000
+      # Referenced by `value_from_env` in metadata/{actions,event_triggers,
+      # cron_triggers}.yaml, so it must EXIST here or metadata apply fails with
+      # "Value for environment variables not found". Same value as the functions
+      # service above.
+      NHOST_WEBHOOK_SECRET: ${NHOST_WEBHOOK_SECRET:-}
 
   # Fourth gap, same generator: nginx's healthcheck probes
   # `https://127.0.0.1/health` with no SNI/Host header, so TLS falls to
