@@ -31,7 +31,6 @@ export type RootStackParamList = {
   SmartView: undefined;
   Settings: undefined;
   Profile: undefined;
-  Notifications: undefined;
   // Epic J — account/legal screens
   Account: undefined;
   ChangeEmail: undefined;

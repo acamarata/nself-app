@@ -13,10 +13,28 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { useMutation } from 'urql';
+import { createLogger } from '@nself/observability';
 import { REGISTER_DEVICE_TOKEN } from '../lib/deviceTokenOps';
 
 export interface PushTokenOptions {
   accessToken: string | null;
+}
+
+const logger = createLogger({ name: 'ntask-mobile' });
+
+/** RFC-4122 UUID shape — the only valid form of `extra.eas.projectId`. */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * isValidEasProjectId — guards against the checked-in placeholder ("ntask-mobile")
+ * or any other non-UUID value shipping to a real build. `eas init` replaces
+ * app.json's extra.eas.projectId with the real project UUID (see RELEASING.md);
+ * until that has run, getExpoPushTokenAsync would reject at runtime with an
+ * opaque error, silently disabling push. Catching the bad shape here lets us
+ * fail loud instead.
+ */
+export function isValidEasProjectId(id: string | undefined): id is string {
+  return typeof id === 'string' && UUID_PATTERN.test(id);
 }
 
 /** Maps RN Platform.OS to the np_device_tokens.platform check constraint values. */
@@ -49,8 +67,15 @@ export function usePushToken({ accessToken }: PushTokenOptions): void {
 
     try {
       const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
-      if (!projectId) {
-        if (__DEV__) console.warn('[usePushToken] No EAS projectId in app.json extra.eas.projectId');
+      if (!isValidEasProjectId(projectId)) {
+        // Loud, unconditional — must not silently ship as "push works". Emits in
+        // every build (dev + release), not just __DEV__, so a bad projectId shows
+        // up in release logs / Sentry rather than only local development.
+        logger.error(
+          'Push registration disabled: invalid EAS projectId in app.json extra.eas.projectId. ' +
+            'Expected a UUID from `eas init` — see RELEASING.md § One-time setup.',
+          { projectId: projectId ?? '(missing)' },
+        );
         return;
       }
 

@@ -33,6 +33,17 @@ After `eas init`, commit the updated `app.json` (real `projectId` swapped in) an
 `EXPO_PUBLIC_EAS_PROJECT_ID` in `.env.local` / CI secrets to match, since `usePushToken.ts`
 reads `Constants.expoConfig?.extra?.eas?.projectId` for push registration.
 
+**Current state (as of this writing): `app.json`'s `extra.eas.projectId` is still the literal
+placeholder `"ntask-mobile"`, not a real project UUID.** `usePushToken.ts` validates the shape
+of this value at runtime (`isValidEasProjectId` — must match a UUID) and refuses to call
+`Notifications.getExpoPushTokenAsync()` when it doesn't, logging a loud
+`Push registration disabled: invalid EAS projectId...` error (unconditionally, not just in
+`__DEV__`, via `@nself/observability`'s `createLogger`) instead of letting the SDK throw an
+opaque runtime error. **Push notifications will not work in any build — dev, preview, or
+production — until someone with access to the Expo org runs `npx eas-cli init` from
+`apps/mobile` and commits the resulting `app.json`.** Do not hand-edit a UUID into `app.json`;
+it must come from `eas init` against a real EAS project.
+
 ## Build profiles (`eas.json`)
 
 | Profile | Distribution | Server URL default | Use for |
@@ -74,6 +85,20 @@ npx eas-cli submit -p ios --profile production
 `eas.json` submit config has placeholders (`APPLE_ID_FROM_EAS_SECRETS`, `FILL_AFTER_ASC_APP_CREATED`,
 `FILL_FROM_APPLE_DEVELOPER_ACCOUNT`, `./google-services-key.json`) that must be filled in before
 `submit` will work — see [EAS Submit docs](https://docs.expo.dev/submit/introduction/).
+
+**Current state (as of this writing), field by field:**
+- `appleId` — resolved from the `APPLE_ID_FROM_EAS_SECRETS` EAS secret at submit time; set the
+  actual secret via `eas secret:create` before running `submit`, do not hand-edit this string.
+- `ascAppId` — literal placeholder `FILL_AFTER_ASC_APP_CREATED`. Requires creating the app record
+  in App Store Connect first (Apple Developer account), then pasting its numeric App ID here.
+- `appleTeamId` — literal placeholder `FILL_FROM_APPLE_DEVELOPER_ACCOUNT`. Copy from the Apple
+  Developer account's Membership page (10-character team ID).
+- `serviceAccountKeyPath` (`./google-services-key.json`) — gitignored, not present in this repo.
+  Generate a Google Play service account key from the Play Console and place it at that path
+  (or point EAS secrets at it) before running `submit -p android`.
+
+None of the above blocks `eas build` (dev/preview/production builds) — they only gate the final
+`eas submit` step to the App Store / Play Store.
 
 ## Push notification credentials (FCM + APNs)
 

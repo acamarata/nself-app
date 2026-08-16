@@ -15,6 +15,7 @@ import { useQuery } from 'urql';
 import type { NpComment } from '../types';
 import { GET_COMMENTS } from '../lib/hasura';
 import { useCommentMutations } from '../hooks/useTaskMutations';
+import { enqueue } from '../lib/offline-queue';
 import { generateIdempotencyKey } from '../lib/idempotency';
 import { useTheme } from '../theme';
 
@@ -25,9 +26,11 @@ interface CommentsData {
 interface Props {
   todoId: string;
   userId: string;
+  /** When true, mutations enqueue via the offline-queue instead of hitting the network. */
+  isOffline: boolean;
 }
 
-export function CommentThread({ todoId, userId }: Props) {
+export function CommentThread({ todoId, userId, isOffline }: Props) {
   const { colors } = useTheme();
   const [result, reexecute] = useQuery<CommentsData>({
     query: GET_COMMENTS,
@@ -44,6 +47,11 @@ export function CommentThread({ todoId, userId }: Props) {
     if (!trimmed) return;
     const key = generateIdempotencyKey('create_comment', `${todoId}:${trimmed}:${Date.now()}`);
     setBody('');
+
+    if (isOffline) {
+      void enqueue('create_comment', { todoId, body: trimmed }, key);
+      return;
+    }
     await createComment(todoId, trimmed, key);
     reexecute({ requestPolicy: 'network-only' });
   };
@@ -55,6 +63,10 @@ export function CommentThread({ todoId, userId }: Props) {
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
+          if (isOffline) {
+            void enqueue('delete_comment', { id: comment.id }, generateIdempotencyKey('delete_comment', comment.id));
+            return;
+          }
           await deleteComment(comment.id);
           reexecute({ requestPolicy: 'network-only' });
         },

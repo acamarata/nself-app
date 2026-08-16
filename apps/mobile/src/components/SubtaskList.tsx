@@ -15,6 +15,8 @@ import { useQuery } from 'urql';
 import type { NpSubtask } from '../types';
 import { GET_SUBTASKS } from '../lib/hasura';
 import { useSubtaskMutations } from '../hooks/useTaskMutations';
+import { enqueue } from '../lib/offline-queue';
+import { generateIdempotencyKey } from '../lib/idempotency';
 import { useTheme } from '../theme';
 
 interface SubtasksData {
@@ -23,9 +25,11 @@ interface SubtasksData {
 
 interface Props {
   todoId: string;
+  /** When true, mutations enqueue via the offline-queue instead of hitting the network. */
+  isOffline: boolean;
 }
 
-export function SubtaskList({ todoId }: Props) {
+export function SubtaskList({ todoId, isOffline }: Props) {
   const { colors } = useTheme();
   const [result, reexecute] = useQuery<SubtasksData>({
     query: GET_SUBTASKS,
@@ -43,16 +47,38 @@ export function SubtaskList({ todoId }: Props) {
     const title = newTitle.trim();
     if (!title) return;
     setNewTitle('');
+
+    if (isOffline) {
+      void enqueue(
+        'create_subtask',
+        { todoId, title, position: subtasks.length },
+        generateIdempotencyKey('create_subtask', `${todoId}:${title}:${Date.now()}`),
+      );
+      return;
+    }
     await createSubtask(todoId, title, subtasks.length);
     reexecute({ requestPolicy: 'network-only' });
   };
 
   const handleToggle = async (subtask: NpSubtask) => {
-    await toggleSubtask(subtask.id, !subtask.is_done);
+    const isDone = !subtask.is_done;
+    if (isOffline) {
+      void enqueue(
+        'toggle_subtask',
+        { id: subtask.id, isDone },
+        generateIdempotencyKey('toggle_subtask', `${subtask.id}:${String(isDone)}`),
+      );
+      return;
+    }
+    await toggleSubtask(subtask.id, isDone);
     reexecute({ requestPolicy: 'network-only' });
   };
 
   const handleDelete = async (id: string) => {
+    if (isOffline) {
+      void enqueue('delete_subtask', { id }, generateIdempotencyKey('delete_subtask', id));
+      return;
+    }
     await deleteSubtask(id);
     reexecute({ requestPolicy: 'network-only' });
   };

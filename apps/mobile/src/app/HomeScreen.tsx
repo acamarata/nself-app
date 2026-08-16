@@ -27,6 +27,8 @@ import {
 } from '../components/seven-states';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
 import { projectCreateSchema } from '../lib/validation';
+import { enqueue } from '../lib/offline-queue';
+import { generateIdempotencyKey } from '../lib/idempotency';
 import { useTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -62,13 +64,49 @@ export function HomeScreen({ navigation }: Props) {
     if (editTarget) {
       const title = modalTitle.trim();
       if (!title) { setModalError('Name is required.'); return; }
+      const listId = editTarget.id;
       setModalVisible(false);
-      await updateList(editTarget.id, { title });
+
+      if (!isConnected) {
+        // Offline path — enqueue and let OfflineSyncDriver replay on reconnect
+        // (mirrors ListScreen's / TaskDetailScreen's offline handling).
+        void enqueue('update_list', { id: listId, fields: { title } }, generateIdempotencyKey('update_list', listId));
+        return;
+      }
+
+      try {
+        const result = await updateList(listId, { title });
+        if (result.error) {
+          const taskErr = classifyUrqlError(result.error);
+          Alert.alert('List not saved', taskUserMessage(taskErr));
+          return;
+        }
+      } catch {
+        Alert.alert('List not saved', 'An unexpected error occurred. Please try again.');
+        return;
+      }
     } else {
       const validation = projectCreateSchema({ title: modalTitle });
       if (!validation.success) { setModalError(validation.errors?.[0]?.message ?? 'Invalid input'); return; }
+      const title = validation.data!.title;
       setModalVisible(false);
-      await createList(validation.data!.title);
+
+      if (!isConnected) {
+        void enqueue('create_list', { title }, generateIdempotencyKey('create_list', `${title}:${Date.now()}`));
+        return;
+      }
+
+      try {
+        const result = await createList(title);
+        if (result.error) {
+          const taskErr = classifyUrqlError(result.error);
+          Alert.alert('List not saved', taskUserMessage(taskErr));
+          return;
+        }
+      } catch {
+        Alert.alert('List not saved', 'An unexpected error occurred. Please try again.');
+        return;
+      }
     }
     refetch();
   };
@@ -76,7 +114,27 @@ export function HomeScreen({ navigation }: Props) {
   const confirmDelete = (list: NpList) =>
     Alert.alert('Delete list', `"${list.title}" and all its tasks will be deleted.`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => { await deleteList(list.id); refetch(); } },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          if (!isConnected) {
+            void enqueue('delete_list', { id: list.id }, generateIdempotencyKey('delete_list', list.id));
+            return;
+          }
+          try {
+            const result = await deleteList(list.id);
+            if (result.error) {
+              const taskErr = classifyUrqlError(result.error);
+              Alert.alert('List not deleted', taskUserMessage(taskErr));
+              return;
+            }
+          } catch {
+            Alert.alert('List not deleted', 'An unexpected error occurred. Please try again.');
+            return;
+          }
+          refetch();
+        },
+      },
     ]);
 
   const lists = data?.np_lists ?? [];
@@ -144,14 +202,6 @@ export function HomeScreen({ navigation }: Props) {
             style={styles.headerIcon}
           >
             <Text style={styles.headerIconText}>🗓️</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Notifications')}
-            accessibilityLabel="Notifications"
-            accessibilityRole="button"
-            style={styles.headerIcon}
-          >
-            <Text style={styles.headerIconText}>🔔</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigation.navigate('Settings')}
