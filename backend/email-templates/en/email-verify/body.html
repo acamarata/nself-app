@@ -99,12 +99,12 @@
     </div>
     <div class="body">
       <h1>Confirm your email address</h1>
-      <p>Welcome to ɳTask. Click the button below to verify your email address and activate your account.</p>
+      <p>Welcome to ɳTask. Click the button below to verify ${email} and activate your account.</p>
       <div class="cta-wrapper">
-        <a class="cta" href="{{ .Link }}">Confirm email address</a>
+        <a class="cta" href="${link}">Confirm email address</a>
       </div>
-      <p class="url-fallback">Or copy this link: {{ .Link }}</p>
-      <p class="expiry-note">This link expires in 24 hours.</p>
+      <p class="url-fallback">Or copy this link: ${link}</p>
+      <p class="expiry-note">This link expires soon.</p>
       <p>If you did not create a ɳTask account, you can safely ignore this email.</p>
     </div>
     <div class="footer">

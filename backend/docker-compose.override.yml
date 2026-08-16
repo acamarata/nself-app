@@ -106,3 +106,70 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+
+  # Sixth gap, same generator class: `nself build` has no nself.yaml field for
+  # mounting custom email templates into the auth container, so
+  # nhost/hasura-auth:0.36.0 always fell back to its own bundled defaults —
+  # which render "Powered by Nhost" (a competitor) branding on every
+  # transactional email (password reset, email verify, email-change confirm).
+  # We already had ɳTask-branded HTML in email-templates/, but it was never
+  # mounted AND used the wrong placeholder syntax ({{ .Link }}, a Go
+  # text/template convention) — hasura-auth's mailer actually renders with
+  # valyala/fasttemplate using ${...} delimiters (confirmed by reading
+  # go/notifications/templates.go in the hasura-auth source for this exact
+  # image tag), so the old templates would have shipped a dead, unsubstituted
+  # link even if they had been wired up. Fixed both: templates restructured to
+  # the {locale}/{template-id}/{body.html,subject.txt} layout the mailer's
+  # filesystem walker expects (see NewTemplatesFromFilesystem), rewritten to
+  # use ${link}/${email}/${newEmail}, and mounted here.
+  # CLI gap filed: nself-auth-email-templates-mount (nself.yaml needs an
+  # `auth.email_templates_path` field so this survives without a hand-authored
+  # override).
+  auth:
+    environment:
+      AUTH_EMAIL_TEMPLATES_PATH: /app/email-templates
+      # Eighth gap, different bug class: hasura-auth 0.36.0's SMTP PLAIN-auth
+      # client (go/notifications/stdlib.go isLocalhost()) only trusts an
+      # UNENCRYPTED connection to a hostname it hardcodes as one of
+      # "mailhog"/"localhost"/"127.0.0.1"/"::1" — any other hostname over a
+      # non-TLS connection is rejected with "unencrypted connection", even
+      # with AUTH_SMTP_SECURE=false and no credentials configured. But
+      # .env.dev/nself build set AUTH_SMTP_HOST to the literal string
+      # "mailpit", which isn't on that allowlist, so EVERY outbound email
+      # (password reset, verify, email-change, and any app-level SMTP relay
+      # send) silently 500s in local dev regardless of template content.
+      # Override to the one hostname the binary trusts; the mail-catcher
+      # container below is named/aliased to match.
+      # CLI gap filed: nself-hasura-auth-smtp-host-mailhog-only (nself build's
+      # SMTP_HOST templating should emit "mailhog", not "mailpit", for
+      # hasura-auth — or nself.yaml needs a dev-mail-catcher-hostname field).
+      AUTH_SMTP_HOST: mailhog
+    volumes:
+      - ./email-templates:/app/email-templates:ro
+
+  # Ninth gap, same generator class as above: nself.yaml already declares
+  # `mailhog: dev_only: true` (intent to run a local mail catcher for dev),
+  # but `nself build` never emits a mail-catcher container into
+  # docker-compose.yml at all — so in dev there was nothing listening on the
+  # SMTP host to begin with. Added here as the local dev mail catcher
+  # nself.yaml already asked for, and needed to verify the email-template fix
+  # above end-to-end. Must be the real `mailhog/mailhog` image, not a
+  # mailpit/other catcher relabeled: hasura-auth 0.36.0 unconditionally issues
+  # an SMTP `AUTH PLAIN` command on every send regardless of whether
+  # credentials are configured (go/notifications/stdlib.go sendMail() calls
+  # c.Auth(a) unconditionally), and mailpit's default SMTP listener returns
+  # "502 5.5.1 Command not implemented" for AUTH — confirmed by testing both.
+  # MailHog implements/accepts AUTH PLAIN with any credentials, matching what
+  # hasura-auth's own isLocalhost() allowlist comment says it was built for.
+  # CLI gap filed: nself-mailhog-service-not-generated (nself build should
+  # emit the mail-catcher container declared by `mailhog:` in nself.yaml).
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: ntask_mailhog
+    restart: unless-stopped
+    networks:
+      - ntask_network
+    ports:
+      - 127.0.0.1:8025:8025
+      - 127.0.0.1:1025:1025
