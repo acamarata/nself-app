@@ -43,6 +43,19 @@ jobs:
       - name: EAS Build (Android production)
         run: eas build --platform android --profile production --non-interactive
 
+      - name: Verify Digital Asset Links fingerprint
+        if: success()
+        run: |
+          echo "Checking https://task.nself.org/.well-known/assetlinks.json for a real signing fingerprint..."
+          COUNT=$(curl -fsSL https://task.nself.org/.well-known/assetlinks.json \
+            | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const j=JSON.parse(d);process.stdout.write(String((j[0]?.target?.sha256_cert_fingerprints||[]).length))})')
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::sha256_cert_fingerprints is empty in production assetlinks.json (web/ntask/public/.well-known/assetlinks.json)."
+            echo "::error::A signed Android build must not ship until the release keystore's SHA-256 cert fingerprint is populated there — deep links would silently fall back to the browser. See web/ntask/public/.well-known/README.md."
+            exit 1
+          fi
+          echo "OK: $COUNT fingerprint(s) present."
+
       - name: EAS Submit (Android)
         if: success()
         run: eas submit --platform android --profile production --non-interactive
