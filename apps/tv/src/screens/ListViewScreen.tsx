@@ -5,6 +5,8 @@
  * Constraints:
  *   - Scrolling: ScrollView (not FlatList) — keeps D-pad focus model simple.
  *     If a list ever exceeds 200 tasks, replace with FlashList + FocusAwareScrollView.
+ *   - Optional route param `bucket` ('today' | 'overdue' | 'upcoming') filters the task set to
+ *     just that bucket (set when navigating from a Dashboard GlanceCard); omitted = full list.
  *   - Focus routing: sidebar items → task rows → mark-done buttons (left/right on each row).
  *   - Back navigation: Menu/Back button on remote (handled by navigation.goBack() via
  *     built-in TVEventHandler in react-native-tvos).
@@ -33,7 +35,7 @@ import type { TVStackParamList } from '../navigation/TVNavigator'
 type Props = NativeStackScreenProps<TVStackParamList, 'ListView'>
 
 export function ListViewScreen({ route, navigation }: Props) {
-  const { listId, listTitle } = route.params
+  const { listId, listTitle, bucket } = route.params
   const { t } = useTranslation('screens')
   const { t: tCommon } = useTranslation('common')
 
@@ -45,7 +47,18 @@ export function ListViewScreen({ route, navigation }: Props) {
     useTVListTasks(activeListId)
   const { markDone } = useMarkDone()
 
-  const allTasks = [...overdueTasks, ...todayTasks, ...upcomingTasks]
+  // Filter to the selected bucket (Dashboard GlanceCard nav) or show everything (sidebar nav).
+  const allTasks =
+    bucket === 'today'
+      ? todayTasks
+      : bucket === 'overdue'
+        ? overdueTasks
+        : bucket === 'upcoming'
+          ? upcomingTasks
+          : [...overdueTasks, ...todayTasks, ...upcomingTasks]
+
+  const bucketLabel = bucket ? t(`dashboard.${bucket}`) : null
+  const displayTitle = bucketLabel ? `${listTitle} — ${bucketLabel}` : listTitle
 
   const handleMarkDone = async (taskId: string) => {
     setMarkingDoneId(taskId)
@@ -64,7 +77,7 @@ export function ListViewScreen({ route, navigation }: Props) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>{listTitle}</Text>
+        <Text style={styles.title}>{displayTitle}</Text>
         <Text style={styles.count}>{taskCountLabel}</Text>
       </View>
 

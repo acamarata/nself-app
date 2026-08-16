@@ -16,7 +16,7 @@ mod offline_fallback;
 mod spa_nav;
 mod tray;
 
-use tauri::{Emitter, Listener, Manager, WindowEvent};
+use tauri::{Emitter, Listener, Manager, RunEvent, WindowEvent};
 use tauri_plugin_updater::UpdaterExt;
 use tracing_subscriber::{fmt, EnvFilter};
 
@@ -167,6 +167,20 @@ pub fn run() {
                 let _ = window.hide();
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running ɳTask desktop");
+        .build(tauri::generate_context!())
+        .expect("error while building ɳTask desktop")
+        .run(|app_handle, event| {
+            // macOS: relaunch/reopen the app after CloseRequested hides the window
+            // (e.g. clicking the Dock icon). Without this the Dock click is a silent
+            // no-op — the tray "Open" item and global shortcut remain functional,
+            // but the natural macOS reopen gesture would otherwise do nothing.
+            if let RunEvent::Reopen { has_visible_windows, .. } = event {
+                if !has_visible_windows {
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                }
+            }
+        });
 }
