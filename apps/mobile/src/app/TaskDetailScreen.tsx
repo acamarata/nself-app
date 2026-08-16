@@ -248,9 +248,9 @@ export function TaskDetailScreen({ route, navigation }: Props) {
           accessibilityLabel="Notes"
         />
 
-        <SubtaskList todoId={task.id} />
+        <SubtaskList todoId={task.id} isOffline={!isConnected} />
         <TagPicker todoId={task.id} userId={task.user_id} />
-        <CommentThread todoId={task.id} userId={task.user_id} />
+        <CommentThread todoId={task.id} userId={task.user_id} isOffline={!isConnected} />
 
         <TouchableOpacity
           style={[styles.saveButton, { backgroundColor: colors.primary }, saving && styles.saveButtonDisabled]}

@@ -43,7 +43,6 @@ import { SmartViewScreen } from './SmartViewScreen';
 import { TaskDetailScreen } from './TaskDetailScreen';
 import { SettingsScreen } from './SettingsScreen';
 import { ProfileScreen } from './ProfileScreen';
-import { NotificationsScreen } from './NotificationsScreen';
 import { ListMembersScreen } from './ListMembersScreen';
 import { AccountScreen } from './AccountScreen';
 import { ChangeEmailScreen } from './ChangeEmailScreen';
@@ -169,7 +168,6 @@ function AuthenticatedApp({ serverUrl, accessToken }: { serverUrl: string; acces
           <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="ListMembers" component={ListMembersScreen} />
           <Stack.Screen name="Account" component={AccountScreen} />
           <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
