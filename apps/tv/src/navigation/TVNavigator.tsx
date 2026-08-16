@@ -27,7 +27,7 @@ import { createUrqlClient } from '../lib/api';
 export type TVStackParamList = {
   Connect: undefined;
   Dashboard: undefined;
-  ListView: { listId: string; listTitle: string };
+  ListView: { listId: string; listTitle: string; bucket?: 'today' | 'overdue' | 'upcoming' };
   TaskDetail: { taskId: string; listId: string };
 };
 

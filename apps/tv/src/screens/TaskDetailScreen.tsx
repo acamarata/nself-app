@@ -106,7 +106,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
       {/* Body */}
       <View style={styles.body}>
         {/* Left panel — metadata; TVFocusable wrapper lets D-pad scroll the panel */}
-        <TVFocusable id="td-meta-panel" style={styles.metaPanelWrapper}>
+        <TVFocusable id="td-meta-panel" style={styles.metaPanelWrapper} nextFocusRight="td-mark-done">
         <ScrollView style={styles.metaPanel} showsVerticalScrollIndicator={false}>
           {task.description ? (
             <View style={styles.section}>
@@ -150,6 +150,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
             onSuccess={handleMarkDoneSuccess}
             id="td-mark-done"
             nextFocusDown="td-back-btn"
+            nextFocusLeft="td-meta-panel"
           />
           <FocusableButton
             id="td-back-btn"
@@ -157,6 +158,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
             variant="secondary"
             onSelect={() => navigation.goBack()}
             nextFocusUp="td-mark-done"
+            nextFocusLeft="td-meta-panel"
           />
         </View>
       </View>

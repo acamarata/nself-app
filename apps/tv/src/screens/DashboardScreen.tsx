@@ -5,7 +5,7 @@
  * Constraints:
  *   - Default list: first list in the user's list array (is_default = true preferred, else index 0).
  *   - List switcher: D-pad left from any card navigates to the ListSidebarTV; right returns to cards.
- *   - Selecting a GlanceCard navigates to ListView filtered to that bucket (passes bucket as param — TODO).
+ *   - Selecting a GlanceCard navigates to ListView filtered to that bucket (passes bucket as param).
  *   - Auto-refresh every 60s via useFocusEffect (TV displays are passive monitors).
  *   - No pull-to-refresh (TV UX: no swipe gestures).
  *   - Error state: full-screen error text with retry button.
@@ -66,11 +66,12 @@ export function DashboardScreen({ navigation }: Props) {
   }, [refetchLists, refetchTasks])
 
   const handleSelectGlanceCard = useCallback(
-    (_bucket: 'today' | 'upcoming' | 'overdue') => {
+    (bucket: 'today' | 'upcoming' | 'overdue') => {
       if (selectedListId) {
         navigation.navigate('ListView', {
           listId: selectedListId,
           listTitle: lists.find((l) => l.id === selectedListId)?.title ?? t('dashboard.title'),
+          bucket,
         })
       }
     },
