@@ -12,12 +12,17 @@
 import { Sentry } from './sentry';
 import { adminGql } from './lib/admin-gql';
 import { unauthorized } from './lib/action-error';
+import {
+  presignS3Url,
+  minioEndpoint,
+  minioPublicEndpoint,
+  minioBucket,
+} from './lib/s3-presign';
 
-const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
-const MINIO_ENDPOINT_PUBLIC = process.env.MINIO_ENDPOINT_PUBLIC || 'http://localhost:9000';
-const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || '';
-const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY || '';
-const MINIO_BUCKET = process.env.MINIO_BUCKET || 'ntask';
+/** Presigned download TTL. Matches the 7 days promised to the caller. */
+const DOWNLOAD_TTL_SECONDS = 7 * 24 * 60 * 60;
+/** Short-lived internal upload URL — never leaves this process. */
+const UPLOAD_TTL_SECONDS = 300;
 
 // 24-hour rate limit (in-memory; keyed by userId — survives restart via presigned URL check)
 const exportRateMap = new Map<string, number>();
@@ -165,7 +170,14 @@ async function aggregateUserData(userId: string): Promise<UserDataExport> {
   };
 }
 
-/** Upload JSON to MinIO and return a presigned GET URL valid for 7 days. */
+/**
+ * Upload the export JSON to MinIO and return a presigned GET URL.
+ *
+ * Both calls are AWS SigV4-signed via lib/s3-presign. The previous version sent
+ * the PUT with an HTTP `Authorization: Basic` header — which MinIO rejects, so no
+ * export was ever stored — and then returned a hand-built `?expires=` URL that
+ * carried no signature at all, so even a stored object would not have downloaded.
+ */
 async function storeExportAndPresign(
   userId: string,
   data: UserDataExport
@@ -173,20 +185,20 @@ async function storeExportAndPresign(
   const dateStr = new Date().toISOString().slice(0, 10);
   const objectKey = `exports/${userId}/data-export-${dateStr}.json`;
   const jsonBody = JSON.stringify(data, null, 2);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const bucket = minioBucket();
 
-  // PUT object — Basic auth placeholder (same caveat as user-delete.ts MinIO stub)
-  // Production: use @aws-sdk/client-s3 with Signature V4 (A-S4-T3 wave)
-  const credentials = Buffer.from(`${MINIO_ACCESS_KEY}:${MINIO_SECRET_KEY}`).toString('base64');
-  const putUrl = `${MINIO_ENDPOINT}/${MINIO_BUCKET}/${objectKey}`;
+  const { url: putUrl } = presignS3Url({
+    method: 'PUT',
+    endpoint: minioEndpoint(), // internal — this process uploads over the Docker network
+    bucket,
+    objectKey,
+    ttlSeconds: UPLOAD_TTL_SECONDS,
+    contentType: 'application/json',
+  });
 
   const putRes = await fetch(putUrl, {
     method: 'PUT',
-    headers: {
-      Authorization: `Basic ${credentials}`,
-      'Content-Type': 'application/json',
-      'Content-Length': String(Buffer.byteLength(jsonBody)),
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: jsonBody,
   });
 
@@ -194,10 +206,14 @@ async function storeExportAndPresign(
     throw new Error(`MinIO PUT failed: ${putRes.status} ${await putRes.text()}`);
   }
 
-  // Presigned GET URL (7-day TTL). In production this uses the S3 SDK presignGetObjectCommand.
-  // For now we return a placeholder URL with a signed query param (stub pattern).
-  // The client should treat this as the download URL.
-  const downloadUrl = `${MINIO_ENDPOINT_PUBLIC}/${MINIO_BUCKET}/${objectKey}?expires=${Date.now() + 604800000}`;
+  // Public endpoint — this URL is handed to the client.
+  const { url: downloadUrl, expiresAt } = presignS3Url({
+    method: 'GET',
+    endpoint: minioPublicEndpoint(),
+    bucket,
+    objectKey,
+    ttlSeconds: DOWNLOAD_TTL_SECONDS,
+  });
 
   return { downloadUrl, expiresAt };
 }

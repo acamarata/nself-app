@@ -1180,6 +1180,16 @@
   - name: user
     using:
       foreign_key_constraint_on: user_id
+  # Same as np_list_members.profile — see the comment there. Read by the mobile
+  # presence query and subscription (apps/mobile/src/lib/collabOps.ts).
+  - name: profile
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: np_member_profiles
+        column_mapping:
+          user_id: id
   insert_permissions:
   - role: user
     permission:
@@ -1319,6 +1329,20 @@
   - name: user
     using:
       foreign_key_constraint_on: user_id
+  # Collaborator identity for the members roster. Targets np_member_profiles
+  # (migration 029), NOT np_profiles/auth.users: those are scoped to the caller's
+  # own row so co-members would resolve to null, and widening them would re-expose
+  # other users' email. np_member_profiles has no email column at all.
+  # Manual configuration: np_list_members.user_id references auth.users, not the
+  # view, so there is no FK for Hasura to infer.
+  - name: profile
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: np_member_profiles
+        column_mapping:
+          user_id: id
   insert_permissions:
   - role: user
     permission:
@@ -3492,3 +3516,91 @@
 - table:
     schema: public
     name: np_account_activity
+
+# np_member_profiles — non-sensitive collaborator identity (migration 029).
+#
+# WHY THIS EXISTS: the clients render list rosters and the presence strip from a
+# `profile` field on np_list_members / np_list_presence. That relationship was
+# never defined, so GET_LIST_MEMBERS, GET_LIST_PRESENCE and
+# SUBSCRIBE_LIST_PRESENCE (apps/mobile/src/lib/collabOps.ts) failed validation and
+# the rosters could not render.
+#
+# WHY NOT np_profiles / auth.users: both are scoped for role `user` to
+# `id = X-Hasura-User-Id` (PR #95, so one user cannot read another's email).
+# Hasura applies the TARGET table's permission when traversing a relationship, so
+# a relationship to either would resolve to null for every other member, and the
+# only way to make it resolve would be to widen the very filter that closed the
+# email hole. This view has no email column, so co-member visibility here cannot
+# leak an address no matter how the permission below evolves.
+#
+# ROW SCOPE: the caller, plus anyone who is a member of a list the caller owns or
+# is a member of. A user who shares no list with the caller is not visible at all.
+- table:
+    schema: public
+    name: np_member_profiles
+  array_relationships:
+  # Used only by the permission predicate below (Hasura evaluates permission
+  # relationships regardless of the related table's own permissions).
+  - name: list_memberships
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: np_list_members
+        column_mapping:
+          id: user_id
+  select_permissions:
+  - role: user
+    permission:
+      # NOTE: `email` is intentionally absent — it is not a column of this view.
+      columns:
+      - id
+      - display_name
+      - avatar_url
+      - source_account_id
+      - updated_at
+      filter:
+        _or:
+        - id:
+            _eq: X-Hasura-User-Id
+        - list_memberships:
+            list:
+              _or:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - members:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+  - role: owner
+    permission:
+      columns: &id069
+      - id
+      - display_name
+      - avatar_url
+      - source_account_id
+      - updated_at
+      filter: {}
+  - role: app_admin
+    permission:
+      columns: *id069
+      filter: {}
+  - role: mod
+    permission:
+      columns: *id069
+      filter: {}
+
+# auth.refresh_tokens is DELIBERATELY NOT TRACKED HERE.
+#
+# hasura-auth owns the metadata for its own schema: on startup it (re)applies a
+# table configuration giving auth.refresh_tokens the root fields
+# `authRefreshTokens` / `authRefreshToken` / `deleteAuthRefreshTokens` and
+# camelCase column names (userId, createdAt, expiresAt), and it already grants
+# role `user` select on that table filtered to `user_id = X-Hasura-User-Id`.
+#
+# Declaring the table here with no `configuration` block would make a metadata
+# apply STRIP those custom names until the auth container next restarts, breaking
+# hasura-auth's own queries. functions/account-ops.ts therefore uses the
+# hasura-auth root-field names directly and this file leaves the table alone.
+#
+# (Same caveat applies to the auth.users entry above, which exists only to carry
+# the own-row select permission from PR #95 — verified still live 2026-08-16.)

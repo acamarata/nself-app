@@ -41,8 +41,39 @@ services:
     # hasura (below) must see the SAME value, or every action call 401s.
     # Empty is allowed and means "check disabled" (server.ts warns at boot).
     # CLI gap filed: nself-functions-env-passthrough.
+    #
+    # Same gap, more casualties (found 2026-08-16 by inspecting the RUNNING
+    # container's env: it carried only PORT, DATABASE_URL,
+    # HASURA_GRAPHQL_ADMIN_SECRET and HASURA_GRAPHQL_ENDPOINT):
+    #
+    #   HASURA_AUTH_URL — account-ops.ts and user-delete.ts fell back to their
+    #     compiled-in default of `http://auth:4000`, but this stack publishes the
+    #     auth container on AUTH_PORT (4000 is held by another local stack), so
+    #     every auth call from the functions service hit a closed port. The
+    #     handlers now derive the URL from AUTH_PORT (functions/lib/auth-service.ts)
+    #     and both vars are forwarded here, so code and compose read one source
+    #     of truth instead of two hardcoded numbers that drifted apart.
+    #
+    #   MINIO_* — storage-presign.ts, user-export.ts and user-delete.ts sign
+    #     MinIO requests with SigV4 from MINIO_ACCESS_KEY/MINIO_SECRET_KEY.
+    #     Neither arrived, so every signature was computed with an empty key and
+    #     MinIO rejected it: attachment upload/download URLs, the GDPR export
+    #     upload, and the account-deletion object purge were all dead.
     environment:
       NHOST_WEBHOOK_SECRET: ${NHOST_WEBHOOK_SECRET:-}
+      AUTH_PORT: ${AUTH_PORT:-4000}
+      HASURA_AUTH_URL: ${HASURA_AUTH_URL:-http://auth:${AUTH_PORT:-4000}}
+      HASURA_GRAPHQL_URL: ${HASURA_GRAPHQL_URL:-http://hasura:8080/v1/graphql}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_ENDPOINT_PUBLIC: ${MINIO_ENDPOINT_PUBLIC:-http://localhost:9000}
+      MINIO_BUCKET: ${MINIO_BUCKET:-ntask}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      # `nself build` does not emit MINIO_ACCESS_KEY/MINIO_SECRET_KEY: the
+      # credentials MinIO actually accepts are MINIO_ROOT_USER (hardcoded to
+      # `minioadmin` by the generator) and MINIO_ROOT_PASSWORD (.env.secrets).
+      # Prefer an explicit override, else fall back to the real root credentials.
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-minioadmin}}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-}}
     read_only: false
     tmpfs:
       - /tmp
