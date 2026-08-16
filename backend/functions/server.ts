@@ -17,12 +17,17 @@
 //   - All errors return Hasura-compatible { message } JSON with appropriate HTTP status.
 //   - ACTION_HANDLER_URL in .env.example must be http://functions:3001 when this
 //     service runs inside Docker (functions container on backend_network).
+//   - SECURITY: handlers trust `session_variables['x-hasura-user-id']` as the caller's
+//     identity, so anything that can reach this port can act as any user. Set
+//     NHOST_WEBHOOK_SECRET (and the matching `headers:` entry in
+//     hasura/metadata/actions.yaml) so only Hasura can call it.
 //
 // Port: 3001 (matches ACTION_HANDLER_URL default for Docker; configurable via PORT env).
 // SPORT: F08 backend functions; P5-W5-functions-service
 
 import http from 'http';
 import { Sentry } from './sentry';
+import { isAuthorisedCaller, WEBHOOK_HEADER } from './lib/webhook-auth';
 
 // ── Import action handlers ─────────────────────────────────────────────────────
 import { deleteAccount }     from './user-delete';
@@ -151,6 +156,21 @@ function hasuraError(
   jsonResponse(res, status, { message, extensions });
 }
 
+// ── Caller authentication ─────────────────────────────────────────────────────
+//
+// Every handler treats `session_variables['x-hasura-user-id']` in the request body
+// as proven identity — Hasura derives it from a verified JWT. Nothing downstream
+// re-checks it, so any client that can open a socket to this port can send
+// `{"session_variables": {"x-hasura-user-id": "<any victim>"}}` and read, mutate,
+// or delete that user's account. The service is not routable today (no DNS record
+// for a functions subdomain), but nginx/sites/functions.conf already exists: one
+// config change is the whole distance between "internal" and "exploitable".
+//
+// The guard is a shared secret Hasura attaches to every webhook call — see
+// lib/webhook-auth.ts and the `headers:` entries in hasura/metadata/actions.yaml.
+
+const WEBHOOK_SECRET = process.env['NHOST_WEBHOOK_SECRET'] ?? '';
+
 // ── Request handler ───────────────────────────────────────────────────────────
 
 async function handleRequest(
@@ -168,6 +188,14 @@ async function handleRequest(
 
   if (method !== 'POST') {
     hasuraError(res, 405, 'Method not allowed — only POST');
+    return;
+  }
+
+  // Authenticate before reading the body: an unauthenticated caller must never
+  // reach a handler, and must learn nothing beyond "rejected".
+  if (!isAuthorisedCaller(req.headers, WEBHOOK_SECRET)) {
+    console.warn(`[server] rejected unauthenticated POST ${url}`);
+    hasuraError(res, 401, 'Unauthorized', { code: 'INVALID_WEBHOOK_SECRET' });
     return;
   }
 
@@ -254,6 +282,15 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`[ntask-functions] listening on 0.0.0.0:${PORT}`);
   console.log(`[ntask-functions] ${Object.keys(actionRoutes).length} action routes, ${Object.keys(eventRoutes).length} event routes, ${Object.keys(cronRoutes).length} cron routes`);
+  if (WEBHOOK_SECRET) {
+    console.log(`[ntask-functions] webhook authentication ENABLED (${WEBHOOK_HEADER})`);
+  } else {
+    console.warn(
+      '[ntask-functions] SECURITY: NHOST_WEBHOOK_SECRET is not set — webhook ' +
+      'authentication is DISABLED and any caller that reaches this port can act ' +
+      'as any user. Set NHOST_WEBHOOK_SECRET on this service and on Hasura.'
+    );
+  }
 });
 
 server.on('error', (err) => {

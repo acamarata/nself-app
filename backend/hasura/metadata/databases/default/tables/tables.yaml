@@ -3476,3 +3476,19 @@
       columns: *id068
       filter: {}
       allow_aggregations: true
+
+# np_account_activity — server-side account lifecycle audit log (migration 020).
+#
+# The table existed and was written to by five handlers (user-delete, user-export,
+# account-ops x4, collab-ops), but was never tracked here — so every
+# `insert_np_account_activity_one` was rejected by Hasura as an unknown field. The
+# per-file admin helpers only checked res.ok, so those rejections came back as
+# HTTP 200 and the handlers reported success with nothing written. Tracking it is
+# what makes the audit trail real.
+#
+# No role permissions: inserts come exclusively from the functions service using
+# the admin secret, which bypasses permissions. Grant a select permission here if
+# and when a client surface needs to read its own activity.
+- table:
+    schema: public
+    name: np_account_activity

@@ -7,6 +7,11 @@
   webhook: "{{ACTION_HANDLER_URL}}/cron/create-recurring-instances"
   schedule: "0 3 * * *"
   include_in_metadata: true
+  headers:
+    # Shared secret proving the caller is Hasura — functions/server.ts rejects a
+    # mismatch with 401. Set NHOST_WEBHOOK_SECRET on hasura and functions.
+    - name: x-nself-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
   payload: {}
   retry_conf:
     num_retries: 3
@@ -18,6 +23,11 @@
   webhook: "{{ACTION_HANDLER_URL}}/cron/dispatch-reminders"
   schedule: "*/5 * * * *"
   include_in_metadata: true
+  headers:
+    # Shared secret proving the caller is Hasura — functions/server.ts rejects a
+    # mismatch with 401. Set NHOST_WEBHOOK_SECRET on hasura and functions.
+    - name: x-nself-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
   payload: {}
   retry_conf:
     num_retries: 2
@@ -29,6 +39,11 @@
   webhook: "{{ACTION_HANDLER_URL}}/cron/cleanup"
   schedule: "0 4 * * 0"
   include_in_metadata: true
+  headers:
+    # Shared secret proving the caller is Hasura — functions/server.ts rejects a
+    # mismatch with 401. Set NHOST_WEBHOOK_SECRET on hasura and functions.
+    - name: x-nself-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
   payload:
     retain_days: 90
   retry_conf:
