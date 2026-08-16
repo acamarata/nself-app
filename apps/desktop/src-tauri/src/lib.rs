@@ -16,7 +16,12 @@ mod offline_fallback;
 mod spa_nav;
 mod tray;
 
-use tauri::{Emitter, Listener, Manager, RunEvent, WindowEvent};
+use tauri::{Emitter, Listener, Manager, WindowEvent};
+// RunEvent is only referenced by the macOS-only Reopen handler below. Importing it
+// unconditionally trips `unused_imports` on Linux/Windows, and these workflows run
+// `cargo clippy -- -D warnings`, so the warning would fail the build.
+#[cfg(target_os = "macos")]
+use tauri::RunEvent;
 use tauri_plugin_updater::UpdaterExt;
 use tracing_subscriber::{fmt, EnvFilter};
 
@@ -174,6 +179,12 @@ pub fn run() {
             // (e.g. clicking the Dock icon). Without this the Dock click is a silent
             // no-op — the tray "Open" item and global shortcut remain functional,
             // but the natural macOS reopen gesture would otherwise do nothing.
+            //
+            // RunEvent::Reopen is a macOS-only variant in Tauri 2 — it does not exist
+            // in the enum on Linux or Windows, so matching it unconditionally fails to
+            // COMPILE there (E0599: no variant named `Reopen`). The macOS job passed
+            // while both other desktop builds went red. Hence the cfg gate.
+            #[cfg(target_os = "macos")]
             if let RunEvent::Reopen { has_visible_windows, .. } = event {
                 if !has_visible_windows {
                     if let Some(window) = app_handle.get_webview_window("main") {
@@ -181,6 +192,13 @@ pub fn run() {
                         let _ = window.set_focus();
                     }
                 }
+            }
+
+            // Non-macOS builds have no Reopen gesture; silence unused-binding warnings
+            // without changing behaviour.
+            #[cfg(not(target_os = "macos"))]
+            {
+                let _ = (app_handle, &event);
             }
         });
 }
