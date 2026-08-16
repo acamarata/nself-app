@@ -203,9 +203,24 @@
       - notes
       - source_account_id
       - position
+      # SECURITY: `list_id` was unvalidated, so a user could insert todos into
+      # another user's list. list_id is nullable (todos need not belong to a
+      # list), so a null list_id is explicitly allowed — a relationship check
+      # alone would evaluate false and break list-less todos.
       check:
-        user_id:
-          _eq: X-Hasura-User-Id
+        _and:
+        - user_id:
+            _eq: X-Hasura-User-Id
+        - _or:
+          - list_id:
+              _is_null: true
+          - list:
+              _or:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - shares:
+                  shared_with_user_id:
+                    _eq: X-Hasura-User-Id
       set:
         user_id: x-hasura-User-Id
   - role: owner
@@ -1172,7 +1187,18 @@
       - list_id
       - status
       - editing_todo_id
-      check: {}
+      # SECURITY: was `check: {}` — any user could write a presence row into any
+      # list, leaking their identity into (and appearing as a live collaborator
+      # on) lists they have no access to. The list must be one the caller owns or
+      # has a share on — mirrors this table's own select filter.
+      check:
+        list:
+          _or:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - shares:
+              shared_with_user_id:
+                _eq: X-Hasura-User-Id
       set:
         user_id: X-Hasura-User-Id
   - role: owner
@@ -1716,15 +1742,46 @@
       - todo_id
       - comment_id
       - storage_key
-      - bucket
+      # SECURITY: `bucket` removed from client-insertable columns. The server
+      # never lets a client choose a bucket (storage-presign.ts always signs
+      # MINIO_BUCKET), but getDownloadUrl honours `attachment.bucket`, so a
+      # client-chosen value allowed cross-bucket traversal. The column default
+      # ('ntask') now applies.
       - file_name
       - mime_type
       - file_size_bytes
       - acl
       - source_account_id
+      # SECURITY: previously only `uploader_id` was validated, and uploader_id is
+      # force-`set` below — so the check was vacuous and the client was free to
+      # choose any storage_key. getDownloadUrl authorises on `uploader_id ==
+      # caller`, then signs storage_key with the MinIO root credentials: a user
+      # could register a row on their own todo pointing at another user's object
+      # (e.g. exports/{victim}/data-export-*.json) and download it.
+      #
+      # storage_key_owner is a generated column (migration 028) holding the UUID
+      # segment of attachments/{uuid}/... — Hasura cannot concatenate a session
+      # variable with a literal prefix, so the prefix rule is expressed as an
+      # equality on that derived column. Non-canonical keys yield NULL and fail.
+      #
+      # todo ownership is also enforced here, matching getUploadUrl (which
+      # requires todo.user_id == caller) and this table's own select filter.
+      # NOTE the explicit `_is_null: false`. A non-canonical storage_key (e.g.
+      # "exports/{victim}/data-export.json") yields storage_key_owner = NULL, and
+      # `NULL = <uuid>` evaluates to NULL, which Postgres treats as a PASSING
+      # check — so `_eq` alone still admitted the exact attack this fix targets.
+      # Verified: without this clause the forged exports/ key was accepted.
       check:
-        uploader_id:
-          _eq: X-Hasura-User-Id
+        _and:
+        - uploader_id:
+            _eq: X-Hasura-User-Id
+        - storage_key_owner:
+            _is_null: false
+        - storage_key_owner:
+            _eq: X-Hasura-User-Id
+        - todo:
+            user_id:
+              _eq: X-Hasura-User-Id
       set:
         uploader_id: X-Hasura-User-Id
   - role: owner
@@ -3019,7 +3076,17 @@
       - is_anonymous
       - locale
       - email_verified
-      filter: {}
+      # SECURITY: was `filter: {}` — any authenticated user could dump every
+      # user's email + UUID from auth.users. Scoped to the caller's own row so
+      # `email` is only ever visible to the owner of that row.
+      # Collaborator identity does NOT flow through auth.users: no client query
+      # selects the `users` root field, and no query traverses the
+      # user/author/actor/assignee/uploader/owner/inviter relationships that
+      # resolve here. Collab UIs read a `profile` field (-> np_profiles), so
+      # narrowing this breaks no working read path.
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
       allow_aggregations: false
 - table:
     schema: public
@@ -3339,9 +3406,23 @@
       - todo_id
       - action
       - metadata
+      # SECURITY: `todo_id` was unvalidated (and the actor_id check was vacuous,
+      # since actor_id is force-`set` below), so any user could forge activity
+      # entries on any todo in the system. The parent todo must now be one the
+      # caller can actually see — mirrors this table's own select filter.
       check:
-        actor_id:
-          _eq: X-Hasura-User-Id
+        _and:
+        - actor_id:
+            _eq: X-Hasura-User-Id
+        - _or:
+          - todo:
+              user_id:
+                _eq: X-Hasura-User-Id
+          - todo:
+              list:
+                shares:
+                  shared_with_user_id:
+                    _eq: X-Hasura-User-Id
       set:
         actor_id: X-Hasura-User-Id
   select_permissions:
