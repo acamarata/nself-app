@@ -1,4 +1,4 @@
-name: Security Scan
+name: Dependency Audit (OSV)
 
 # Retargeted from app/pubspec.lock (Flutter) to apps/mobile/pnpm-lock.yaml (React Native Expo)
 # after mega-p1/rn-migration. OSV Scanner supports pnpm lockfiles natively.

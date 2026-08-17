@@ -12,7 +12,10 @@ import { defineConfig, devices } from '@playwright/test';
  *   TASKS_URL=https://task.nself.org pnpm test:e2e
  */
 export default defineConfig({
-  testDir: './tests/e2e',
+  // Resolved relative to THIS file, not the repo root. './tests/e2e' pointed at
+  // tests/tests/e2e and matched nothing, which is one of several reasons this
+  // suite never actually ran.
+  testDir: './e2e',
 
   // Stop on first failure in CI to surface issues fast
   fullyParallel: true,
