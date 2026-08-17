@@ -13,7 +13,8 @@ rather than embedding them.
 | `POSTGRES_PASSWORD` | postgres, hasura, auth, functions | Database password. Every service builds its connection string from it. |
 | `HASURA_ADMIN_SECRET` | hasura, functions | Admin access to Hasura. Never ship this to a client. |
 | `AUTH_JWT_SECRET` / `HASURA_GRAPHQL_JWT_SECRET` | auth, hasura | Must match, or auth issues tokens Hasura refuses to verify. A mismatch shows up as `JWSInvalidSignature` on every request. |
-| `AUTH_SMTP_*` | auth | Outbound mail for verification and password reset. |
+| `AUTH_SMTP_HOST` / `AUTH_SMTP_PORT` / `AUTH_SMTP_SECURE` / `AUTH_SMTP_AUTH_METHOD` / `AUTH_SMTP_USER` / `AUTH_SMTP_PASS` / `AUTH_SMTP_SENDER` | auth | Outbound mail for verification and password reset, sent via Postmark over SMTP (`smtp.postmarkapp.com:587`). Both `AUTH_SMTP_USER` and `AUTH_SMTP_PASS` are the same Postmark server token. Do not set `AUTH_SMTP_HOST` to the literal string `postmark` — that switches hasura-auth into API mode, which looks up server-side templates by alias and ignores `AUTH_EMAIL_TEMPLATES_PATH`. |
+| `AUTH_EMAIL_TEMPLATES_PATH` | auth | Path hasura-auth reads local email templates from (`backend/email-templates/{locale}/{template-id}/{body.html,subject.txt}`), rendered with fasttemplate syntax (`${link}`, `${email}`), not Go templates. Only takes effect in SMTP mode. |
 
 ## Action handlers
 
