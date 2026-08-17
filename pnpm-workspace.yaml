@@ -2,6 +2,6 @@ packages:
   - 'apps/mobile'
   - 'apps/tv'
   - 'apps/desktop'
-  - 'cli'
-  - 'mcp'
+  - 'apps/cli'
+  - 'apps/mcp'
   - '../packages/@nself/*'
