@@ -77,13 +77,22 @@ test.describe('deep link association files', () => {
 })
 
 test.describe('legal pages', () => {
-  for (const path of ['/legal/privacy', '/legal/terms']) {
-    test(`${path} renders substantive content`, async ({ page }) => {
+  for (const [path, heading] of [
+    ['/legal/privacy', /privacy/i],
+    ['/legal/terms', /terms/i],
+  ] as const) {
+    test(`${path} renders its document`, async ({ page }) => {
       const resp = await page.goto(path)
       expect(resp?.status()).toBe(200)
-      // Guards against a route that resolves but renders an empty shell.
-      const text = await page.locator('body').innerText()
-      expect(text.length).toBeGreaterThan(500)
+      // Assert on structure, not on how much text a given viewport happens to
+      // lay out. innerText only returns *rendered* text, so a narrow viewport
+      // reported far less than a desktop one and a length threshold failed on
+      // mobile while the page was perfectly fine.
+      await expect(page.getByRole('heading', { name: heading }).first()).toBeVisible({
+        timeout: 10_000,
+      })
+      // Still guard against a route that resolves to an empty shell.
+      await expect(page.locator('p').first()).toBeVisible()
     })
   }
 })
