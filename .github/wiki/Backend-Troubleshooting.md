@@ -70,14 +70,44 @@ Common backend issues and fixes. The backend is a Docker Compose stack driven by
 1. Confirm `.env` has the secret set, then `make restart`.
 2. Paste the exact secret value into the console prompt; the console caches it in browser storage.
 
-## Email previews don't show in Mailpit
+## Password reset or verification email never arrives
 
-**Symptom:** Auth password resets or invitations sent, but nothing appears in `http://localhost:8025`.
-**Cause:** Auth service is configured to use a real SMTP server instead of Mailpit, or Mailpit container exited.
-**Fix:**
-1. Confirm `AUTH_SMTP_HOST=mailpit` and `AUTH_SMTP_PORT=1025` in `backend/.env` for local dev.
-2. `make status`: confirm `mailpit` container is running.
-3. `docker compose restart auth mailpit`.
+**Symptom:** `POST /user/password/reset` returns HTTP 500, or returns 200 but nothing
+appears in the mail catcher at `http://localhost:8025`.
+
+There are three distinct causes and they look alike, so check the auth log first:
+`docker compose logs auth | grep "problem sending email"`. The error text tells you
+which one you have.
+
+**1. No mail catcher is running.**
+Log shows `dial tcp: lookup <host>: no such host`.
+`nself.yaml` declares `mailhog: dev_only: true`, but `nself build` does not emit that
+container, so nothing is listening. It is supplied by `backend/docker-compose.override.yml`
+instead. Confirm with `docker ps | grep mailhog`, then `docker compose up -d mailhog`.
+
+**2. The catcher is Mailpit rather than MailHog.**
+Log shows `502 5.5.1 Command not implemented`. The connection succeeded, so this looks
+like a different problem than it is. hasura-auth 0.36 calls `c.Auth()` unconditionally
+in `sendMail()` and issues SMTP `AUTH PLAIN` even when no credentials are configured.
+Mailpit's default listener rejects AUTH; MailHog accepts it with any credentials.
+Use `mailhog/mailhog:v1.0.1`. (Mailpit can be forced to work with
+`MP_SMTP_AUTH_ACCEPT_ANY=1` and `MP_SMTP_AUTH_ALLOW_INSECURE=1`, but the stack
+standardises on MailHog so there is one answer.)
+
+**3. The SMTP host is not on hasura-auth's allowlist.**
+Log shows `unencrypted connection`. Over a non-TLS connection hasura-auth only trusts
+the hostnames `mailhog`, `localhost`, `127.0.0.1`, and `::1`. Any other name is refused
+even with `AUTH_SMTP_SECURE=false` and no credentials set. This is why the service is
+named `mailhog` rather than relabelled. Set `AUTH_SMTP_HOST=mailhog`.
+
+## Email arrives but is not the template we ship
+
+**Symptom:** The subject reads "Reset your password" rather than "Reset your ɳTask password".
+**Cause:** `AUTH_EMAIL_TEMPLATES_PATH` is unset, so hasura-auth renders its stock templates.
+The environment is then validating a different email than the one users receive.
+**Fix:** Set `AUTH_EMAIL_TEMPLATES_PATH=/app/email-templates` and mount
+`backend/email-templates` at that path. Templates are `{locale}/{template-id}/{body.html,subject.txt}`
+and substitution is fasttemplate syntax (`${link}`, `${email}`), not Go template syntax.
 
 ## "address already in use" on staging or production
 
