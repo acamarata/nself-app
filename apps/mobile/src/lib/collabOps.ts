@@ -71,6 +71,25 @@ export const GET_LIST_MEMBERS = gql`
   }
 `;
 
+/**
+ * One collaborator's display identity.
+ *
+ * Reads np_member_profiles (migration 029), not np_profiles: np_profiles is
+ * scoped for role `user` to the caller's own row so another member's profile
+ * always came back null, and it carries `email`, which co-members must not see.
+ * The view is not a base table, so there is no `_by_pk` field — hence
+ * `where`+`limit: 1` on the primary key column.
+ */
+export const GET_MEMBER_PROFILE = gql`
+  query GetMemberProfile($userId: uuid!) {
+    np_member_profiles(where: { id: { _eq: $userId } }, limit: 1) {
+      id
+      display_name
+      avatar_url
+    }
+  }
+`;
+
 export const GET_LIST_INVITES = gql`
   query GetListInvites($listId: uuid!) {
     np_list_invites(where: { list_id: { _eq: $listId } }) {

@@ -5,23 +5,18 @@
 //   - HASURA_AUTH_ADMIN_SECRET never sent to client (server-side env only)
 //   - Idempotent: calling after deletion returns success (user already gone)
 //   - Cascade order: MinIO objects → np_* rows → auth.users row
+//   - The auth.users delete is VERIFIED by re-reading the row, not by a status
+//     code. Reporting success while the login credential survives is the worst
+//     possible outcome for this action.
 //   - Logs audit record to np_account_activity before deleting user
 // SPORT: F08 backend functions; J-S3-T1
 
 import { Sentry } from './sentry';
 import { adminGql } from './lib/admin-gql';
 import { unauthorized } from './lib/action-error';
+import { presignS3Url, minioEndpoint, minioBucket } from './lib/s3-presign';
 
-const ADMIN_SECRET = process.env.HASURA_GRAPHQL_ADMIN_SECRET || '';
-// HASURA_AUTH_URL: the auth service endpoint used by user-delete (admin DELETE /users/{id}).
-//   AUTH_MODE=bundled (default): http://auth:4000 (local hasura-auth container)
-//   AUTH_MODE=external: https://auth.{env}.nself.org (shared nself auth)
-// Set HASURA_AUTH_URL in .env.secrets or CI to override for the target environment.
-const AUTH_URL = process.env.HASURA_AUTH_URL || 'http://auth:4000';
-const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://minio:9000';
-const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || '';
-const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY || '';
-const MINIO_BUCKET = process.env.MINIO_BUCKET || 'ntask';
+const OBJECT_DELETE_TTL_SECONDS = 300;
 
 interface HasuraActionPayload {
   action: { name: string };
@@ -50,24 +45,26 @@ async function fetchAttachmentKeys(userId: string): Promise<string[]> {
   return data.np_attachments?.map((a) => a.storage_key) ?? [];
 }
 
-/** Delete a single MinIO object via the S3-compatible DELETE API. */
+/**
+ * Delete a single MinIO object.
+ *
+ * Signed with SigV4 via lib/s3-presign. The previous implementation sent an HTTP
+ * `Authorization: Basic` header, which MinIO rejects outright — so this step
+ * always failed, and (being non-fatal below) the failure was only ever logged.
+ * Objects were left behind on every account deletion.
+ */
 async function deleteMinioObject(storageKey: string): Promise<void> {
-  // MinIO S3 API: DELETE /{bucket}/{key}
-  // Auth: AWS Signature V4. For simplicity in this serverless context we use
-  // the MinIO mc-compatible presigned approach via the internal network.
-  // Production: replace with @aws-sdk/client-s3 or minio npm client.
-  const url = `${MINIO_ENDPOINT}/${MINIO_BUCKET}/${encodeURIComponent(storageKey)}`;
-
-  // HMAC-SHA256 signing is required for real MinIO. This stub issues the delete
-  // and is replaced by the full S3 client in the next wave (A-S4-T3).
-  // For now we call the MinIO HTTP API with basic auth as a placeholder.
-  const credentials = Buffer.from(`${MINIO_ACCESS_KEY}:${MINIO_SECRET_KEY}`).toString('base64');
-  const res = await fetch(url, {
+  const { url } = presignS3Url({
     method: 'DELETE',
-    headers: { Authorization: `Basic ${credentials}` },
+    endpoint: minioEndpoint(),
+    bucket: minioBucket(),
+    objectKey: storageKey,
+    ttlSeconds: OBJECT_DELETE_TTL_SECONDS,
   });
-  // 204 = deleted, 404 = already gone (idempotent)
-  if (res.status !== 204 && res.status !== 404) {
+
+  const res = await fetch(url, { method: 'DELETE' });
+  // 200/204 = deleted, 404 = already gone (idempotent)
+  if (res.status !== 200 && res.status !== 204 && res.status !== 404) {
     throw new Error(`MinIO delete failed for key ${storageKey}: ${res.status}`);
   }
 }
@@ -94,18 +91,42 @@ async function logAccountActivity(
   );
 }
 
-/** Call hasura-auth admin endpoint to delete the auth user record. */
+/**
+ * Delete the auth.users row — the step that actually terminates the account.
+ *
+ * WHY NOT hasura-auth: `DELETE /users/{id}` does not exist in nhost/hasura-auth
+ * 0.36.0 (probed 2026-08-16: 404 "route-not-found"). The old implementation called
+ * it AND treated 404 as "already gone", so the final step of every account
+ * deletion silently no-opped while the action still answered success: the login
+ * credential survived a "deleted" account indefinitely.
+ *
+ * auth.users is tracked in Hasura, so the admin client deletes the row directly.
+ * Every np_ table and task_users references auth.users(id) ON DELETE CASCADE, so
+ * this also sweeps anything the explicit deletes above missed.
+ *
+ * Idempotent by RE-READING, not by trusting a status code: if the row is absent
+ * afterwards the account is gone regardless of who deleted it, and if it is still
+ * present this throws rather than reporting a successful deletion.
+ */
 async function deleteAuthUser(userId: string): Promise<void> {
-  const res = await fetch(`${AUTH_URL}/users/${userId}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-hasura-admin-secret': ADMIN_SECRET,
-    },
-  });
-  // 200/204 = deleted, 404 = already gone (idempotent)
-  if (res.status !== 200 && res.status !== 204 && res.status !== 404) {
-    throw new Error(`hasura-auth DELETE /users/${userId} failed: ${res.status} ${await res.text()}`);
+  // Root fields are hasura-auth's own: `deleteUsers` and `user` (select_by_pk).
+  // hasura-auth re-applies that configuration to the auth schema on every startup.
+  await adminGql(
+    `mutation DeleteAuthUser($userId: uuid!) {
+      deleteUsers(where: { id: { _eq: $userId } }) { affected_rows }
+    }`,
+    { userId }
+  );
+
+  const check = await adminGql<{ user: { id: string } | null }>(
+    `query VerifyAuthUserGone($userId: uuid!) { user(id: $userId) { id } }`,
+    { userId }
+  );
+
+  if (check.user) {
+    throw new Error(
+      `auth.users row for ${userId} still present after delete — account NOT deleted`
+    );
   }
 }
 

@@ -18,10 +18,10 @@
 import { Sentry } from './sentry';
 import { adminGql } from './lib/admin-gql';
 import { unauthorized } from './lib/action-error';
+import { authBaseUrl } from './lib/auth-service';
 
 const APP_BASE_URL = process.env.NTASK_APP_BASE_URL           || 'https://task.nself.org';
 const SMTP_FROM    = process.env.SMTP_FROM_ADDRESS            || '';
-const AUTH_URL     = process.env.HASURA_AUTH_URL              || 'http://auth:4000';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -50,12 +50,20 @@ type PresenceResult = { success: boolean };
 // Auth helper: resolve email from user ID via admin query
 // ---------------------------------------------------------------------------
 
+/**
+ * ROOT FIELD: `user`, not `users_by_pk`. hasura-auth applies its own table
+ * configuration to the auth schema on every startup, renaming auth.users'
+ * select_by_pk root field to `user`. The previous `users_by_pk` selection did not
+ * exist in query_root, so this threw "field 'users_by_pk' not found" on every
+ * call — every invite that needed the inviter's address failed. Verified by
+ * introspecting the running instance (2026-08-16).
+ */
 async function getUserEmail(userId: string): Promise<string | null> {
-  const result = await adminGql<{ users_by_pk: { email?: string } | null }>(
-    `query GetUserEmail($id: uuid!) { users_by_pk(id: $id) { email } }`,
+  const result = await adminGql<{ user: { email?: string } | null }>(
+    `query GetUserEmail($id: uuid!) { user(id: $id) { email } }`,
     { id: userId }
   );
-  return result.users_by_pk?.email ?? null;
+  return result.user?.email ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -122,7 +130,9 @@ async function sendInviteEmail(opts: {
 
   // Send via hasura-auth email endpoint (which uses the configured SMTP relay)
   try {
-    const res = await fetch(`${AUTH_URL}/api/send-email`, {
+    // Auth base URL is derived from AUTH_PORT (lib/auth-service) rather than a
+    // hardcoded :4000, which did not match the port this stack publishes.
+    const res = await fetch(`${authBaseUrl()}/api/send-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

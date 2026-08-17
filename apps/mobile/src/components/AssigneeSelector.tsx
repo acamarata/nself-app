@@ -1,20 +1,23 @@
 /**
  * Purpose: Assignee display/picker for task detail.
  * Inputs: assigneeId string | null, onChange callback, readonly flag.
- * Outputs: Shows assignee display name (fetched from np_profiles); allows clearing.
+ * Outputs: Shows assignee display name (from np_member_profiles); allows clearing.
  * Constraints: Full member-picker modal is P5-S3 scope; this version shows profile data.
+ *   Was querying GET_PROFILE with a `userId` variable, but GET_PROFILE takes no
+ *   variables and selects np_profiles — which is scoped to the CALLER's own row.
+ *   So it could only ever have shown the signed-in user, never the assignee.
  * SPORT: P5-C-mobile — replaces readonly stub.
  */
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useQuery } from 'urql';
-import { GET_PROFILE } from '../lib/hasura';
+import { GET_MEMBER_PROFILE } from '../lib/collabOps';
 import type { NpProfile } from '../types';
 import { useTheme } from '../theme';
 
 interface ProfileData {
-  np_profiles_by_pk: Pick<NpProfile, 'id' | 'display_name' | 'avatar_url'> | null;
+  np_member_profiles: Array<Pick<NpProfile, 'id' | 'display_name' | 'avatar_url'>>;
 }
 
 interface Props {
@@ -26,13 +29,13 @@ interface Props {
 export function AssigneeSelector({ assigneeId, onChange, readonly = false }: Props) {
   const { colors } = useTheme();
   const [result] = useQuery<ProfileData>({
-    query: GET_PROFILE,
+    query: GET_MEMBER_PROFILE,
     variables: { userId: assigneeId ?? '' },
     pause: !assigneeId,
     requestPolicy: 'cache-and-network',
   });
 
-  const profile = result.data?.np_profiles_by_pk;
+  const profile = result.data?.np_member_profiles?.[0];
   const displayName = profile?.display_name ?? (assigneeId ? `User …${assigneeId.slice(-6)}` : 'Unassigned');
 
   const handlePress = () => {

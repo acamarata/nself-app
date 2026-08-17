@@ -1,10 +1,10 @@
 // Purpose: Hasura Action handlers for authenticated account management operations
-//   - changeEmail: request email change via hasura-auth PATCH /user
-//   - changePassword: re-authenticate, update password, revoke other sessions
-//   - listSessions: proxy to hasura-auth GET /user/sessions
-//   - revokeSession: proxy to hasura-auth DELETE /user/sessions/{id}
-//   - enableMfa: proxy to hasura-auth TOTP enable endpoint
-//   - disableMfa: proxy to hasura-auth TOTP disable endpoint
+//   - changeEmail:    hasura-auth POST /user/email/change
+//   - changePassword: re-authenticate, POST /user/password, revoke other sessions
+//   - listSessions:   read auth.refresh_tokens via admin GraphQL
+//   - revokeSession:  delete one auth.refresh_tokens row via admin GraphQL
+//   - enableMfa:      hasura-auth GET /mfa/totp/generate
+//   - disableMfa:     hasura-auth POST /user/mfa
 //
 // Inputs: Hasura Action payload; user JWT forwarded as Bearer token
 // Outputs: operation-specific result objects
@@ -16,17 +16,21 @@
 //     token alone is not sufficient authority to rotate a password.
 //   - All Hasura traffic goes through lib/admin-gql, which throws on the HTTP-200
 //     { errors: [...] } responses the old per-file helper reported as success.
+//   - ROUTES: every hasura-auth path here was probed against the running
+//     nhost/hasura-auth 0.36.0 container. `PATCH /user`, `GET /user/sessions` and
+//     `DELETE /user/sessions/{id}` — the routes this file used to call — return
+//     404 "route-not-found" and never existed in this version. See lib/auth-service.
+//   - SESSION OPS RUN AS ADMIN: 0.36.0 exposes no per-user session API, so
+//     listSessions/revokeSession read and write auth.refresh_tokens directly. Both
+//     are therefore scoped to `user_id = x-hasura-user-id` IN THE QUERY — the auth
+//     service is no longer doing that scoping for us, and an unscoped admin
+//     mutation would let any caller revoke any other user's session by id.
 // SPORT: F08 backend functions; J-S2-T1, J-S2-T2
 
 import { Sentry } from './sentry';
 import { adminGql } from './lib/admin-gql';
-import { badRequest, unauthorized } from './lib/action-error';
-
-// HASURA_AUTH_URL: the auth service endpoint used by account-ops functions.
-//   AUTH_MODE=bundled (default): http://auth:4000 (local hasura-auth container)
-//   AUTH_MODE=external: https://auth.{env}.nself.org (shared nself auth)
-// Set HASURA_AUTH_URL in .env.secrets or CI to override for the target environment.
-const AUTH_URL = process.env.HASURA_AUTH_URL || 'http://auth:4000';
+import { badRequest, unauthorized, ActionError } from './lib/action-error';
+import { authGet, authPost } from './lib/auth-service';
 
 interface HasuraActionPayload {
   action: { name: string };
@@ -35,47 +39,6 @@ interface HasuraActionPayload {
 }
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
-
-/** Forward authenticated request to hasura-auth using the user's own access token. */
-async function authPatch(
-  path: string,
-  body: Record<string, unknown>,
-  accessToken: string
-): Promise<{ ok: boolean; status: number; data: unknown }> {
-  const res = await fetch(`${AUTH_URL}${path}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => null);
-  return { ok: res.ok, status: res.status, data };
-}
-
-async function authGet(
-  path: string,
-  accessToken: string
-): Promise<{ ok: boolean; status: number; data: unknown }> {
-  const res = await fetch(`${AUTH_URL}${path}`, {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  const data = await res.json().catch(() => null);
-  return { ok: res.ok, status: res.status, data };
-}
-
-async function authDelete(
-  path: string,
-  accessToken: string
-): Promise<{ ok: boolean; status: number }> {
-  const res = await fetch(`${AUTH_URL}${path}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  return { ok: res.ok, status: res.status };
-}
 
 /**
  * Best-effort audit write. Used for records made AFTER the operation already
@@ -118,13 +81,23 @@ function extractBearerToken(payload: HasuraActionPayload): string {
   return token;
 }
 
-/** Resolve the caller's email address from the auth user mirror. */
+/**
+ * Resolve the caller's email address from auth.users.
+ *
+ * ROOT FIELD: `user`, not `users_by_pk`. hasura-auth applies its OWN table
+ * configuration to the auth schema on every startup, renaming auth.users' root
+ * fields to users / user / insertUser / updateUsers / deleteUsers and its columns
+ * to camelCase. The previous `users_by_pk` selection therefore did not exist in
+ * query_root and every call threw "field 'users_by_pk' not found" — which made
+ * changePassword fail for every user before it ever reached the password check.
+ * Verified by introspecting the running instance (2026-08-16).
+ */
 async function getUserEmail(userId: string): Promise<string | null> {
-  const data = await adminGql<{ users_by_pk: { email?: string } | null }>(
-    `query GetUserEmail($id: uuid!) { users_by_pk(id: $id) { email } }`,
+  const data = await adminGql<{ user: { email?: string } | null }>(
+    `query GetUserEmail($id: uuid!) { user(id: $id) { email } }`,
     { id: userId }
   );
-  return data.users_by_pk?.email ?? null;
+  return data.user?.email ?? null;
 }
 
 /**
@@ -139,11 +112,10 @@ async function verifyPassword(
   email: string,
   password: string
 ): Promise<{ accessToken: string | null }> {
-  const res = await fetch(`${AUTH_URL}/signin/email-password`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
+  const res = await authPost<{ session?: { accessToken?: string } | null }>(
+    '/signin/email-password',
+    { email, password }
+  );
 
   if (res.status === 401 || res.status === 403 || res.status === 400) {
     throw unauthorized('Current password is incorrect.', 'INVALID_CURRENT_PASSWORD');
@@ -152,11 +124,7 @@ async function verifyPassword(
     throw new Error(`Password verification failed upstream: ${res.status}`);
   }
 
-  const data = (await res.json().catch(() => null)) as {
-    session?: { accessToken?: string } | null;
-  } | null;
-
-  return { accessToken: data?.session?.accessToken ?? null };
+  return { accessToken: res.data?.session?.accessToken ?? null };
 }
 
 /**
@@ -166,14 +134,7 @@ async function verifyPassword(
  */
 async function revokeAllSessions(accessToken: string): Promise<boolean> {
   try {
-    const res = await fetch(`${AUTH_URL}/signout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ all: true }),
-    });
+    const res = await authPost('/signout', { all: true }, accessToken);
     if (!res.ok) {
       console.error(`[account-ops] session revocation returned ${res.status}`);
       Sentry.captureMessage(`session revocation returned ${res.status}`, 'warning');
@@ -210,9 +171,14 @@ export async function changeEmail(
   }
 
   try {
-    const result = await authPatch('/user', { email: newEmail }, accessToken);
+    // hasura-auth 0.36.0: POST /user/email/change { newEmail }. The old call was
+    // PATCH /user, which this version answers with 404 "route-not-found".
+    const result = await authPost('/user/email/change', { newEmail }, accessToken);
 
     if (!result.ok) {
+      if (result.status === 401 || result.status === 403) {
+        throw unauthorized('Session expired. Please log in again.', 'AUTH_SESSION_EXPIRED');
+      }
       throw new Error(
         `Email change failed: ${result.status} — ${JSON.stringify(result.data)}`
       );
@@ -302,12 +268,14 @@ export async function changePassword(
       );
     }
 
-    const result = await authPatch('/user', { password: newPassword }, accessToken);
+    // hasura-auth 0.36.0: POST /user/password { newPassword }. The old call was
+    // PATCH /user, which this version answers with 404 "route-not-found".
+    const result = await authPost('/user/password', { newPassword }, accessToken);
     if (!result.ok) {
-      const msg = result.status === 401
-        ? 'Session expired. Please log in again.'
-        : `Password change failed: ${JSON.stringify(result.data)}`;
-      throw new Error(msg);
+      if (result.status === 401 || result.status === 403) {
+        throw unauthorized('Session expired. Please log in again.', 'AUTH_SESSION_EXPIRED');
+      }
+      throw new Error(`Password change failed: ${result.status} — ${JSON.stringify(result.data)}`);
     }
 
     // 3. Revoke every refresh token so sessions opened with the old password —
@@ -342,22 +310,64 @@ export async function changePassword(
 
 // ── listSessions ─────────────────────────────────────────────────────────────
 
-interface SessionsResult {
-  sessions: unknown[];
+/** One row of auth.refresh_tokens, shaped to the `Session` action type. */
+interface SessionRow {
+  id: string;
+  createdAt: string | null;
+  expiresAt: string | null;
+  type: string | null;
 }
 
+interface SessionsResult {
+  sessions: SessionRow[];
+}
+
+/**
+ * listSessions — the caller's live refresh tokens, newest first.
+ *
+ * hasura-auth 0.36.0 has no session API (`GET /user/sessions` is a 404), so this
+ * reads auth.refresh_tokens — the table hasura-auth itself uses to represent a
+ * session — through the admin client. The `user_id` predicate is the ONLY thing
+ * scoping the result to the caller, so it is derived from the session variable
+ * and never from client input. Token hashes are never selected.
+ */
 export async function listSessions(
   payload: HasuraActionPayload
 ): Promise<SessionsResult> {
-  const accessToken = extractBearerToken(payload);
+  const userId = payload.session_variables['x-hasura-user-id'];
+  if (!userId) {
+    throw unauthorized('Missing x-hasura-user-id in session variables', 'MISSING_USER_ID');
+  }
 
   try {
-    const result = await authGet('/user/sessions', accessToken);
-    if (!result.ok) {
-      throw new Error(`Failed to fetch sessions: ${result.status}`);
-    }
-    const sessions = Array.isArray(result.data) ? result.data : [];
-    return { sessions };
+    // Root field and columns are hasura-auth's, not Hasura's defaults:
+    // authRefreshTokens / userId / createdAt / expiresAt. hasura-auth re-applies
+    // that configuration to the auth schema on every startup.
+    const data = await adminGql<{
+      authRefreshTokens: Array<{
+        id: string;
+        createdAt: string | null;
+        expiresAt: string | null;
+        type: string | null;
+      }>;
+    }>(
+      `query ListSessions($userId: uuid!) {
+        authRefreshTokens(
+          where: { userId: { _eq: $userId } }
+          order_by: { createdAt: desc }
+        ) { id createdAt expiresAt type }
+      }`,
+      { userId }
+    );
+
+    return {
+      sessions: (data.authRefreshTokens ?? []).map((r) => ({
+        id: r.id,
+        createdAt: r.createdAt,
+        expiresAt: r.expiresAt,
+        type: r.type,
+      })),
+    };
   } catch (err) {
     Sentry.captureException(err, { tags: { function: 'account-ops', op: 'listSessions' } });
     throw err;
@@ -376,20 +386,43 @@ interface RevokeSessionResult {
   success: boolean;
 }
 
+/**
+ * revokeSession — end one of the caller's own sessions.
+ *
+ * SECURITY: `DELETE /user/sessions/{id}` does not exist in hasura-auth 0.36.0, so
+ * the delete runs as admin against auth.refresh_tokens. Admin bypasses every
+ * permission, which means the `user_id` predicate below is the whole
+ * authorisation check — without it, any authenticated caller could pass another
+ * user's session id and sign them out. sessionId is client input and is used only
+ * as an equality filter alongside the session-derived user id.
+ */
 export async function revokeSession(
   payload: HasuraActionPayload
 ): Promise<RevokeSessionResult> {
   const userId = payload.session_variables['x-hasura-user-id'];
-  const accessToken = extractBearerToken(payload);
   const { sessionId } = payload.input as unknown as RevokeSessionInput;
 
+  if (!userId) {
+    throw unauthorized('Missing x-hasura-user-id in session variables', 'MISSING_USER_ID');
+  }
   if (!sessionId) throw badRequest('sessionId is required', 'MISSING_SESSION_ID');
 
   try {
-    const result = await authDelete(`/user/sessions/${sessionId}`, accessToken);
-    // 200/204 = revoked, 404 = already gone (idempotent)
-    if (!result.ok && result.status !== 404) {
-      throw new Error(`Revoke session failed: ${result.status}`);
+    const data = await adminGql<{
+      deleteAuthRefreshTokens: { affected_rows: number } | null;
+    }>(
+      `mutation RevokeSession($userId: uuid!, $sessionId: uuid!) {
+        deleteAuthRefreshTokens(
+          where: { id: { _eq: $sessionId }, userId: { _eq: $userId } }
+        ) { affected_rows }
+      }`,
+      { userId, sessionId }
+    );
+
+    // 0 rows = the session is not the caller's, or was already revoked. Both get
+    // the same answer so this cannot be used to probe for other users' session ids.
+    if ((data.deleteAuthRefreshTokens?.affected_rows ?? 0) === 0) {
+      throw new ActionError('Session not found.', 'SESSION_NOT_FOUND', 404);
     }
 
     await logAudit(
@@ -429,20 +462,21 @@ export async function enableMfa(
   const accessToken = extractBearerToken(payload);
 
   try {
-    // hasura-auth TOTP: POST /user/mfa/totp/generate
-    const res = await fetch(`${AUTH_URL}/user/mfa/totp/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    const data = (await res.json().catch(() => null)) as {
+    // hasura-auth 0.36.0: GET /mfa/totp/generate. The old call —
+    // POST /user/mfa/totp/generate — is a 404 "route-not-found" in this version.
+    // The response field for the QR image is `imageUrl`; `qrCodeUrl` is accepted
+    // too so a future version renaming it back does not silently return null.
+    const res = await authGet<{
       totpSecret?: string;
+      imageUrl?: string;
       qrCodeUrl?: string;
-    } | null;
+    }>('/mfa/totp/generate', accessToken);
+    const data = res.data;
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw unauthorized('Session expired. Please log in again.', 'AUTH_SESSION_EXPIRED');
+      }
       throw new Error(`MFA enable failed: ${res.status} — ${JSON.stringify(data)}`);
     }
 
@@ -471,7 +505,7 @@ export async function enableMfa(
     return {
       success: true,
       totpSecret: data?.totpSecret,
-      qrCodeUrl: data?.qrCodeUrl,
+      qrCodeUrl: data?.imageUrl ?? data?.qrCodeUrl,
     };
   } catch (err) {
     Sentry.captureException(err, { tags: { function: 'account-ops', op: 'enableMfa' } });
@@ -497,19 +531,19 @@ export async function disableMfa(
   if (!otp) throw badRequest('otp is required to disable MFA', 'MISSING_OTP');
 
   try {
-    // hasura-auth: POST /user/mfa/totp/disable with OTP confirmation
-    const res = await fetch(`${AUTH_URL}/user/mfa/totp/disable`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ otp }),
-    });
+    // hasura-auth 0.36.0: POST /user/mfa { code, activeMfaType }. An empty
+    // activeMfaType turns MFA off; the old call — POST /user/mfa/totp/disable —
+    // is a 404 "route-not-found" in this version.
+    const res = await authPost('/user/mfa', { code: otp, activeMfaType: '' }, accessToken);
 
     if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      throw new Error(`MFA disable failed: ${res.status} — ${JSON.stringify(data)}`);
+      if (res.status === 401 || res.status === 403) {
+        throw unauthorized('Session expired. Please log in again.', 'AUTH_SESSION_EXPIRED');
+      }
+      if (res.status === 400) {
+        throw badRequest('That code was not accepted. Try the current one.', 'INVALID_OTP');
+      }
+      throw new Error(`MFA disable failed: ${res.status} — ${JSON.stringify(res.data)}`);
     }
 
     await logAudit(

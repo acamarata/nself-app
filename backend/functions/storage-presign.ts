@@ -22,21 +22,19 @@
 //
 // SPORT: F08 backend functions; P5-W5-storage-presign
 
-import { createHmac, createHash } from 'crypto';
 import { Sentry } from './sentry';
 import { adminGql } from './lib/admin-gql';
 import { badRequest, unauthorized } from './lib/action-error';
+import {
+  presignS3Url,
+  minioEndpoint,
+  minioPublicEndpoint,
+  minioBucket,
+} from './lib/s3-presign';
 
 // ── Env ────────────────────────────────────────────────────────────────────────
-// Internal endpoint (Docker network) — used to validate the request and fetch metadata
-const MINIO_ENDPOINT  = process.env.MINIO_ENDPOINT         || 'http://minio:9000';
-// Public endpoint — returned to clients for presigned download URLs
-const MINIO_ENDPOINT_PUBLIC = process.env.MINIO_ENDPOINT_PUBLIC || 'http://localhost:9000';
-const MINIO_BUCKET    = process.env.MINIO_BUCKET            || 'ntask';
-const ACCESS_KEY      = process.env.MINIO_ACCESS_KEY        || '';
-const SECRET_KEY      = process.env.MINIO_SECRET_KEY        || '';
-// MinIO region — 'us-east-1' is the default for MinIO regardless of geography
-const AWS_REGION      = process.env.MINIO_REGION            || 'us-east-1';
+// Endpoints/bucket/credentials all resolve through lib/s3-presign so this handler,
+// user-export and user-delete cannot drift apart. Read at call time, not load time.
 
 const UPLOAD_TTL_SECONDS   = 900;   // 15 minutes
 const DOWNLOAD_TTL_SECONDS = 3600;  // 1 hour
@@ -84,106 +82,6 @@ interface DownloadUrlResult {
 
 // Admin GraphQL access comes from lib/admin-gql (shared by every handler).
 
-// ── AWS Signature V4 presign ───────────────────────────────────────────────────
-
-function hmacSha256(key: Buffer | string, data: string): Buffer {
-  return createHmac('sha256', key).update(data, 'utf8').digest();
-}
-
-function sha256Hex(data: string): string {
-  return createHash('sha256').update(data, 'utf8').digest('hex');
-}
-
-/**
- * Generate an AWS Signature V4 presigned URL for MinIO.
- *
- * MinIO speaks S3 API v4. Presigned URLs embed the signature in query params
- * so the client can make an unsigned HTTP request that MinIO still validates.
- *
- * References:
- *   https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html
- *   https://min.io/docs/minio/linux/developers/javascript/API.html#presignedUrl
- */
-function presignS3Url(opts: {
-  method: 'PUT' | 'GET';
-  endpoint: string;     // e.g. http://minio:9000 or http://localhost:9000
-  bucket: string;
-  objectKey: string;
-  ttlSeconds: number;
-  contentType?: string; // required for PUT
-}): { url: string; expiresAt: string } {
-  const { method, endpoint, bucket, objectKey, ttlSeconds, contentType } = opts;
-
-  const now = new Date();
-  // yyyyMMdd
-  const datestamp = now.toISOString().slice(0, 10).replace(/-/g, '');
-  // yyyyMMddTHHmmssZ
-  const amzdate = now.toISOString().replace(/[:-]/g, '').replace(/\.\d{3}/, '');
-
-  const service = 's3';
-  const credentialScope = `${datestamp}/${AWS_REGION}/${service}/aws4_request`;
-  const credential = `${ACCESS_KEY}/${credentialScope}`;
-
-  // Build query parameters — must be sorted
-  const queryParts: Array<[string, string]> = [
-    ['X-Amz-Algorithm', 'AWS4-HMAC-SHA256'],
-    ['X-Amz-Credential', credential],
-    ['X-Amz-Date', amzdate],
-    ['X-Amz-Expires', String(ttlSeconds)],
-    ['X-Amz-SignedHeaders', 'host'],
-  ];
-  if (contentType && method === 'PUT') {
-    queryParts.push(['X-Amz-Content-Sha256', 'UNSIGNED-PAYLOAD']);
-  }
-  queryParts.sort(([a], [b]) => a.localeCompare(b));
-
-  const canonicalQueryString = queryParts
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-    .join('&');
-
-  // Derive host from endpoint
-  const endpointUrl = new URL(endpoint);
-  const host = endpointUrl.host;
-
-  // Canonical request
-  const canonicalUri = `/${bucket}/${objectKey.split('/').map(encodeURIComponent).join('/')}`;
-  const canonicalHeaders = `host:${host}\n`;
-  const signedHeaders = 'host';
-  const payloadHash = 'UNSIGNED-PAYLOAD';
-
-  const canonicalRequest = [
-    method,
-    canonicalUri,
-    canonicalQueryString,
-    canonicalHeaders,
-    signedHeaders,
-    payloadHash,
-  ].join('\n');
-
-  // String to sign
-  const stringToSign = [
-    'AWS4-HMAC-SHA256',
-    amzdate,
-    credentialScope,
-    sha256Hex(canonicalRequest),
-  ].join('\n');
-
-  // Signing key: HMAC(HMAC(HMAC(HMAC("AWS4" + secretKey, date), region), service), "aws4_request")
-  const kDate    = hmacSha256(`AWS4${SECRET_KEY}`, datestamp);
-  const kRegion  = hmacSha256(kDate, AWS_REGION);
-  const kService = hmacSha256(kRegion, service);
-  const kSigning = hmacSha256(kService, 'aws4_request');
-
-  const signature = createHmac('sha256', kSigning)
-    .update(stringToSign, 'utf8')
-    .digest('hex');
-
-  const signedQuery = `${canonicalQueryString}&X-Amz-Signature=${signature}`;
-  const url = `${endpoint}/${bucket}/${objectKey.split('/').map(encodeURIComponent).join('/')}?${signedQuery}`;
-
-  const expiresAt = new Date(now.getTime() + ttlSeconds * 1000).toISOString();
-  return { url, expiresAt };
-}
 
 // ── UUID helper ────────────────────────────────────────────────────────────────
 
@@ -277,8 +175,8 @@ export async function getUploadUrl(
 
   const { url: uploadUrl, expiresAt } = presignS3Url({
     method: 'PUT',
-    endpoint: MINIO_ENDPOINT, // internal — client calls this from inside Docker network
-    bucket: MINIO_BUCKET,
+    endpoint: minioEndpoint(), // internal — client calls this from inside Docker network
+    bucket: minioBucket(),
     objectKey: storagePath,
     ttlSeconds: UPLOAD_TTL_SECONDS,
     contentType: mimeType,
@@ -365,12 +263,12 @@ export async function getDownloadUrl(
   }
 
   // Prefer the attachment's own bucket; fall back to env default
-  const bucket = attachment.bucket || MINIO_BUCKET;
+  const bucket = attachment.bucket || minioBucket();
 
   // Return presigned GET URL via the public endpoint (reachable by clients)
   const { url: downloadUrl, expiresAt } = presignS3Url({
     method: 'GET',
-    endpoint: MINIO_ENDPOINT_PUBLIC,
+    endpoint: minioPublicEndpoint(),
     bucket,
     objectKey: attachment.storage_key,
     ttlSeconds: DOWNLOAD_TTL_SECONDS,
