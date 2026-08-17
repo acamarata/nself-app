@@ -31,10 +31,27 @@ concurrency:
 jobs:
   e2e:
     name: E2E
+    # Needs NSELF_PACKAGES_TOKEN to check out the sibling packages repo, which
+    # dependabot-triggered runs cannot see.
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
+      # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo. A
+      # workspace install fails without it ("error installing a direct dependency
+      # of apps/mobile"), even though these tests only talk to a deployed URL
+      # over HTTP and use nothing from the workspace.
+      - name: Checkout sibling @nself packages
+        uses: actions/checkout@v4
+        with:
+          repository: nself-org/packages
+          token: ${{ secrets.NSELF_PACKAGES_TOKEN }}
+          path: _nself_packages
+
+      - name: Link packages to the sibling path the workspace expects
+        run: ln -s "$GITHUB_WORKSPACE/_nself_packages" "$(dirname "$GITHUB_WORKSPACE")/packages"
 
       - uses: pnpm/action-setup@v6
 
