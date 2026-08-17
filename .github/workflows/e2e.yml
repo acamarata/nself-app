@@ -1,0 +1,64 @@
+name: E2E (deployed surface)
+
+# Runs the read-only Playwright suite against a real deployment. Nothing here
+# writes data, so it is safe to point at production.
+#
+# This exists because the repo previously carried an e2e suite that no workflow
+# ran, no script invoked, and whose dependency was never declared. It stayed
+# "green" by never executing while password reset was completely broken.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - 'tests/**'
+      - '.github/workflows/e2e.yml'
+  schedule:
+    # Production drifts without any commit here — the surface is deployed from
+    # another repo. A daily run catches that.
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Base URL to test'
+        required: false
+        default: 'https://task.nself.org'
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Playwright and its browser
+        # The config defines a chromium project and a mobile-safari project
+        # (iPhone 13 => webkit), so both engines are required. Firefox is not.
+        run: |
+          pnpm install --no-frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium webkit
+
+      - name: Run E2E
+        env:
+          TASKS_URL: ${{ github.event.inputs.target || 'https://task.nself.org' }}
+        run: pnpm test:e2e
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
