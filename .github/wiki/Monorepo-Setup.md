@@ -10,11 +10,12 @@
 ntask/
 ├── apps/
 │   ├── mobile/    # React Native 0.79.7 + Expo 53 (iOS + Android)
-│   ├── desktop/   # Tauri 2 wrapping web/ntask (macOS/Windows/Linux) — Shipped
-│   └── tv/        # react-native-tvos (Apple TV + Android TV) — Scaffolded
+│   ├── desktop/   # Tauri 2 wrapping the web SPA (macOS/Windows/Linux) — Shipped
+│   ├── tv/        # react-native-tvos (Apple TV + Android TV) — Scaffolded
+│   ├── cli/       # ntask terminal CLI
+│   └── mcp/       # MCP server for AI agents
 ├── backend/       # Docker Compose stack (nSelf-First)
-├── cli/           # ntask terminal CLI
-├── mcp/           # MCP server for AI agents
+├── tests/         # Playwright e2e against a deployed surface
 ├── pnpm-workspace.yaml
 ├── package.json   # Root workspace scripts
 └── Makefile       # Backend convenience targets

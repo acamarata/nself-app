@@ -16,7 +16,7 @@ pnpm --filter @nself/ntask-mcp build
 NTASK_TOKEN=<bearer-token> \
 NTASK_API_URL=http://localhost:8080/v1/graphql \
 NTASK_AUTH_URL=http://localhost:4000 \
-node mcp/dist/index.js
+node apps/mcp/dist/index.js
 ```
 
 The server communicates over stdio (JSON-RPC) — it's meant to be launched by an MCP client, not run interactively.
@@ -54,7 +54,7 @@ Every tool accepts a `task`/`list` identifier as either a UUID or a case-insensi
   "mcpServers": {
     "ntask": {
       "command": "node",
-      "args": ["/absolute/path/to/ntask/mcp/dist/index.js"],
+      "args": ["/absolute/path/to/ntask/apps/mcp/dist/index.js"],
       "env": {
         "NTASK_TOKEN": "<bearer-token>",
         "NTASK_API_URL": "http://localhost:8080/v1/graphql",
@@ -72,7 +72,7 @@ Every tool accepts a `task`/`list` identifier as either a UUID or a case-insensi
   "mcpServers": {
     "ntask": {
       "command": "node",
-      "args": ["/absolute/path/to/ntask/mcp/dist/index.js"],
+      "args": ["/absolute/path/to/ntask/apps/mcp/dist/index.js"],
       "env": {
         "NTASK_EMAIL": "you@example.com",
         "NTASK_PASSWORD": "your-password",
@@ -87,4 +87,4 @@ Every tool accepts a `task`/`list` identifier as either a UUID or a case-insensi
 
 - [CLI](CLI): terminal client built on the same library
 - [Backend-Setup](Backend-Setup): start the backend the MCP server talks to
-- [mcp/README.md](https://github.com/nself-org/ntask/blob/main/mcp/README.md): full reference
+- [apps/mcp/README.md](https://github.com/nself-org/ntask/blob/main/apps/mcp/README.md): full reference

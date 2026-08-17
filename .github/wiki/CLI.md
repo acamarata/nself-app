@@ -11,7 +11,7 @@ pnpm install
 pnpm --filter @nself/ntask-cli build
 ```
 
-Run it directly (`node cli/dist/index.js --help`) or link a global `ntask` binary:
+Run it directly (`node apps/cli/dist/index.js --help`) or link a global `ntask` binary:
 
 ```bash
 cd cli && pnpm link --global
@@ -67,4 +67,4 @@ The CLI's client, auth, and GraphQL layer live in `cli/src/lib/` and `cli/src/gq
 
 - [MCP-Server](MCP-Server): AI-agent tool interface built on the same client
 - [Backend-Setup](Backend-Setup): start the backend the CLI talks to
-- [cli/README.md](https://github.com/nself-org/ntask/blob/main/cli/README.md): full reference
+- [apps/cli/README.md](https://github.com/nself-org/ntask/blob/main/apps/cli/README.md): full reference
