@@ -27,10 +27,19 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          # On dispatch the default ref is the branch, whose version may
+          # differ from the tag being released. Check out the tag itself.
+          ref: ${{ inputs.tag || github.ref_name }}
 
       - name: Assert tauri.conf.json version matches git tag
         run: |
-          TAG="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          # inputs.tag wins when dispatched. GITHUB_REF_NAME is ALWAYS set — it is
+          # the branch name on a workflow_dispatch from a branch — so the old
+          # "${GITHUB_REF_NAME:-inputs.tag}" could never reach the input, and the
+          # gate compared "main" against a semver.
+          TAG="${{ inputs.tag }}"
+          TAG="${TAG:-$GITHUB_REF_NAME}"
           # Strip the leading 'v' to get semver.
           EXPECTED="${TAG#v}"
           ACTUAL=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
@@ -72,6 +81,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # On dispatch the default ref is the branch, whose version may
+          # differ from the tag being released. Check out the tag itself.
+          ref: ${{ inputs.tag || github.ref_name }}
 
       - name: Download all desktop artifacts
         uses: actions/download-artifact@v8
@@ -87,7 +100,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          # inputs.tag wins when dispatched. GITHUB_REF_NAME is ALWAYS set — it is
+          # the branch name on a workflow_dispatch from a branch — so the old
+          # "${GITHUB_REF_NAME:-inputs.tag}" could never reach the input, and the
+          # gate compared "main" against a semver.
+          TAG="${{ inputs.tag }}"
+          TAG="${TAG:-$GITHUB_REF_NAME}"
           VERSION="${TAG#v}"
 
           gh release create "$TAG" \
@@ -114,4 +132,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run publish-updater.yml \
-            --field tag="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+            --field tag="${{ inputs.tag || github.ref_name }}"
