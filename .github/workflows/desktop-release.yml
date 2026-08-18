@@ -124,7 +124,7 @@ jobs:
             --title "ɳTask Desktop $VERSION" \
             --notes "## ɳTask Desktop v${VERSION}
 
-          See [CHANGELOG](https://github.com/nself-org/ntask/blob/main/CHANGELOG.md) for details.
+          See the [Changelog](https://github.com/nself-org/ntask/wiki/Changelog) for details.
 
           ### Downloads
           | Platform | File |
