@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ɳTask",
+  "productName": "\u0273Task",
   "identifier": "org.nself.ntask",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "build": {
     "frontendDist": "../../../../web/ntask/dist",
     "devUrl": "http://localhost:3017",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "ɳTask",
+        "title": "\u0273Task",
         "url": "https://task.nself.org/welcome?app=desktop",
         "width": 1100,
         "height": 760,
@@ -39,7 +39,7 @@
     "window-state": null,
     "autostart": null,
     "updater": {
-      "_comment": "Filename scheme is latest-{{target}}.json (no 'ntask-' prefix — the /desktop/ntask/ path segment already namespaces it). .github/workflows/publish-updater.yml MUST write manifests under this exact scheme or the updater 404s.",
+      "_comment": "Filename scheme is latest-{{target}}.json (no 'ntask-' prefix \u2014 the /desktop/ntask/ path segment already namespaces it). .github/workflows/publish-updater.yml MUST write manifests under this exact scheme or the updater 404s.",
       "endpoints": [
         "https://packages.nself.org/desktop/ntask/latest-{{target}}.json"
       ],
