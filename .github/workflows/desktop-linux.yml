@@ -3,7 +3,7 @@ name: Desktop Linux Build
 on:
   push:
     branches: [main]
-    tags: ['ntask-v*']
+    tags: ['v*']
   pull_request:
     branches: [main]
     paths:

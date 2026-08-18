@@ -3,16 +3,17 @@ name: Desktop Release
 # Tag-triggered unified release: builds all 3 OS targets in parallel,
 # creates a GitHub Release, and triggers the updater manifest publish.
 #
-# Trigger: push a tag matching 'ntask-v*' (e.g. ntask-v1.0.1).
+# Trigger: push a tag matching 'v*' (e.g. v1.3.1) — the convention every
+# tag in this repo actually uses.
 # Use: make tag-desktop (reads version from apps/desktop/src-tauri/tauri.conf.json).
 
 on:
   push:
-    tags: ['ntask-v*']
+    tags: ['v*']
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. ntask-v1.0.1)'
+        description: 'Release tag (e.g. v1.3.1)'
         required: true
 
 concurrency:
@@ -30,8 +31,8 @@ jobs:
       - name: Assert tauri.conf.json version matches git tag
         run: |
           TAG="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
-          # Strip 'ntask-v' prefix to get semver.
-          EXPECTED="${TAG#ntask-v}"
+          # Strip the leading 'v' to get semver.
+          EXPECTED="${TAG#v}"
           ACTUAL=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
           echo "Tag version:    $EXPECTED"
           echo "Conf version:   $ACTUAL"
@@ -87,7 +88,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
-          VERSION="${TAG#ntask-v}"
+          VERSION="${TAG#v}"
 
           gh release create "$TAG" \
             --title "ɳTask Desktop $VERSION" \
