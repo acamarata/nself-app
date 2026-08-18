@@ -108,6 +108,18 @@ jobs:
           TAG="${TAG:-$GITHUB_REF_NAME}"
           VERSION="${TAG#v}"
 
+          # A re-dispatch must be able to finish an incomplete release. The
+          # unconditional `gh release create` aborted with "a release with the
+          # same tag name already exists", which is exactly what happened on
+          # v1.3.1: all four platform builds succeeded, but the release kept the
+          # single macOS dmg it had from the first run and the other three
+          # artifacts were thrown away with the failed job.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists; uploading artifacts into it."
+            gh release upload "$TAG" release-artifacts/** --clobber
+            exit 0
+          fi
+
           gh release create "$TAG" \
             --title "ɳTask Desktop $VERSION" \
             --notes "## ɳTask Desktop v${VERSION}
