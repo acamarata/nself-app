@@ -3,7 +3,7 @@ name: Desktop macOS Build
 on:
   push:
     branches: [main]
-    tags: ['ntask-v*']
+    tags: ['v*']
   pull_request:
     branches: [main]
     paths:
@@ -107,7 +107,7 @@ jobs:
         run: cargo clippy --target ${{ matrix.target }} -- -D warnings
 
       - name: Import Apple cert (tag builds only)
-        if: startsWith(github.ref, 'refs/tags/ntask-v')
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           CERT_BASE64: ${{ secrets.APPLE_CERTIFICATE }}
           CERT_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -131,12 +131,12 @@ jobs:
           # Real signing identity only on tag builds (the cert-import step above is
           # tag-gated, so the cert is only in the keychain then). PR/main builds
           # ad-hoc sign ('-') — otherwise codesign fails with "item not found in keychain".
-          APPLE_SIGNING_IDENTITY: ${{ startsWith(github.ref, 'refs/tags/ntask-v') && secrets.APPLE_SIGNING_IDENTITY || '-' }}
+          APPLE_SIGNING_IDENTITY: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.APPLE_SIGNING_IDENTITY || '-' }}
           TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
         run: pnpm tauri build --target ${{ matrix.target }}
 
       - name: Verify codesign (tag builds)
-        if: startsWith(github.ref, 'refs/tags/ntask-v')
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           for app in apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app; do
             codesign --verify --deep --strict --verbose=2 "$app" || true
@@ -154,7 +154,7 @@ jobs:
   notarize:
     name: Notarize (${{ matrix.target }})
     needs: build
-    if: startsWith(github.ref, 'refs/tags/ntask-v')
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-14
     timeout-minutes: 60
     strategy:

@@ -1,5 +1,5 @@
 # ɳTask Android Release — EAS Build + Submit
-# Trigger: tag push matching ntask/v*
+# Trigger: tag push matching v*
 # EXTERNAL GATES: Google Play service account, keystore via EAS managed credentials, EAS_TOKEN
 # See C-S8-T2 for credential provisioning steps.
 name: Android Release (EAS)
@@ -7,7 +7,7 @@ name: Android Release (EAS)
 on:
   push:
     tags:
-      - 'ntask/v*'
+      - 'v*'
   workflow_dispatch:
 
 jobs:

@@ -1,5 +1,5 @@
 # ɳTask iOS Release — EAS Build + Submit
-# Trigger: tag push matching ntask/v*
+# Trigger: tag push matching v*
 # EXTERNAL GATES: Apple Developer account, ASC API Key, EAS_TOKEN GitHub secret
 # See C-S8-T1 for credential provisioning steps.
 name: iOS Release (EAS)
@@ -7,7 +7,7 @@ name: iOS Release (EAS)
 on:
   push:
     tags:
-      - 'ntask/v*'
+      - 'v*'
   workflow_dispatch:
 
 jobs:

@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to publish (e.g. ntask-v1.0.1)'
+        description: 'Release tag to publish (e.g. v1.3.1)'
         required: true
 
 jobs:
@@ -91,7 +91,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ inputs.tag }}"
-          [[ -z "$TAG" ]] && TAG="ntask-v${VERSION}"
+          [[ -z "$TAG" ]] && TAG="v${VERSION}"
           mkdir -p release-data
           gh release download "$TAG" \
             --repo nself-org/ntask \
@@ -123,19 +123,19 @@ jobs:
 
           # macOS arm64
           SIG_MAC_ARM=$(sign_file "release-data/$(ls release-data/ | grep aarch64.*dmg | head -1)")
-          MAC_ARM_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep aarch64.*dmg | head -1)"
+          MAC_ARM_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep aarch64.*dmg | head -1)"
 
           # macOS x86_64
           SIG_MAC_X64=$(sign_file "release-data/$(ls release-data/ | grep x86_64.*dmg | head -1)")
-          MAC_X64_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep x86_64.*dmg | head -1)"
+          MAC_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep x86_64.*dmg | head -1)"
 
           # Windows
           SIG_WIN_X64=$(sign_file "release-data/$(ls release-data/ | grep '\.msi' | head -1)")
-          WIN_X64_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep '\.msi' | head -1)"
+          WIN_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep '\.msi' | head -1)"
 
           # Linux
           SIG_LINUX_X64=$(sign_file "release-data/$(ls release-data/ | grep '\.AppImage' | head -1)")
-          LINUX_X64_URL="https://github.com/nself-org/ntask/releases/download/ntask-v${VERSION}/$(ls release-data/ | grep '\.AppImage' | head -1)"
+          LINUX_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep '\.AppImage' | head -1)"
 
           # Manifest helper
           write_manifest() {
@@ -152,7 +152,7 @@ jobs:
               i += 3
           manifest = {
               "version": version,
-              "notes": f"See https://github.com/nself-org/ntask/releases/tag/ntask-v{version}",
+              "notes": f"See https://github.com/nself-org/ntask/releases/tag/v{version}",
               "pub_date": date,
               "platforms": platforms,
           }
