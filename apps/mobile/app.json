@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "ɳTask",
+    "name": "\u0273Task",
     "slug": "ntask",
-    "version": "1.3.0",
+    "version": "1.3.1",
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
@@ -28,8 +28,8 @@
         "aps-environment": "production"
       },
       "infoPlist": {
-        "NSUserNotificationUsageDescription": "ɳTask sends reminders for task due dates and team activity.",
-        "NSCameraUsageDescription": "ɳTask uses the camera to attach photos to tasks.",
+        "NSUserNotificationUsageDescription": "\u0273Task sends reminders for task due dates and team activity.",
+        "NSCameraUsageDescription": "\u0273Task uses the camera to attach photos to tasks.",
         "UIBackgroundModes": [
           "fetch",
           "remote-notification"

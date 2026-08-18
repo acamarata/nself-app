@@ -1,6 +1,6 @@
 [package]
 name = "ntask-desktop"
-version = "1.3.0"
+version = "1.3.1"
 edition = "2021"
 description = "ɳTask Desktop — Tauri 2 shell wrapping web/ntask Vite SPA"
 license = "MIT"
