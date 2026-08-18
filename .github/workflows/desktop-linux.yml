@@ -1,14 +1,15 @@
 name: Desktop Linux Build
 
 on:
+  # Called by desktop-release.yml for tagged releases. Without workflow_call the
+  # orchestrator cannot reference this file at all and fails to parse.
+  workflow_call:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
     branches: [main]
     paths:
       - 'apps/desktop/**'
-      - 'web/ntask/**'
       - '.github/workflows/desktop-linux.yml'
   workflow_dispatch:
 
