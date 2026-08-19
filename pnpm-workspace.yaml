@@ -4,4 +4,6 @@ packages:
   - 'apps/desktop'
   - 'apps/cli'
   - 'apps/mcp'
+  - 'web'
   - '../packages/@nself/*'
+  - '../packages/@nself-web/*'

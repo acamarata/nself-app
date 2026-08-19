@@ -1,0 +1,473 @@
+{
+  "subtasks": {
+    "title": "Sous-tâches",
+    "add": "Ajouter une sous-tâche",
+    "placeholder": "Nouvelle sous-tâche...",
+    "empty": "Aucune sous-tâche pour l'instant",
+    "progress": "{{done}} sur {{total}} terminées"
+  },
+  "comments": {
+    "title": "Commentaires",
+    "add": "Ajouter un commentaire",
+    "placeholder": "Écrire un commentaire...",
+    "empty": "Aucun commentaire pour l'instant",
+    "edited": "modifié",
+    "delete": "Supprimer le commentaire",
+    "edit": "Modifier le commentaire",
+    "save": "Enregistrer",
+    "cancel": "Annuler"
+  },
+  "recurrence": {
+    "title": "Récurrence",
+    "none": "Pas de récurrence",
+    "daily": "Quotidien",
+    "weekly": "Hebdomadaire",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "interval": "Tous les {{n}} {{unit}}",
+    "remove": "Supprimer la récurrence",
+    "every": "Tous les",
+    "save": "Enregistrer",
+    "cancel": "Annuler"
+  },
+  "tags": {
+    "title": "Étiquettes",
+    "add": "Ajouter une étiquette",
+    "placeholder": "Nom de l'étiquette...",
+    "empty": "Aucune étiquette",
+    "filter": "Filtrer par étiquette",
+    "manage": "Gérer les étiquettes",
+    "rename": "Renommer",
+    "recolor": "Changer la couleur",
+    "deleteConfirm": "Supprimer l'étiquette « {{name}} » ? Elle sera retirée de toutes les tâches.",
+    "namePlaceholder": "Nom de l'étiquette"
+  },
+  "reminders": {
+    "title": "Rappels",
+    "empty": "Aucun rappel",
+    "add": "Ajouter un rappel",
+    "remove": "Supprimer le rappel",
+    "custom": "Date et heure personnalisées",
+    "preset": {
+      "atDue": "À l'échéance",
+      "10m": "10 min avant",
+      "1h": "1 heure avant",
+      "1d": "1 jour avant"
+    }
+  },
+  "assignees": {
+    "title": "Assignés",
+    "assign": "Assigner",
+    "empty": "Non assigné",
+    "member": "Membre"
+  },
+  "bulk": {
+    "selected": "{{count}} sélectionné(s)",
+    "selectAll": "Tout sélectionner",
+    "clearSelection": "Effacer la sélection",
+    "complete": "Terminer",
+    "delete": "Supprimer",
+    "move": "Déplacer vers une liste",
+    "priority": "Définir la priorité",
+    "addTag": "Ajouter une étiquette",
+    "deleteConfirm": "Supprimer {{count}} tâches ? Cette action est irréversible.",
+    "enterSelectMode": "Sélectionner",
+    "exitSelectMode": "Terminé"
+  },
+  "notes": {
+    "edit": "Modifier",
+    "preview": "Aperçu"
+  },
+  "snooze": {
+    "title": "Reporter",
+    "tomorrow": "Demain",
+    "nextWeek": "La semaine prochaine"
+  },
+  "sections": {
+    "unavailable": "Les sections ne sont pas encore disponibles pour cette liste."
+  },
+  "search": {
+    "modalLabel": "Rechercher des tâches",
+    "tasksSection": "Tâches",
+    "emptyHint": "Aucun résultat — appuyez sur Entrée pour créer la tâche « {{query}} »",
+    "createFromQuery": "Créer la tâche « {{query}} »",
+    "title": "Recherche",
+    "typeHint": "Saisissez au moins 2 caractères pour rechercher",
+    "noResults": "Aucun résultat pour « {{query}} »"
+  },
+  "filter": {
+    "title": "Filtrer et trier",
+    "all": "Tout",
+    "active": "Actif",
+    "completed": "Terminé",
+    "priority": "Priorité",
+    "dueDate": "Date d'échéance",
+    "list": "Liste",
+    "tags": "Étiquettes",
+    "clearAll": "Effacer tous les filtres",
+    "sort": {
+      "title": "Titre",
+      "created": "Date de création",
+      "due": "Date d'échéance",
+      "priority": "Priorité",
+      "asc": "Croissant",
+      "desc": "Décroissant"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "appearance": "Apparence",
+    "language": "Langue",
+    "notifications": "Notifications",
+    "account": "Compte",
+    "security": "Sécurité",
+    "change": "Modifier",
+    "email": "E-mail",
+    "changeEmail": {
+      "currentPassword": "Mot de passe actuel",
+      "newEmail": "Nouvel e-mail",
+      "save": "Enregistrer",
+      "verify": "E-mail de vérification envoyé — consultez votre boîte de réception."
+    },
+    "changePassword": {
+      "title": "Mot de passe",
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le nouveau mot de passe",
+      "minLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "save": "Enregistrer",
+      "success": "Mot de passe mis à jour."
+    },
+    "dataExport": {
+      "title": "Exporter vos données",
+      "description": "Téléchargez toutes vos tâches, listes et commentaires sous forme de fichier.",
+      "button": "Demander l'export",
+      "rateLimited": "Déjà demandé aujourd'hui. Réessayez dans 24 heures."
+    },
+    "mfa": {
+      "title": "Authentification à deux facteurs",
+      "enabled": "L'authentification à deux facteurs est activée.",
+      "disabled": "Ajoutez une couche de sécurité supplémentaire à votre compte.",
+      "enable": "Activer la 2FA",
+      "disable": "Désactiver la 2FA",
+      "beginSetup": "Commencer la configuration",
+      "scanHint": "Scannez cette clé dans votre application d'authentification, ou saisissez-la manuellement.",
+      "secretKey": "Clé secrète",
+      "copyKey": "Copier la clé",
+      "keyCopied": "Copié dans le presse-papiers.",
+      "qrUrl": "URL du code QR",
+      "otpLabel": "Code d'authentification",
+      "otpPlaceholder": "000000",
+      "done": "Terminé",
+      "enabledSuccess": "Authentification à deux facteurs activée.",
+      "disabledSuccess": "Authentification à deux facteurs désactivée."
+    },
+    "sessions": {
+      "title": "Sessions actives",
+      "empty": "Aucune autre session active.",
+      "thisDevice": "Cette session",
+      "revoke": "Révoquer",
+      "revoked": "Révoquée",
+      "revokeConfirm": "Mettre fin à cette session ? Elle sera déconnectée immédiatement.",
+      "createdAt": "Démarrée le {{date}}"
+    },
+    "theme": {
+      "title": "Thème",
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "weekStart": {
+      "title": "La semaine commence le",
+      "sunday": "Dimanche",
+      "monday": "Lundi",
+      "saturday": "Samedi"
+    },
+    "dateFormat": "Format de date",
+    "defaultList": "Liste par défaut",
+    "pushNotifications": "Notifications push",
+    "emailNotifications": "Notifications par e-mail",
+    "signOut": "Se déconnecter",
+    "dangerZone": "Zone de danger",
+    "deleteAccount": {
+      "label": "Supprimer le compte",
+      "sublabel": "Supprime définitivement votre compte et toutes ses données.",
+      "button": "Supprimer le compte",
+      "title": "Supprimer le compte",
+      "warning": "Cette action supprimera définitivement :",
+      "item1": "Toutes vos tâches et listes",
+      "item2": "Tous les commentaires et pièces jointes",
+      "item3": "Toutes les étiquettes et vues enregistrées",
+      "irreversible": "Cette action est irréversible.",
+      "typePrompt": "Tapez",
+      "typePromptSuffix": "pour confirmer",
+      "deleting": "Suppression...",
+      "confirm": "Supprimer mon compte"
+    }
+  },
+  "shortcuts": {
+    "title": "Raccourcis clavier",
+    "action": "Action",
+    "shortcut": "Raccourci",
+    "close": "Fermer",
+    "newTask": "Nouvelle tâche",
+    "newList": "Nouvelle liste",
+    "search": "Rechercher",
+    "showShortcuts": "Afficher les raccourcis"
+  },
+  "palette": {
+    "label": "Palette de commandes",
+    "commandsSection": "Commandes",
+    "noResults": "Aucune commande ou tâche trouvée",
+    "newTask": "Nouvelle tâche",
+    "newList": "Nouvelle liste",
+    "settings": "Paramètres",
+    "toggleTheme": "Basculer le thème",
+    "signOut": "Se déconnecter",
+    "viewToday": "Aller à Aujourd'hui",
+    "viewUpcoming": "Aller à À venir",
+    "viewInbox": "Aller à Boîte de réception",
+    "viewCalendar": "Aller à Calendrier",
+    "viewBoard": "Aller à Tableau",
+    "viewLogbook": "Aller à Journal",
+    "hintNavigate": "naviguer",
+    "hintSelect": "sélectionner",
+    "hintClose": "fermer"
+  },
+  "savedViews": {
+    "title": "Vues sauvegardées",
+    "empty": "Aucune vue sauvegardée",
+    "delete": "Supprimer",
+    "confirmDelete": "Confirmer la suppression",
+    "cancelDelete": "Annuler"
+  },
+  "attachments": {
+    "title": "Pièces jointes",
+    "empty": "Aucune pièce jointe",
+    "drop": "Déposez des fichiers ici pour les joindre",
+    "attach": "Joindre un fichier (glisser ou cliquer)",
+    "tooLarge": "Le fichier dépasse la limite de 25 Mo",
+    "uploading": "Téléversement en cours...",
+    "error": "Échec du téléversement. Veuillez réessayer.",
+    "download": "Télécharger",
+    "delete": "Supprimer la pièce jointe"
+  },
+  "taskDetail": {
+    "title": "Détail de la tâche",
+    "detail": "Détail",
+    "close": "Fermer le détail de la tâche",
+    "editTitle": "Modifier le titre",
+    "notesPlaceholder": "Ajouter des notes..."
+  },
+  "createTask": {
+    "dialog": "Créer une tâche",
+    "heading": "Nouvelle tâche",
+    "title": "Titre",
+    "titlePlaceholder": "Titre de la tâche",
+    "notes": "Notes",
+    "notesPlaceholder": "Ajouter des notes (facultatif)",
+    "priority": "Priorité",
+    "priorityNone": "Pas de priorité",
+    "priorityLow": "Faible",
+    "priorityMedium": "Moyenne",
+    "priorityHigh": "Haute",
+    "priorityUrgent": "Urgente",
+    "dueDate": "Date d'échéance",
+    "dueTime": "Heure d'échéance",
+    "create": "Créer la tâche",
+    "cancel": "Annuler",
+    "clear": "Effacer"
+  },
+  "states": {
+    "loading": "Chargement...",
+    "saving": "Enregistrement...",
+    "empty": "Rien ici pour l'instant",
+    "error": "Une erreur s'est produite",
+    "offline": "Vous êtes hors ligne",
+    "offlineHint": "Les modifications seront synchronisées à la reconnexion",
+    "rateLimitHint": "Trop de requêtes. Veuillez patienter un moment.",
+    "permissionHint": "Vous n'avez pas la permission de voir ceci."
+  },
+  "collab": {
+    "share": "Partager",
+    "shareList": "Partager la liste",
+    "invite": "Inviter",
+    "invitePeople": "Inviter des personnes",
+    "shareLink": "Lien de partage",
+    "members": "Membres",
+    "sendInvite": "Envoyer l'invitation",
+    "email": "Adresse e-mail",
+    "role": "Rôle",
+    "viewer": "Lecteur",
+    "editor": "Éditeur",
+    "owner": "Propriétaire",
+    "pending": "En attente",
+    "accepted": "Accepté",
+    "inviteSent": "Invitation envoyée à {{email}}",
+    "generateLink": "Générer un lien",
+    "copyLink": "Copier le lien",
+    "revokeLink": "Révoquer le lien",
+    "linkCopied": "Lien copié !",
+    "revokeConfirm": "Révoquer ce lien de partage ?",
+    "remove": "Supprimer",
+    "removeConfirm": "Supprimer {{name}} de cette liste ?",
+    "leave": "Quitter la liste",
+    "leaveConfirm": "Quitter cette liste ? Vous perdrez l'accès.",
+    "transferOwnership": "Transférer la propriété",
+    "transferConfirm": "Transférer la propriété à {{name}} ?",
+    "changeRole": "Changer le rôle",
+    "manageSharingLink": "Gérer le partage",
+    "pendingInvites": "Invitations en attente",
+    "invitedBy": "{{name}} vous a invité à {{list}} en tant que {{role}}",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "viewerAccess": "Vous avez un accès en lecture seule",
+    "noMembers": "Aucun autre membre pour l'instant",
+    "presence": "En ligne maintenant",
+    "onlineCount": "{{count}} personnes consultent",
+    "sharedListTitle": "{{title}} — partagé via ɳTask",
+    "sharedListExpired": "Ce lien a expiré ou est invalide.",
+    "sharedListCta": "Créez votre compte ɳTask — gratuit pour toujours",
+    "sharedListCtaLink": "Créer un compte gratuit",
+    "acceptError": "Impossible d'accepter l'invitation. Veuillez réessayer.",
+    "declineError": "Impossible de refuser l'invitation. Veuillez réessayer.",
+    "removeError": "Impossible de retirer ce membre. Veuillez réessayer.",
+    "roleChangeError": "Impossible de mettre à jour le rôle. Veuillez réessayer.",
+    "shareLinkError": "Impossible de créer le lien de partage. Veuillez réessayer.",
+    "revokeError": "Impossible de révoquer le lien de partage. Veuillez réessayer."
+  },
+  "account": {
+    "title": "Compte",
+    "changeEmail": "Changer d'e-mail",
+    "changeEmailHint": "Un e-mail de vérification sera envoyé à la nouvelle adresse.",
+    "changeEmailSuccess": "Vérifiez votre nouvel e-mail — consultez votre boîte de réception.",
+    "currentPassword": "Mot de passe actuel",
+    "newEmail": "Nouvelle adresse e-mail",
+    "changePassword": "Changer le mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "changePasswordSuccess": "Mot de passe mis à jour.",
+    "downloadData": "Télécharger mes données",
+    "downloadDataHint": "Exporte toutes vos tâches, listes, étiquettes et commentaires en JSON.",
+    "downloadDataSuccess": "Votre export est prêt — téléchargement en cours.",
+    "downloadDataRateLimit": "Déjà demandé aujourd'hui. Réessayez dans 24 heures.",
+    "dangerZone": "Zone de danger",
+    "deleteAccount": "Supprimer le compte",
+    "deleteAccountConfirm": "Tapez DELETE pour confirmer",
+    "deleteAccountWarning": "Cela supprimera définitivement toutes vos tâches, listes, commentaires et pièces jointes. Cette action est irréversible.",
+    "deleteAccountSuccess": "Compte supprimé.",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "legalLinks": "Légal"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "empty": "Vous êtes à jour",
+    "bell": "Notifications",
+    "unreadCount": "{{count}} non lu(s)",
+    "justNow": "à l'instant",
+    "minutesAgo": "il y a {{n}} min",
+    "hoursAgo": "il y a {{n}} h",
+    "daysAgo": "il y a {{n}} j",
+    "panelLabel": "Panneau de notifications"
+  },
+  "todoItem": {
+    "markComplete": "Marquer comme terminée",
+    "markIncomplete": "Marquer comme non terminée",
+    "deleteTask": "Supprimer la tâche",
+    "selectTask": "Sélectionner la tâche"
+  },
+  "inbox": {
+    "moveTo": "Déplacer vers…",
+    "moveTaskToList": "Déplacer « {{title}} » vers la liste",
+    "title": "Boîte de réception",
+    "untriagedCount": "{{count}} à trier",
+    "emptyTitle": "Boîte de réception vide",
+    "emptyDescription": "Les tâches sans liste assignée arriveront ici pour être triées."
+  },
+  "newTodo": {
+    "placeholder": "Ajouter une tâche…",
+    "add": "Ajouter",
+    "adding": "Ajout en cours…"
+  },
+  "reschedule": {
+    "title": "Reporter la tâche",
+    "newDueDate": "Nouvelle date d'échéance",
+    "cancel": "Annuler",
+    "saving": "Enregistrement…",
+    "save": "Enregistrer"
+  },
+  "emptyState": {
+    "noTasksYet": "Aucune tâche pour le moment",
+    "somethingWrong": "Une erreur est survenue",
+    "tryAgain": "Réessayer",
+    "contactSupport": "Contacter le support"
+  },
+  "profile": {
+    "title": "Profil",
+    "displayName": "Nom affiché",
+    "displayNamePlaceholder": "Votre nom",
+    "noNameSet": "Aucun nom défini",
+    "theme": "Thème",
+    "themeSystem": "Système",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "saveChanges": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "saved": "Enregistré",
+    "signOut": "Se déconnecter",
+    "saveFailed": "Échec de l'enregistrement"
+  },
+  "board": {
+    "title": "Tableau",
+    "listLabel": "Liste",
+    "allLists": "Toutes les listes",
+    "columnDone": "Terminé",
+    "emptyTitle": "Aucune tâche à afficher",
+    "emptyDescription": "Les tâches apparaîtront sur le tableau une fois que vous en aurez ajouté."
+  },
+  "calendar": {
+    "title": "Calendrier",
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "selectDay": "Sélectionnez un jour",
+    "emptyTitle": "Aucune tâche ce jour",
+    "emptyDescription": "Faites glisser une tâche sur un jour, ou cliquez sur l'une ci-dessous pour la reprogrammer.",
+    "rescheduleAria": "Reprogrammer {{title}}"
+  },
+  "lists": {
+    "title": "Listes",
+    "newList": "Nouvelle liste",
+    "loadFailed": "Échec du chargement des listes",
+    "createFailed": "Échec de la création de la liste",
+    "emptyTitle": "Aucune liste pour l'instant",
+    "emptyDescription": "Créez votre première liste pour vous organiser.",
+    "createListCta": "Créer une liste"
+  },
+  "logbook": {
+    "title": "Journal",
+    "completedCount": "{{count}} terminées",
+    "markIncomplete": "Marquer comme non terminée",
+    "emptyTitle": "Aucune tâche terminée pour l'instant",
+    "emptyDescription": "Les tâches terminées apparaîtront ici, regroupées par jour d'achèvement."
+  },
+  "today": {
+    "title": "Aujourd'hui",
+    "dueCount": "{{count}} à échéance",
+    "overdueHeading": "En retard",
+    "todayHeading": "Aujourd'hui",
+    "emptyTitle": "Rien à échéance aujourd'hui",
+    "emptyDescription": "Vous êtes à jour. Profitez de cet emploi du temps dégagé."
+  },
+  "upcoming": {
+    "title": "À venir",
+    "scheduledCount": "{{count}} planifiées",
+    "laterHeading": "Plus tard",
+    "emptyTitle": "Rien de planifié",
+    "emptyDescription": "Les tâches ayant une échéance dans les 7 prochains jours apparaîtront ici."
+  }
+}

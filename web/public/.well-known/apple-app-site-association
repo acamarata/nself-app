@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "5398R82926.dev.nself.ntask",
+        "paths": ["/task/*", "/list/*", "/shared/*"]
+      }
+    ]
+  }
+}

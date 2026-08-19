@@ -1,0 +1,15 @@
+{
+  "notFound": "Page introuvable",
+  "backToHome": "Retour à l'accueil",
+  "authRequired": "Connectez-vous pour continuer",
+  "networkError": "Erreur réseau. Veuillez réessayer.",
+  "unauthorized": "Non autorisé. Veuillez vous connecter.",
+  "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+  "invalidResetLink": "Lien de réinitialisation invalide ou expiré.",
+  "resetPasswordFailed": "Échec de la réinitialisation du mot de passe",
+  "sendResetEmailFailed": "Échec de l'envoi de l'e-mail de réinitialisation",
+  "resendVerificationFailed": "Échec du renvoi. Veuillez réessayer.",
+  "pageNotFoundDescription": "La page que vous recherchiez n'existe pas ou a été déplacée.",
+  "returnHome": "Retour à l'accueil",
+  "homeAriaLabel": "Accueil ɳTask"
+}

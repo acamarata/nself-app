@@ -5,11 +5,15 @@ set -euo pipefail
 
 ROOT_VER=$(node -p "require('./package.json').version")
 MOBILE_VER=$(node -p "require('./apps/mobile/package.json').version")
-WEB_VER=$(node -p "require('./web/ntask/package.json').version" 2>/dev/null || echo "N/A")
+WEB_VER=$(node -p "require('./web/package.json').version" 2>/dev/null || echo "N/A")
 
 FAIL=0
 if [ "$ROOT_VER" != "$MOBILE_VER" ]; then
   echo "::error::Version mismatch: root package.json=$ROOT_VER vs apps/mobile=$MOBILE_VER"
+  FAIL=1
+fi
+if [ "$WEB_VER" != "N/A" ] && [ "$ROOT_VER" != "$WEB_VER" ]; then
+  echo "::error::Version mismatch: root package.json=$ROOT_VER vs web=$WEB_VER"
   FAIL=1
 fi
 echo "Root: $ROOT_VER | Mobile: $MOBILE_VER | Web/ntask: $WEB_VER"

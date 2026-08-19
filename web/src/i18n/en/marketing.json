@@ -1,0 +1,87 @@
+{
+  "emptyState": {
+    "noLists": "No lists yet",
+    "noListsDesc": "Create your first task list to get started.",
+    "createList": "Create list",
+    "noTasks": "No tasks yet",
+    "noTasksDesc": "Add your first task to this list.",
+    "addTask": "Add task"
+  },
+  "tasks": {
+    "newTask": "New task",
+    "newList": "New list",
+    "listNamePlaceholder": "List name",
+    "taskPlaceholder": "What needs to be done?",
+    "offlineBanner": "You are offline — changes will sync when you reconnect.",
+    "addTaskLabel": "Add task",
+    "completeTask": "Mark as complete",
+    "deleteTask": "Delete task"
+  },
+  "home": {
+    "heroTitlePart1": "Tasks that work the way ",
+    "heroTitleHighlight": "you do",
+    "heroSubtitle": "ɳTask is a fast, beautiful task manager — lists, subtasks, reminders, recurring tasks, sharing, and offline sync, on every device. Sign up free and start in seconds.",
+    "signUpFree": "Sign up free",
+    "logIn": "Log in",
+    "freeHostedPrefix": "Free hosted by us — no credit card. Or",
+    "selfHostLinkText": "self-host the open-source app",
+    "freeHostedSuffix": "on your own server.",
+    "featuresHeading": "Everything you need to stay on top of it",
+    "featuresSubheading": "Deep where it counts, simple everywhere else.",
+    "features": {
+      "listsSubtasks": {
+        "title": "Lists & subtasks",
+        "description": "Group work into color-coded lists, break tasks into checklists, and keep everything tidy."
+      },
+      "dueDatesReminders": {
+        "title": "Due dates & reminders",
+        "description": "Set due dates and get reminded. Overdue and upcoming surface automatically."
+      },
+      "recurringTasks": {
+        "title": "Recurring tasks",
+        "description": "Daily, weekly, custom — repeating tasks regenerate themselves so you never forget."
+      },
+      "tagsFilterSearch": {
+        "title": "Tags, filter & search",
+        "description": "Tag across lists, filter by anything, and find any task instantly. Save your views."
+      },
+      "shareCollaborate": {
+        "title": "Share & collaborate",
+        "description": "Invite people to a list, assign tasks, and see live presence as you work together."
+      },
+      "offlineFirst": {
+        "title": "Offline-first",
+        "description": "Works with no connection. Changes sync the instant you reconnect — across devices."
+      }
+    },
+    "platformsHeading": "Use it everywhere",
+    "platformsSubheading": "Your tasks sync across every device. Start on the web, finish on your phone.",
+    "platforms": {
+      "web": {
+        "name": "Web",
+        "detail": "In your browser, right now"
+      },
+      "desktop": {
+        "name": "Desktop",
+        "detail": "macOS · Windows · Linux"
+      },
+      "mobile": {
+        "name": "Mobile",
+        "detail": "iOS · Android"
+      },
+      "tv": {
+        "name": "TV",
+        "detail": "Apple TV · Android TV · Fire TV"
+      }
+    },
+    "platformsFooterNote": "Web is ready now. Desktop, mobile, and TV apps are rolling out — or install this as a PWA today.",
+    "ctaHeading": "Start organizing in seconds",
+    "ctaSubheading": "Free to use, hosted by us. Your data is yours — and the app is open source, so you can always self-host it.",
+    "aboutNself": "About nSelf"
+  },
+  "welcome": {
+    "tagline": "Tasks that work the way you do.",
+    "getStarted": "Get started",
+    "createAccount": "Create account"
+  }
+}

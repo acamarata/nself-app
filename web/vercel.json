@@ -1,0 +1,57 @@
+{
+  "ignoreCommand": "bash -c 'if [ \"$VERCEL_ENV\" = preview ]; then exit 0; fi; npx turbo-ignore'",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "buildCommand": "pnpm --filter ntask... build",
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|@|\\.well-known/|.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://analytics.nself.org; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss: https://api.task.nself.org wss://api.task.nself.org https://api.task.staging.nself.org wss://api.task.staging.nself.org https://auth.task.nself.org https://auth.task.staging.nself.org https://auth.nself.org https://auth.staging.nself.org https://*.sentry.io https://analytics.nself.org; img-src 'self' data: https:; font-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    }
+  ],
+  "installCommand": "cd .. && pnpm install --frozen-lockfile"
+}
