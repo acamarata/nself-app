@@ -114,9 +114,23 @@ jobs:
           # v1.3.1: all four platform builds succeeded, but the release kept the
           # single macOS dmg it had from the first run and the other three
           # artifacts were thrown away with the failed job.
+          # Collect real FILES. `release-artifacts/**` without globstar expands
+          # to `release-artifacts/*`, which includes directories such as
+          # release-artifacts/dmg. `gh release create` tolerated that, but
+          # `gh release upload` tries to POST each path and dies with
+          #   read release-artifacts/dmg: is a directory
+          # so the upload branch has to enumerate files explicitly.
+          mapfile -t ARTIFACTS < <(find release-artifacts -type f | sort)
+          if [ "${#ARTIFACTS[@]}" -eq 0 ]; then
+            echo "::error::no files found under release-artifacts/"
+            exit 1
+          fi
+          printf 'Uploading %d artifact(s):\n' "${#ARTIFACTS[@]}"
+          printf '  %s\n' "${ARTIFACTS[@]}"
+
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG exists; uploading artifacts into it."
-            gh release upload "$TAG" release-artifacts/** --clobber
+            gh release upload "$TAG" "${ARTIFACTS[@]}" --clobber
             exit 0
           fi
 
@@ -137,7 +151,7 @@ jobs:
           ### Auto-update
           Users on v1.0.0+ will be notified automatically.
           " \
-            release-artifacts/**
+            "${ARTIFACTS[@]}"
 
       - name: Trigger updater manifest publish
         env:
