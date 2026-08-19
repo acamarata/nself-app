@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      ;(function () {
+        try {
+          var m = document.cookie.match(/(?:^|; )nself_theme=(dark|light)/)
+          var v = (m && m[1]) || localStorage.getItem('nself_theme')
+          var dark = v ? v === 'dark' : true
+          if (m && m[1]) localStorage.setItem('nself_theme', m[1])
+          else if (!v) localStorage.setItem('nself_theme', 'dark')
+          document.documentElement.classList.toggle('dark', dark)
+        } catch (e) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#6366f1" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>ɳTask — Tasks that work the way you do</title>
+    <meta name="description" content="ɳTask is a free, open-source task manager built on ɳSelf. Use the hosted version at no cost, or self-host in minutes with the ɳSelf CLI." />
+    <meta property="og:title" content="ɳTask — Tasks that work the way you do" />
+    <meta property="og:description" content="ɳTask is a free, open-source task manager built on ɳSelf. Use the hosted version at no cost, or self-host in minutes with the ɳSelf CLI." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://task.nself.org/" />
+    <meta property="og:image" content="https://task.nself.org/api/og?title=ɳTask" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://task.nself.org/" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

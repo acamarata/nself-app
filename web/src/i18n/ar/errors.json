@@ -1,0 +1,14 @@
+{
+  "_note": "machine-translated placeholder — requires human review",
+  "notFound": "الصفحة غير موجودة",
+  "backToHome": "العودة إلى الرئيسية",
+  "authRequired": "تسجيل الدخول للمتابعة",
+  "networkError": "خطأ في الشبكة. الرجاء المحاولة مرة أخرى.",
+  "invalidResetLink": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية.",
+  "resetPasswordFailed": "فشلت إعادة تعيين كلمة المرور",
+  "sendResetEmailFailed": "فشل إرسال بريد إعادة التعيين",
+  "resendVerificationFailed": "فشلت إعادة الإرسال. الرجاء المحاولة مرة أخرى.",
+  "pageNotFoundDescription": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+  "returnHome": "العودة إلى الرئيسية",
+  "homeAriaLabel": "الصفحة الرئيسية لـ ɳTask"
+}

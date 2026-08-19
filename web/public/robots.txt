@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /lists
+Disallow: /today
+Disallow: /upcoming
+Disallow: /inbox
+Disallow: /logbook
+Disallow: /calendar
+Disallow: /board
+Disallow: /profile
+Disallow: /settings
+Disallow: /search
+Disallow: /app/
+Disallow: /sentry-test
+Sitemap: https://task.nself.org/sitemap.xml

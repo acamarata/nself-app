@@ -1,0 +1,473 @@
+{
+  "subtasks": {
+    "title": "Subtasks",
+    "add": "Add subtask",
+    "placeholder": "New subtask...",
+    "empty": "No subtasks yet",
+    "progress": "{{done}} of {{total}} done"
+  },
+  "comments": {
+    "title": "Comments",
+    "add": "Add comment",
+    "placeholder": "Write a comment...",
+    "empty": "No comments yet",
+    "edited": "edited",
+    "delete": "Delete comment",
+    "edit": "Edit comment",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "recurrence": {
+    "title": "Recurrence",
+    "none": "No recurrence",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "interval": "Every {{n}} {{unit}}",
+    "remove": "Remove recurrence",
+    "every": "Every",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "tags": {
+    "title": "Tags",
+    "add": "Add tag",
+    "placeholder": "Tag name...",
+    "empty": "No tags",
+    "filter": "Filter by tag",
+    "manage": "Manage tags",
+    "rename": "Rename",
+    "recolor": "Change color",
+    "deleteConfirm": "Delete tag \"{{name}}\"? This removes it from all tasks.",
+    "namePlaceholder": "Tag name"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "empty": "No reminders",
+    "add": "Add reminder",
+    "remove": "Remove reminder",
+    "custom": "Custom date & time",
+    "preset": {
+      "atDue": "At due time",
+      "10m": "10 min before",
+      "1h": "1 hour before",
+      "1d": "1 day before"
+    }
+  },
+  "assignees": {
+    "title": "Assignees",
+    "assign": "Assign",
+    "empty": "Unassigned",
+    "member": "Member"
+  },
+  "bulk": {
+    "selected": "{{count}} selected",
+    "selectAll": "Select all",
+    "clearSelection": "Clear selection",
+    "complete": "Complete",
+    "delete": "Delete",
+    "move": "Move to list",
+    "priority": "Set priority",
+    "addTag": "Add tag",
+    "deleteConfirm": "Delete {{count}} tasks? This cannot be undone.",
+    "enterSelectMode": "Select",
+    "exitSelectMode": "Done"
+  },
+  "notes": {
+    "edit": "Edit",
+    "preview": "Preview"
+  },
+  "snooze": {
+    "title": "Snooze",
+    "tomorrow": "Tomorrow",
+    "nextWeek": "Next week"
+  },
+  "sections": {
+    "unavailable": "Sections are not available yet for this list."
+  },
+  "search": {
+    "modalLabel": "Search tasks",
+    "tasksSection": "Tasks",
+    "emptyHint": "No results — press Enter to create task named \"{{query}}\"",
+    "createFromQuery": "Create task \"{{query}}\"",
+    "title": "Search",
+    "typeHint": "Type at least 2 characters to search",
+    "noResults": "No results for \"{{query}}\""
+  },
+  "filter": {
+    "title": "Filter & Sort",
+    "all": "All",
+    "active": "Active",
+    "completed": "Completed",
+    "priority": "Priority",
+    "dueDate": "Due date",
+    "list": "List",
+    "tags": "Tags",
+    "clearAll": "Clear all filters",
+    "sort": {
+      "title": "Title",
+      "created": "Date created",
+      "due": "Due date",
+      "priority": "Priority",
+      "asc": "Ascending",
+      "desc": "Descending"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "language": "Language",
+    "notifications": "Notifications",
+    "account": "Account",
+    "security": "Security",
+    "change": "Change",
+    "email": "Email",
+    "changeEmail": {
+      "currentPassword": "Current password",
+      "newEmail": "New email",
+      "save": "Save",
+      "verify": "Verification email sent — check your inbox."
+    },
+    "changePassword": {
+      "title": "Password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "minLength": "Password must be at least 8 characters",
+      "mismatch": "Passwords do not match",
+      "save": "Save",
+      "success": "Password updated."
+    },
+    "dataExport": {
+      "title": "Export your data",
+      "description": "Download all your tasks, lists, and comments as a file.",
+      "button": "Request export",
+      "rateLimited": "Already requested today. Try again in 24 hours."
+    },
+    "mfa": {
+      "title": "Two-factor authentication",
+      "enabled": "Two-factor authentication is enabled.",
+      "disabled": "Add an extra layer of security to your account.",
+      "enable": "Enable 2FA",
+      "disable": "Disable 2FA",
+      "beginSetup": "Begin setup",
+      "scanHint": "Scan this key in your authenticator app, or enter it manually.",
+      "secretKey": "Secret key",
+      "copyKey": "Copy key",
+      "keyCopied": "Copied to clipboard.",
+      "qrUrl": "QR code URL",
+      "otpLabel": "Authenticator code",
+      "otpPlaceholder": "000000",
+      "done": "Done",
+      "enabledSuccess": "Two-factor authentication enabled.",
+      "disabledSuccess": "Two-factor authentication disabled."
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "empty": "No other active sessions.",
+      "thisDevice": "This session",
+      "revoke": "Revoke",
+      "revoked": "Revoked",
+      "revokeConfirm": "End this session? It will be signed out immediately.",
+      "createdAt": "Started {{date}}"
+    },
+    "theme": {
+      "title": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "weekStart": {
+      "title": "Week starts on",
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "saturday": "Saturday"
+    },
+    "dateFormat": "Date format",
+    "defaultList": "Default list",
+    "pushNotifications": "Push notifications",
+    "emailNotifications": "Email notifications",
+    "signOut": "Sign out",
+    "dangerZone": "Danger zone",
+    "deleteAccount": {
+      "label": "Delete account",
+      "sublabel": "Permanently delete your account and all its data.",
+      "button": "Delete account",
+      "title": "Delete account",
+      "warning": "This will permanently delete:",
+      "item1": "All your tasks and lists",
+      "item2": "All comments and attachments",
+      "item3": "All tags and saved views",
+      "irreversible": "This cannot be undone.",
+      "typePrompt": "Type",
+      "typePromptSuffix": "to confirm",
+      "deleting": "Deleting...",
+      "confirm": "Delete my account"
+    }
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "action": "Action",
+    "shortcut": "Shortcut",
+    "close": "Close",
+    "newTask": "New task",
+    "newList": "New list",
+    "search": "Search",
+    "showShortcuts": "Show shortcuts"
+  },
+  "palette": {
+    "label": "Command palette",
+    "commandsSection": "Commands",
+    "noResults": "No commands or tasks found",
+    "newTask": "New task",
+    "newList": "New list",
+    "settings": "Settings",
+    "toggleTheme": "Toggle theme",
+    "signOut": "Sign out",
+    "viewToday": "Go to Today",
+    "viewUpcoming": "Go to Upcoming",
+    "viewInbox": "Go to Inbox",
+    "viewCalendar": "Go to Calendar",
+    "viewBoard": "Go to Board",
+    "viewLogbook": "Go to Logbook",
+    "hintNavigate": "navigate",
+    "hintSelect": "select",
+    "hintClose": "close"
+  },
+  "savedViews": {
+    "title": "Saved views",
+    "empty": "No saved views",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete",
+    "cancelDelete": "Cancel"
+  },
+  "attachments": {
+    "title": "Attachments",
+    "empty": "No attachments",
+    "drop": "Drop files here to attach",
+    "attach": "Attach file (drag or click)",
+    "tooLarge": "File exceeds the 25 MB limit",
+    "uploading": "Uploading...",
+    "error": "Upload failed. Please try again.",
+    "download": "Download",
+    "delete": "Delete attachment"
+  },
+  "taskDetail": {
+    "title": "Task detail",
+    "detail": "Detail",
+    "close": "Close task detail",
+    "editTitle": "Edit title",
+    "notesPlaceholder": "Add notes..."
+  },
+  "createTask": {
+    "dialog": "Create task",
+    "heading": "New task",
+    "title": "Title",
+    "titlePlaceholder": "Task title",
+    "notes": "Notes",
+    "notesPlaceholder": "Add notes (optional)",
+    "priority": "Priority",
+    "priorityNone": "No priority",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "priorityUrgent": "Urgent",
+    "dueDate": "Due date",
+    "dueTime": "Due time",
+    "create": "Create task",
+    "cancel": "Cancel",
+    "clear": "Clear"
+  },
+  "states": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "empty": "Nothing here yet",
+    "error": "Something went wrong",
+    "offline": "You're offline",
+    "offlineHint": "Changes will sync when you reconnect",
+    "rateLimitHint": "Too many requests. Please wait a moment.",
+    "permissionHint": "You don't have permission to view this."
+  },
+  "collab": {
+    "share": "Share",
+    "shareList": "Share list",
+    "invite": "Invite",
+    "invitePeople": "Invite people",
+    "shareLink": "Share link",
+    "members": "Members",
+    "sendInvite": "Send invite",
+    "email": "Email address",
+    "role": "Role",
+    "viewer": "Viewer",
+    "editor": "Editor",
+    "owner": "Owner",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "inviteSent": "Invite sent to {{email}}",
+    "generateLink": "Generate link",
+    "copyLink": "Copy link",
+    "revokeLink": "Revoke link",
+    "linkCopied": "Link copied!",
+    "revokeConfirm": "Revoke this share link?",
+    "remove": "Remove",
+    "removeConfirm": "Remove {{name}} from this list?",
+    "leave": "Leave list",
+    "leaveConfirm": "Leave this list? You will lose access.",
+    "transferOwnership": "Transfer ownership",
+    "transferConfirm": "Transfer ownership to {{name}}?",
+    "changeRole": "Change role",
+    "manageSharingLink": "Manage sharing",
+    "pendingInvites": "Pending invites",
+    "invitedBy": "{{name}} invited you to {{list}} as {{role}}",
+    "accept": "Accept",
+    "decline": "Decline",
+    "viewerAccess": "You have viewer access",
+    "noMembers": "No other members yet",
+    "presence": "Online now",
+    "onlineCount": "{{count}} people viewing",
+    "sharedListTitle": "{{title}} — shared via ɳTask",
+    "sharedListExpired": "This link has expired or is invalid.",
+    "sharedListCta": "Sign up for ɳTask — free forever",
+    "sharedListCtaLink": "Create a free account",
+    "acceptError": "Couldn't accept the invite. Please try again.",
+    "declineError": "Couldn't decline the invite. Please try again.",
+    "removeError": "Couldn't remove this member. Please try again.",
+    "roleChangeError": "Couldn't update the role. Please try again.",
+    "shareLinkError": "Couldn't create the share link. Please try again.",
+    "revokeError": "Couldn't revoke the share link. Please try again."
+  },
+  "account": {
+    "title": "Account",
+    "changeEmail": "Change email",
+    "changeEmailHint": "A verification email will be sent to the new address.",
+    "changeEmailSuccess": "Verify your new email — check your inbox.",
+    "currentPassword": "Current password",
+    "newEmail": "New email address",
+    "changePassword": "Change password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "changePasswordSuccess": "Password updated.",
+    "downloadData": "Download my data",
+    "downloadDataHint": "Exports all your tasks, lists, tags, and comments as JSON.",
+    "downloadDataSuccess": "Your export is ready — downloading.",
+    "downloadDataRateLimit": "Already requested today. Try again in 24 hours.",
+    "dangerZone": "Danger zone",
+    "deleteAccount": "Delete account",
+    "deleteAccountConfirm": "Type DELETE to confirm",
+    "deleteAccountWarning": "This will permanently delete all your tasks, lists, comments, and attachments. This cannot be undone.",
+    "deleteAccountSuccess": "Account deleted.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "legalLinks": "Legal"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "You are all caught up",
+    "bell": "Notifications",
+    "unreadCount": "{{count}} unread",
+    "justNow": "just now",
+    "minutesAgo": "{{n}}m ago",
+    "hoursAgo": "{{n}}h ago",
+    "daysAgo": "{{n}}d ago",
+    "panelLabel": "Notifications panel"
+  },
+  "todoItem": {
+    "markComplete": "Mark complete",
+    "markIncomplete": "Mark incomplete",
+    "deleteTask": "Delete task",
+    "selectTask": "Select task"
+  },
+  "inbox": {
+    "moveTo": "Move to…",
+    "moveTaskToList": "Move \"{{title}}\" to list",
+    "title": "Inbox",
+    "untriagedCount": "{{count}} untriaged",
+    "emptyTitle": "Inbox zero",
+    "emptyDescription": "Tasks with no list assigned will land here for triage."
+  },
+  "newTodo": {
+    "placeholder": "Add a task…",
+    "add": "Add",
+    "adding": "Adding…"
+  },
+  "reschedule": {
+    "title": "Reschedule task",
+    "newDueDate": "New due date",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "save": "Save"
+  },
+  "emptyState": {
+    "noTasksYet": "No tasks yet",
+    "somethingWrong": "Something went wrong",
+    "tryAgain": "Try again",
+    "contactSupport": "Contact support"
+  },
+  "profile": {
+    "title": "Profile",
+    "displayName": "Display name",
+    "displayNamePlaceholder": "Your name",
+    "noNameSet": "No name set",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "signOut": "Sign out",
+    "saveFailed": "Failed to save"
+  },
+  "board": {
+    "title": "Board",
+    "listLabel": "List",
+    "allLists": "All lists",
+    "columnDone": "Done",
+    "emptyTitle": "No tasks to show",
+    "emptyDescription": "Tasks will appear on the board once you add some."
+  },
+  "calendar": {
+    "title": "Calendar",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "selectDay": "Select a day",
+    "emptyTitle": "No tasks this day",
+    "emptyDescription": "Drag a task onto a day, or click one below to reschedule it.",
+    "rescheduleAria": "Reschedule {{title}}"
+  },
+  "lists": {
+    "title": "Lists",
+    "newList": "New list",
+    "loadFailed": "Failed to load lists",
+    "createFailed": "Failed to create list",
+    "emptyTitle": "No lists yet",
+    "emptyDescription": "Create your first list to get organized.",
+    "createListCta": "Create a list"
+  },
+  "logbook": {
+    "title": "Logbook",
+    "completedCount": "{{count}} completed",
+    "markIncomplete": "Mark incomplete",
+    "emptyTitle": "No completed tasks yet",
+    "emptyDescription": "Finished tasks will appear here, grouped by the day you completed them."
+  },
+  "today": {
+    "title": "Today",
+    "dueCount": "{{count}} due",
+    "overdueHeading": "Overdue",
+    "todayHeading": "Today",
+    "emptyTitle": "Nothing due today",
+    "emptyDescription": "You're all caught up. Enjoy the clear schedule."
+  },
+  "upcoming": {
+    "title": "Upcoming",
+    "scheduledCount": "{{count}} scheduled",
+    "laterHeading": "Later",
+    "emptyTitle": "Nothing scheduled",
+    "emptyDescription": "Tasks with a due date in the next 7 days will show up here."
+  }
+}

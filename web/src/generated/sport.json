@@ -1,0 +1,324 @@
+{
+  "generatedAt": "2026-06-22T03:07:37.999Z",
+  "sources": {
+    "masterVersions": "MASTER-VERSIONS.md",
+    "bundles": "F06-BUNDLE-INVENTORY.md",
+    "pricing": "F07-PRICING-TIERS.md",
+    "pluginsFree": "F03-PLUGIN-INVENTORY-FREE.md",
+    "pluginsPro": "F04-PLUGIN-INVENTORY-PRO.md"
+  },
+  "versions": [
+    {
+      "artifact": "CLI",
+      "current": "v1.1.9"
+    },
+    {
+      "artifact": "Admin Docker nself/nself-admin",
+      "current": "v1.1.10"
+    },
+    {
+      "artifact": "homebrew-nself formula",
+      "current": "v1.1.7"
+    },
+    {
+      "artifact": "plugins-pro",
+      "current": "v1.1.15"
+    },
+    {
+      "artifact": "plugins (free)",
+      "current": "v1.1.7"
+    },
+    {
+      "artifact": "packages",
+      "current": "v1.1.6"
+    },
+    {
+      "artifact": "web (org+docs+cloud+all subapps)",
+      "current": "v1.1.6"
+    },
+    {
+      "artifact": "nchat",
+      "current": "v1.1.7"
+    },
+    {
+      "artifact": "nclaw",
+      "current": "v1.1.6"
+    },
+    {
+      "artifact": "ntask",
+      "current": "v1.1.6"
+    },
+    {
+      "artifact": "ntv (RN + Expo app)",
+      "current": "v1.2.1"
+    },
+    {
+      "artifact": "nfamily",
+      "current": "v0.1.3"
+    },
+    {
+      "artifact": "clawde",
+      "current": "v0.3.5"
+    },
+    {
+      "artifact": "ping_api service",
+      "current": "v1.1.6"
+    },
+    {
+      "artifact": "@nself-ui (npm package)",
+      "current": "v0.1.0"
+    },
+    {
+      "artifact": "nself-sync (npm package)",
+      "current": "v0.1.0"
+    },
+    {
+      "artifact": "libnclaw (Rust crate)",
+      "current": "v1.1.2"
+    },
+    {
+      "artifact": "nclaw-core (Rust crate)",
+      "current": "v0.1.0"
+    }
+  ],
+  "bundles": [
+    {
+      "name": "ɳClaw",
+      "annual": "$9.99/yr",
+      "price": "$0.99/mo",
+      "unlocks": "Full AI assistant — email, calendar, news, budget, tools"
+    },
+    {
+      "name": "ClawDE",
+      "annual": "$9.99/yr",
+      "price": "$0.99/mo",
+      "unlocks": "Cloud sync, premium models, team features"
+    },
+    {
+      "name": "ɳTV",
+      "annual": "$9.99/yr",
+      "price": "$0.99/mo",
+      "unlocks": "Media downloading, encoding, streaming, metadata, podcast hosting, multi-source media-network routing"
+    },
+    {
+      "name": "ɳFamily",
+      "annual": "$9.99/yr",
+      "price": "$0.99/mo",
+      "unlocks": "Private family social, photo sharing, activity feeds, genealogy/family tree, migration from Geni/Ancestry/FamilySearch/MyHeritage/WikiTree"
+    },
+    {
+      "name": "ɳChat",
+      "annual": "$9.99/yr",
+      "price": "$0.99/mo",
+      "unlocks": "Messaging with video calls, bots, moderation"
+    },
+    {
+      "name": "ɳSentry",
+      "annual": "$9.99/yr",
+      "price": "$0.99/mo",
+      "unlocks": "Product-layer observability: uptime monitoring, public status page, incident management, alert routing, SLO tracking, synthetic monitoring, real user monitoring, error tracking, cron monitoring, on-call, crash reporting, anomaly detection, audit log"
+    }
+  ],
+  "pricingTiers": [
+    {
+      "tier": "ɳClaw",
+      "monthly": "$0.99/mo",
+      "annual": "$9.99/yr",
+      "includes": "~16% (~2 months free)"
+    },
+    {
+      "tier": "ɳChat",
+      "monthly": "$0.99/mo",
+      "annual": "$9.99/yr",
+      "includes": "~16%"
+    },
+    {
+      "tier": "ɳSentry",
+      "monthly": "$0.99/mo",
+      "annual": "$9.99/yr",
+      "includes": "~16%"
+    },
+    {
+      "tier": "ɳTV",
+      "monthly": "$0.99/mo",
+      "annual": "$9.99/yr",
+      "includes": "~16%"
+    },
+    {
+      "tier": "ɳFamily",
+      "monthly": "$0.99/mo",
+      "annual": "$9.99/yr",
+      "includes": "~16%"
+    },
+    {
+      "tier": "ClawDE",
+      "monthly": "$0.99/mo",
+      "annual": "$9.99/yr",
+      "includes": "~16%"
+    },
+    {
+      "tier": "ɳTask",
+      "monthly": "$0",
+      "annual": "$0",
+      "includes": "— (free bundle of free plugins)"
+    },
+    {
+      "tier": "ɳSelf+",
+      "monthly": "$3.99/mo",
+      "annual": "$39.99/yr",
+      "includes": "~16% (~2 months free)"
+    },
+    {
+      "tier": "Free",
+      "monthly": "$0",
+      "annual": "",
+      "includes": "$0"
+    }
+  ],
+  "pluginsFree": [
+    "audit-log",
+    "backup",
+    "content-acquisition",
+    "content-progress",
+    "cron",
+    "donorbox",
+    "family-gedcom",
+    "feature-flags",
+    "github",
+    "github-runner",
+    "invitations",
+    "jobs",
+    "link-preview",
+    "mdns",
+    "mlflow",
+    "monitoring",
+    "notifications",
+    "notify",
+    "ollama",
+    "paypal",
+    "push",
+    "search",
+    "shopify",
+    "stripe",
+    "subtitle-manager",
+    "tokens",
+    "torrent-manager",
+    "vpn",
+    "webhooks"
+  ],
+  "pluginsPro": [
+    "access-controls",
+    "activity-feed",
+    "admin-api",
+    "ai",
+    "analytics",
+    "auth",
+    "backup",
+    "bots",
+    "browser",
+    "calendar",
+    "cdn",
+    "chat",
+    "claw",
+    "claw-budget",
+    "claw-news",
+    "claw-web",
+    "cloudflare",
+    "cms",
+    "compliance",
+    "cron",
+    "ddns",
+    "devices",
+    "documents",
+    "donorbox",
+    "entitlements",
+    "epg",
+    "family",
+    "family-ancestry",
+    "family-familysearch",
+    "family-geni",
+    "family-myheritage",
+    "family-wikitree",
+    "file-processing",
+    "game-metadata",
+    "geocoding",
+    "geolocation",
+    "google",
+    "home",
+    "idme",
+    "knowledge-base",
+    "linkedin",
+    "livekit",
+    "media-processing",
+    "meetings",
+    "moderation",
+    "mux",
+    "notify",
+    "object-storage",
+    "observability",
+    "paypal",
+    "pentest",
+    "photos",
+    "podcast",
+    "post",
+    "realtime",
+    "recording",
+    "retro-gaming",
+    "rom-discovery",
+    "shopify",
+    "social",
+    "sports",
+    "stream-gateway",
+    "streaming",
+    "stripe",
+    "subtitle-manager",
+    "nself-sync",
+    "nself-synthetic-monitor",
+    "nself-uptime-monitor",
+    "nself-vault",
+    "support",
+    "tmdb",
+    "voice",
+    "web3",
+    "workflows",
+    "audit-analytics",
+    "auth-enterprise",
+    "byok",
+    "cdc",
+    "crdt",
+    "event-bus",
+    "functions-v8",
+    "hipaa",
+    "job-queue",
+    "mcp",
+    "nself-alert-router",
+    "nself-anomaly",
+    "nself-audit",
+    "nself-cloud",
+    "nself-crash",
+    "nself-cron-monitor",
+    "nself-csam",
+    "nself-errors",
+    "nself-geo",
+    "nself-incident-mgmt",
+    "nself-image",
+    "nself-oncall",
+    "nself-pdf",
+    "nself-rum",
+    "nself-scan",
+    "nself-slo-tracker",
+    "nself-sms",
+    "nself-status-page",
+    "nself-stripe",
+    "payments",
+    "search",
+    "siem",
+    "storage",
+    "storage-transform",
+    "tenant-controller",
+    "transactional-email",
+    "vpn",
+    "warehouse",
+    "webhooks"
+  ]
+}

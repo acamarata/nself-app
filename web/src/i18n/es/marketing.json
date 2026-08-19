@@ -1,0 +1,87 @@
+{
+  "emptyState": {
+    "noLists": "Sin listas todavía",
+    "noListsDesc": "Crea tu primera lista de tareas para empezar.",
+    "createList": "Crear lista",
+    "noTasks": "Sin tareas todavía",
+    "noTasksDesc": "Agrega tu primera tarea a esta lista.",
+    "addTask": "Agregar tarea"
+  },
+  "tasks": {
+    "newTask": "Nueva tarea",
+    "newList": "Nueva lista",
+    "listNamePlaceholder": "Nombre de la lista",
+    "taskPlaceholder": "¿Qué hay que hacer?",
+    "offlineBanner": "Estás sin conexión — los cambios se sincronizarán al reconectarse.",
+    "addTaskLabel": "Agregar tarea",
+    "completeTask": "Marcar como completado",
+    "deleteTask": "Eliminar tarea"
+  },
+  "home": {
+    "heroTitlePart1": "Tareas que se adaptan a ",
+    "heroTitleHighlight": "tu forma de trabajar",
+    "heroSubtitle": "ɳTask es un gestor de tareas rápido y elegante: listas, subtareas, recordatorios, tareas recurrentes, colaboración y sincronización sin conexión, en todos tus dispositivos. Regístrate gratis y empieza en segundos.",
+    "signUpFree": "Regístrate gratis",
+    "logIn": "Iniciar sesión",
+    "freeHostedPrefix": "Alojado gratis por nosotros — sin tarjeta de crédito. O",
+    "selfHostLinkText": "aloja tú mismo la app de código abierto",
+    "freeHostedSuffix": "en tu propio servidor.",
+    "featuresHeading": "Todo lo que necesitas para mantenerte al día",
+    "featuresSubheading": "Profundo donde importa, simple en todo lo demás.",
+    "features": {
+      "listsSubtasks": {
+        "title": "Listas y subtareas",
+        "description": "Agrupa el trabajo en listas con colores, divide las tareas en checklists y mantén todo ordenado."
+      },
+      "dueDatesReminders": {
+        "title": "Fechas límite y recordatorios",
+        "description": "Define fechas límite y recibe recordatorios. Las tareas vencidas y próximas aparecen automáticamente."
+      },
+      "recurringTasks": {
+        "title": "Tareas recurrentes",
+        "description": "Diarias, semanales, personalizadas: las tareas repetidas se regeneran solas para que nunca las olvides."
+      },
+      "tagsFilterSearch": {
+        "title": "Etiquetas, filtros y búsqueda",
+        "description": "Etiqueta entre listas, filtra por lo que necesites y encuentra cualquier tarea al instante. Guarda tus vistas."
+      },
+      "shareCollaborate": {
+        "title": "Comparte y colabora",
+        "description": "Invita personas a una lista, asigna tareas y ve quién está conectado mientras trabajan juntos."
+      },
+      "offlineFirst": {
+        "title": "Funciona sin conexión",
+        "description": "Funciona sin conexión a internet. Los cambios se sincronizan en cuanto te reconectas, en todos tus dispositivos."
+      }
+    },
+    "platformsHeading": "Úsalo en todas partes",
+    "platformsSubheading": "Tus tareas se sincronizan en todos tus dispositivos. Empieza en la web, termina en tu teléfono.",
+    "platforms": {
+      "web": {
+        "name": "Web",
+        "detail": "En tu navegador, ahora mismo"
+      },
+      "desktop": {
+        "name": "Escritorio",
+        "detail": "macOS · Windows · Linux"
+      },
+      "mobile": {
+        "name": "Móvil",
+        "detail": "iOS · Android"
+      },
+      "tv": {
+        "name": "TV",
+        "detail": "Apple TV · Android TV · Fire TV"
+      }
+    },
+    "platformsFooterNote": "La web ya está lista. Las apps de escritorio, móvil y TV están en camino — o instala esta como PWA hoy mismo.",
+    "ctaHeading": "Empieza a organizarte en segundos",
+    "ctaSubheading": "Gratis, alojado por nosotros. Tus datos son tuyos, y la app es de código abierto, así que siempre puedes alojarla tú mismo.",
+    "aboutNself": "Acerca de nSelf"
+  },
+  "welcome": {
+    "tagline": "Tareas que se adaptan a tu forma de trabajar.",
+    "getStarted": "Comenzar",
+    "createAccount": "Crear cuenta"
+  }
+}

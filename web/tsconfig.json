@@ -1,0 +1,67 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@nself/i18n": [
+        "../packages/@nself/i18n/src/index.ts"
+      ],
+      "@nself/observability": [
+        "../packages/@nself/observability/src/index.ts"
+      ],
+      "@nself/ntask-core": [
+        "../packages/@nself/ntask-core/src/index.ts"
+      ],
+      "@nself/offline-queue": [
+        "../packages/@nself/offline-queue/src/index.ts"
+      ],
+      "@nself/offline-queue/adapters/idb": [
+        "../packages/@nself/offline-queue/src/adapters/idb.ts"
+      ],
+      "@nself/offline-queue/adapters/memory": [
+        "../packages/@nself/offline-queue/src/adapters/memory.ts"
+      ],
+      "@nself/auth-core": [
+        "../packages/@nself/auth-core/src/index.ts"
+      ],
+      "@nself/graphql-client": [
+        "../packages/@nself/graphql-client/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "api",
+    "vite.config.ts",
+    "vite-env.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "e2e",
+    "node_modules",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/__tests__/**",
+    "src/app",
+    "vitest.config.ts"
+  ]
+}

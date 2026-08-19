@@ -1,0 +1,15 @@
+{
+  "notFound": "Página no encontrada",
+  "backToHome": "Volver al inicio",
+  "authRequired": "Inicia sesión para continuar",
+  "networkError": "Error de red. Por favor intenta de nuevo.",
+  "unauthorized": "No autorizado. Por favor inicia sesión.",
+  "serverError": "Error del servidor. Por favor intenta más tarde.",
+  "invalidResetLink": "Enlace de restablecimiento inválido o caducado.",
+  "resetPasswordFailed": "Error al restablecer la contraseña",
+  "sendResetEmailFailed": "Error al enviar el correo de restablecimiento",
+  "resendVerificationFailed": "Error al reenviar. Por favor intenta de nuevo.",
+  "pageNotFoundDescription": "La página que buscabas no existe o ha sido movida.",
+  "returnHome": "Volver al inicio",
+  "homeAriaLabel": "Inicio de ɳTask"
+}

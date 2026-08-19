@@ -1,0 +1,473 @@
+{
+  "subtasks": {
+    "title": "Subtareas",
+    "add": "Agregar subtarea",
+    "placeholder": "Nueva subtarea...",
+    "empty": "Sin subtareas todavía",
+    "progress": "{{done}} de {{total}} hechas"
+  },
+  "comments": {
+    "title": "Comentarios",
+    "add": "Agregar comentario",
+    "placeholder": "Escribe un comentario...",
+    "empty": "Sin comentarios todavía",
+    "edited": "editado",
+    "delete": "Eliminar comentario",
+    "edit": "Editar comentario",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "recurrence": {
+    "title": "Recurrencia",
+    "none": "Sin recurrencia",
+    "daily": "Diario",
+    "weekly": "Semanal",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "interval": "Cada {{n}} {{unit}}",
+    "remove": "Eliminar recurrencia",
+    "every": "Cada",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "tags": {
+    "title": "Etiquetas",
+    "add": "Agregar etiqueta",
+    "placeholder": "Nombre de etiqueta...",
+    "empty": "Sin etiquetas",
+    "filter": "Filtrar por etiqueta",
+    "manage": "Gestionar etiquetas",
+    "rename": "Renombrar",
+    "recolor": "Cambiar color",
+    "deleteConfirm": "¿Eliminar la etiqueta \"{{name}}\"? Se quitará de todas las tareas.",
+    "namePlaceholder": "Nombre de etiqueta"
+  },
+  "reminders": {
+    "title": "Recordatorios",
+    "empty": "Sin recordatorios",
+    "add": "Agregar recordatorio",
+    "remove": "Eliminar recordatorio",
+    "custom": "Fecha y hora personalizadas",
+    "preset": {
+      "atDue": "A la hora de vencimiento",
+      "10m": "10 min antes",
+      "1h": "1 hora antes",
+      "1d": "1 día antes"
+    }
+  },
+  "assignees": {
+    "title": "Asignados",
+    "assign": "Asignar",
+    "empty": "Sin asignar",
+    "member": "Miembro"
+  },
+  "bulk": {
+    "selected": "{{count}} seleccionado(s)",
+    "selectAll": "Seleccionar todo",
+    "clearSelection": "Borrar selección",
+    "complete": "Completar",
+    "delete": "Eliminar",
+    "move": "Mover a lista",
+    "priority": "Establecer prioridad",
+    "addTag": "Agregar etiqueta",
+    "deleteConfirm": "¿Eliminar {{count}} tareas? Esto no se puede deshacer.",
+    "enterSelectMode": "Seleccionar",
+    "exitSelectMode": "Listo"
+  },
+  "notes": {
+    "edit": "Editar",
+    "preview": "Vista previa"
+  },
+  "snooze": {
+    "title": "Posponer",
+    "tomorrow": "Mañana",
+    "nextWeek": "La próxima semana"
+  },
+  "sections": {
+    "unavailable": "Las secciones aún no están disponibles para esta lista."
+  },
+  "search": {
+    "modalLabel": "Buscar tareas",
+    "tasksSection": "Tareas",
+    "emptyHint": "Sin resultados — pulsa Enter para crear la tarea \"{{query}}\"",
+    "createFromQuery": "Crear tarea \"{{query}}\"",
+    "title": "Buscar",
+    "typeHint": "Escribe al menos 2 caracteres para buscar",
+    "noResults": "Sin resultados para \"{{query}}\""
+  },
+  "filter": {
+    "title": "Filtrar y ordenar",
+    "all": "Todo",
+    "active": "Activo",
+    "completed": "Completado",
+    "priority": "Prioridad",
+    "dueDate": "Fecha de vencimiento",
+    "list": "Lista",
+    "tags": "Etiquetas",
+    "clearAll": "Limpiar todos los filtros",
+    "sort": {
+      "title": "Título",
+      "created": "Fecha de creación",
+      "due": "Fecha de vencimiento",
+      "priority": "Prioridad",
+      "asc": "Ascendente",
+      "desc": "Descendente"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "appearance": "Apariencia",
+    "language": "Idioma",
+    "notifications": "Notificaciones",
+    "account": "Cuenta",
+    "security": "Seguridad",
+    "change": "Cambiar",
+    "email": "Correo",
+    "changeEmail": {
+      "currentPassword": "Contraseña actual",
+      "newEmail": "Nuevo correo",
+      "save": "Guardar",
+      "verify": "Correo de verificación enviado — revisa tu bandeja de entrada."
+    },
+    "changePassword": {
+      "title": "Contraseña",
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "minLength": "La contraseña debe tener al menos 8 caracteres",
+      "mismatch": "Las contraseñas no coinciden",
+      "save": "Guardar",
+      "success": "Contraseña actualizada."
+    },
+    "dataExport": {
+      "title": "Exportar tus datos",
+      "description": "Descarga todas tus tareas, listas y comentarios como un archivo.",
+      "button": "Solicitar exportación",
+      "rateLimited": "Ya solicitado hoy. Inténtalo de nuevo en 24 horas."
+    },
+    "mfa": {
+      "title": "Autenticación de dos factores",
+      "enabled": "La autenticación de dos factores está activada.",
+      "disabled": "Agrega una capa adicional de seguridad a tu cuenta.",
+      "enable": "Activar 2FA",
+      "disable": "Desactivar 2FA",
+      "beginSetup": "Comenzar configuración",
+      "scanHint": "Escanea esta clave en tu app de autenticación, o ingrésala manualmente.",
+      "secretKey": "Clave secreta",
+      "copyKey": "Copiar clave",
+      "keyCopied": "Copiado al portapapeles.",
+      "qrUrl": "URL del código QR",
+      "otpLabel": "Código de autenticación",
+      "otpPlaceholder": "000000",
+      "done": "Listo",
+      "enabledSuccess": "Autenticación de dos factores activada.",
+      "disabledSuccess": "Autenticación de dos factores desactivada."
+    },
+    "sessions": {
+      "title": "Sesiones activas",
+      "empty": "No hay otras sesiones activas.",
+      "thisDevice": "Esta sesión",
+      "revoke": "Revocar",
+      "revoked": "Revocada",
+      "revokeConfirm": "¿Terminar esta sesión? Se cerrará la sesión inmediatamente.",
+      "createdAt": "Iniciada el {{date}}"
+    },
+    "theme": {
+      "title": "Tema",
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "weekStart": {
+      "title": "La semana empieza el",
+      "sunday": "Domingo",
+      "monday": "Lunes",
+      "saturday": "Sábado"
+    },
+    "dateFormat": "Formato de fecha",
+    "defaultList": "Lista predeterminada",
+    "pushNotifications": "Notificaciones push",
+    "emailNotifications": "Notificaciones por correo",
+    "signOut": "Cerrar sesión",
+    "dangerZone": "Zona de peligro",
+    "deleteAccount": {
+      "label": "Eliminar cuenta",
+      "sublabel": "Elimina permanentemente tu cuenta y todos sus datos.",
+      "button": "Eliminar cuenta",
+      "title": "Eliminar cuenta",
+      "warning": "Esto eliminará permanentemente:",
+      "item1": "Todas tus tareas y listas",
+      "item2": "Todos los comentarios y archivos adjuntos",
+      "item3": "Todas las etiquetas y vistas guardadas",
+      "irreversible": "Esto no se puede deshacer.",
+      "typePrompt": "Escribe",
+      "typePromptSuffix": "para confirmar",
+      "deleting": "Eliminando...",
+      "confirm": "Eliminar mi cuenta"
+    }
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado",
+    "action": "Acción",
+    "shortcut": "Atajo",
+    "close": "Cerrar",
+    "newTask": "Nueva tarea",
+    "newList": "Nueva lista",
+    "search": "Buscar",
+    "showShortcuts": "Ver atajos"
+  },
+  "palette": {
+    "label": "Paleta de comandos",
+    "commandsSection": "Comandos",
+    "noResults": "Sin comandos ni tareas encontrados",
+    "newTask": "Nueva tarea",
+    "newList": "Nueva lista",
+    "settings": "Configuración",
+    "toggleTheme": "Cambiar tema",
+    "signOut": "Cerrar sesión",
+    "viewToday": "Ir a Hoy",
+    "viewUpcoming": "Ir a Próximas",
+    "viewInbox": "Ir a Bandeja de entrada",
+    "viewCalendar": "Ir a Calendario",
+    "viewBoard": "Ir a Tablero",
+    "viewLogbook": "Ir a Registro",
+    "hintNavigate": "navegar",
+    "hintSelect": "seleccionar",
+    "hintClose": "cerrar"
+  },
+  "savedViews": {
+    "title": "Vistas guardadas",
+    "empty": "Sin vistas guardadas",
+    "delete": "Eliminar",
+    "confirmDelete": "Confirmar eliminación",
+    "cancelDelete": "Cancelar"
+  },
+  "attachments": {
+    "title": "Archivos adjuntos",
+    "empty": "Sin archivos adjuntos",
+    "drop": "Suelta archivos aquí para adjuntarlos",
+    "attach": "Adjuntar archivo (arrastrar o hacer clic)",
+    "tooLarge": "El archivo supera el límite de 25 MB",
+    "uploading": "Subiendo...",
+    "error": "Error al subir. Por favor inténtalo de nuevo.",
+    "download": "Descargar",
+    "delete": "Eliminar adjunto"
+  },
+  "taskDetail": {
+    "title": "Detalle de tarea",
+    "detail": "Detalle",
+    "close": "Cerrar detalle de tarea",
+    "editTitle": "Editar título",
+    "notesPlaceholder": "Agregar notas..."
+  },
+  "createTask": {
+    "dialog": "Crear tarea",
+    "heading": "Nueva tarea",
+    "title": "Título",
+    "titlePlaceholder": "Título de la tarea",
+    "notes": "Notas",
+    "notesPlaceholder": "Agregar notas (opcional)",
+    "priority": "Prioridad",
+    "priorityNone": "Sin prioridad",
+    "priorityLow": "Baja",
+    "priorityMedium": "Media",
+    "priorityHigh": "Alta",
+    "priorityUrgent": "Urgente",
+    "dueDate": "Fecha de vencimiento",
+    "dueTime": "Hora de vencimiento",
+    "create": "Crear tarea",
+    "cancel": "Cancelar",
+    "clear": "Borrar"
+  },
+  "states": {
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "empty": "Nada aquí todavía",
+    "error": "Algo salió mal",
+    "offline": "Estás sin conexión",
+    "offlineHint": "Los cambios se sincronizarán al reconectarse",
+    "rateLimitHint": "Demasiadas solicitudes. Por favor espera un momento.",
+    "permissionHint": "No tienes permiso para ver esto."
+  },
+  "collab": {
+    "share": "Compartir",
+    "shareList": "Compartir lista",
+    "invite": "Invitar",
+    "invitePeople": "Invitar personas",
+    "shareLink": "Enlace para compartir",
+    "members": "Miembros",
+    "sendInvite": "Enviar invitación",
+    "email": "Correo electrónico",
+    "role": "Rol",
+    "viewer": "Lector",
+    "editor": "Editor",
+    "owner": "Propietario",
+    "pending": "Pendiente",
+    "accepted": "Aceptado",
+    "inviteSent": "Invitación enviada a {{email}}",
+    "generateLink": "Generar enlace",
+    "copyLink": "Copiar enlace",
+    "revokeLink": "Revocar enlace",
+    "linkCopied": "¡Enlace copiado!",
+    "revokeConfirm": "¿Revocar este enlace de compartir?",
+    "remove": "Eliminar",
+    "removeConfirm": "¿Eliminar a {{name}} de esta lista?",
+    "leave": "Abandonar lista",
+    "leaveConfirm": "¿Abandonar esta lista? Perderás el acceso.",
+    "transferOwnership": "Transferir propiedad",
+    "transferConfirm": "¿Transferir propiedad a {{name}}?",
+    "changeRole": "Cambiar rol",
+    "manageSharingLink": "Gestionar compartir",
+    "pendingInvites": "Invitaciones pendientes",
+    "invitedBy": "{{name}} te invitó a {{list}} como {{role}}",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "viewerAccess": "Tienes acceso de solo lectura",
+    "noMembers": "Aún no hay otros miembros",
+    "presence": "En línea ahora",
+    "onlineCount": "{{count}} personas viendo",
+    "sharedListTitle": "{{title}} — compartido via ɳTask",
+    "sharedListExpired": "Este enlace ha caducado o no es válido.",
+    "sharedListCta": "Regístrate en ɳTask — gratis para siempre",
+    "sharedListCtaLink": "Crear una cuenta gratuita",
+    "acceptError": "No se pudo aceptar la invitación. Inténtalo de nuevo.",
+    "declineError": "No se pudo rechazar la invitación. Inténtalo de nuevo.",
+    "removeError": "No se pudo eliminar a este miembro. Inténtalo de nuevo.",
+    "roleChangeError": "No se pudo actualizar el rol. Inténtalo de nuevo.",
+    "shareLinkError": "No se pudo crear el enlace para compartir. Inténtalo de nuevo.",
+    "revokeError": "No se pudo revocar el enlace para compartir. Inténtalo de nuevo."
+  },
+  "account": {
+    "title": "Cuenta",
+    "changeEmail": "Cambiar correo",
+    "changeEmailHint": "Se enviará un correo de verificación a la nueva dirección.",
+    "changeEmailSuccess": "Verifica tu nuevo correo — revisa tu bandeja de entrada.",
+    "currentPassword": "Contraseña actual",
+    "newEmail": "Nueva dirección de correo",
+    "changePassword": "Cambiar contraseña",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar nueva contraseña",
+    "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "changePasswordSuccess": "Contraseña actualizada.",
+    "downloadData": "Descargar mis datos",
+    "downloadDataHint": "Exporta todas tus tareas, listas, etiquetas y comentarios en JSON.",
+    "downloadDataSuccess": "Tu exportación está lista — descargando.",
+    "downloadDataRateLimit": "Ya solicitado hoy. Inténtalo de nuevo en 24 horas.",
+    "dangerZone": "Zona de peligro",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountConfirm": "Escribe DELETE para confirmar",
+    "deleteAccountWarning": "Esto eliminará permanentemente todas tus tareas, listas, comentarios y archivos adjuntos. Esto no se puede deshacer.",
+    "deleteAccountSuccess": "Cuenta eliminada.",
+    "privacy": "Política de privacidad",
+    "terms": "Términos de servicio",
+    "legalLinks": "Legal"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "empty": "Estás al día",
+    "bell": "Notificaciones",
+    "unreadCount": "{{count}} sin leer",
+    "justNow": "ahora mismo",
+    "minutesAgo": "hace {{n}}m",
+    "hoursAgo": "hace {{n}}h",
+    "daysAgo": "hace {{n}}d",
+    "panelLabel": "Panel de notificaciones"
+  },
+  "todoItem": {
+    "markComplete": "Marcar como completada",
+    "markIncomplete": "Marcar como incompleta",
+    "deleteTask": "Eliminar tarea",
+    "selectTask": "Seleccionar tarea"
+  },
+  "inbox": {
+    "moveTo": "Mover a…",
+    "moveTaskToList": "Mover \"{{title}}\" a la lista",
+    "title": "Bandeja de entrada",
+    "untriagedCount": "{{count}} sin clasificar",
+    "emptyTitle": "Bandeja vacía",
+    "emptyDescription": "Las tareas sin lista asignada aparecerán aquí para clasificarlas."
+  },
+  "newTodo": {
+    "placeholder": "Añadir una tarea…",
+    "add": "Añadir",
+    "adding": "Añadiendo…"
+  },
+  "reschedule": {
+    "title": "Reprogramar tarea",
+    "newDueDate": "Nueva fecha de vencimiento",
+    "cancel": "Cancelar",
+    "saving": "Guardando…",
+    "save": "Guardar"
+  },
+  "emptyState": {
+    "noTasksYet": "Aún no hay tareas",
+    "somethingWrong": "Algo salió mal",
+    "tryAgain": "Intentar de nuevo",
+    "contactSupport": "Contactar soporte"
+  },
+  "profile": {
+    "title": "Perfil",
+    "displayName": "Nombre para mostrar",
+    "displayNamePlaceholder": "Tu nombre",
+    "noNameSet": "Sin nombre configurado",
+    "theme": "Tema",
+    "themeSystem": "Sistema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "saveChanges": "Guardar cambios",
+    "saving": "Guardando...",
+    "saved": "Guardado",
+    "signOut": "Cerrar sesión",
+    "saveFailed": "Error al guardar"
+  },
+  "board": {
+    "title": "Tablero",
+    "listLabel": "Lista",
+    "allLists": "Todas las listas",
+    "columnDone": "Hecho",
+    "emptyTitle": "No hay tareas para mostrar",
+    "emptyDescription": "Las tareas aparecerán en el tablero cuando agregues algunas."
+  },
+  "calendar": {
+    "title": "Calendario",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "selectDay": "Selecciona un día",
+    "emptyTitle": "No hay tareas este día",
+    "emptyDescription": "Arrastra una tarea a un día, o haz clic en una de abajo para reprogramarla.",
+    "rescheduleAria": "Reprogramar {{title}}"
+  },
+  "lists": {
+    "title": "Listas",
+    "newList": "Nueva lista",
+    "loadFailed": "Error al cargar las listas",
+    "createFailed": "Error al crear la lista",
+    "emptyTitle": "Sin listas todavía",
+    "emptyDescription": "Crea tu primera lista para organizarte.",
+    "createListCta": "Crear una lista"
+  },
+  "logbook": {
+    "title": "Registro",
+    "completedCount": "{{count}} completadas",
+    "markIncomplete": "Marcar como incompleta",
+    "emptyTitle": "Aún no hay tareas completadas",
+    "emptyDescription": "Las tareas terminadas aparecerán aquí, agrupadas por el día en que las completaste."
+  },
+  "today": {
+    "title": "Hoy",
+    "dueCount": "{{count}} pendientes",
+    "overdueHeading": "Vencidas",
+    "todayHeading": "Hoy",
+    "emptyTitle": "Nada pendiente para hoy",
+    "emptyDescription": "Estás al día. Disfruta la agenda despejada."
+  },
+  "upcoming": {
+    "title": "Próximas",
+    "scheduledCount": "{{count}} programadas",
+    "laterHeading": "Más adelante",
+    "emptyTitle": "Nada programado",
+    "emptyDescription": "Las tareas con fecha de vencimiento en los próximos 7 días aparecerán aquí."
+  }
+}

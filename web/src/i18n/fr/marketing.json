@@ -1,0 +1,87 @@
+{
+  "emptyState": {
+    "noLists": "Aucune liste pour l'instant",
+    "noListsDesc": "Créez votre première liste de tâches pour commencer.",
+    "createList": "Créer une liste",
+    "noTasks": "Aucune tâche pour l'instant",
+    "noTasksDesc": "Ajoutez votre première tâche à cette liste.",
+    "addTask": "Ajouter une tâche"
+  },
+  "tasks": {
+    "newTask": "Nouvelle tâche",
+    "newList": "Nouvelle liste",
+    "listNamePlaceholder": "Nom de la liste",
+    "taskPlaceholder": "Que faut-il faire ?",
+    "offlineBanner": "Vous êtes hors ligne — les modifications seront synchronisées à la reconnexion.",
+    "addTaskLabel": "Ajouter une tâche",
+    "completeTask": "Marquer comme terminé",
+    "deleteTask": "Supprimer la tâche"
+  },
+  "home": {
+    "heroTitlePart1": "Des tâches qui s'adaptent à ",
+    "heroTitleHighlight": "votre façon de travailler",
+    "heroSubtitle": "ɳTask est un gestionnaire de tâches rapide et élégant : listes, sous-tâches, rappels, tâches récurrentes, partage et synchronisation hors ligne, sur tous vos appareils. Inscrivez-vous gratuitement et commencez en quelques secondes.",
+    "signUpFree": "S'inscrire gratuitement",
+    "logIn": "Se connecter",
+    "freeHostedPrefix": "Hébergé gratuitement par nous — sans carte bancaire. Ou",
+    "selfHostLinkText": "hébergez vous-même l'application open source",
+    "freeHostedSuffix": "sur votre propre serveur.",
+    "featuresHeading": "Tout ce qu'il vous faut pour rester organisé",
+    "featuresSubheading": "Approfondi là où ça compte, simple partout ailleurs.",
+    "features": {
+      "listsSubtasks": {
+        "title": "Listes et sous-tâches",
+        "description": "Regroupez le travail dans des listes colorées, décomposez les tâches en checklists et gardez tout bien rangé."
+      },
+      "dueDatesReminders": {
+        "title": "Échéances et rappels",
+        "description": "Définissez des échéances et recevez des rappels. Les tâches en retard et à venir apparaissent automatiquement."
+      },
+      "recurringTasks": {
+        "title": "Tâches récurrentes",
+        "description": "Quotidiennes, hebdomadaires, personnalisées — les tâches répétitives se régénèrent d'elles-mêmes pour que vous n'oubliiez jamais rien."
+      },
+      "tagsFilterSearch": {
+        "title": "Étiquettes, filtres et recherche",
+        "description": "Étiquetez entre les listes, filtrez selon vos besoins et retrouvez n'importe quelle tâche instantanément. Enregistrez vos vues."
+      },
+      "shareCollaborate": {
+        "title": "Partagez et collaborez",
+        "description": "Invitez des personnes sur une liste, assignez des tâches et voyez qui est en ligne pendant que vous travaillez ensemble."
+      },
+      "offlineFirst": {
+        "title": "Hors ligne d'abord",
+        "description": "Fonctionne sans connexion. Les modifications se synchronisent dès que vous vous reconnectez — sur tous les appareils."
+      }
+    },
+    "platformsHeading": "Utilisez-le partout",
+    "platformsSubheading": "Vos tâches se synchronisent sur tous vos appareils. Commencez sur le web, terminez sur votre téléphone.",
+    "platforms": {
+      "web": {
+        "name": "Web",
+        "detail": "Dans votre navigateur, dès maintenant"
+      },
+      "desktop": {
+        "name": "Bureau",
+        "detail": "macOS · Windows · Linux"
+      },
+      "mobile": {
+        "name": "Mobile",
+        "detail": "iOS · Android"
+      },
+      "tv": {
+        "name": "TV",
+        "detail": "Apple TV · Android TV · Fire TV"
+      }
+    },
+    "platformsFooterNote": "Le web est prêt dès maintenant. Les applications bureau, mobile et TV arrivent bientôt — ou installez cette version en PWA dès aujourd'hui.",
+    "ctaHeading": "Organisez-vous en quelques secondes",
+    "ctaSubheading": "Gratuit, hébergé par nous. Vos données vous appartiennent — et l'application est open source, vous pouvez donc toujours l'héberger vous-même.",
+    "aboutNself": "À propos de nSelf"
+  },
+  "welcome": {
+    "tagline": "Des tâches qui s'adaptent à votre façon de travailler.",
+    "getStarted": "Commencer",
+    "createAccount": "Créer un compte"
+  }
+}

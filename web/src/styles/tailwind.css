@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+/* A2-T05: shared brand tokens (CSS custom properties + @theme + utility classes) */
+@import '@nself/tailwind-brand/css-vars.css';
+
+/* Tailwind v4 content scan — workspace packages aren't auto-detected across pnpm
+ * symlinks, so utility classes used inside @nself-web/ui (HeroBlock, TerminalDemo,
+ * FeatureGrid, Section, Pill, etc.) and @nself-web/og were missing from the
+ * production CSS. List in-house packages explicitly here. */
+@source "../../../packages/ui/src/**/*.{ts,tsx,js,jsx}";
+@source "../../../packages/og/src/**/*.{ts,tsx,js,jsx}";
+@source "../../../packages/tailwind-brand/src/**/*.{ts,tsx,js,jsx,css}";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Page-level theme background: the React app root sets dark bg on its own div,
+ * but <html>/<body> had none, so the page showed white in dark mode (body not dark).
+ * Set html/body background + color-scheme so the ENTIRE document follows the theme. */
+html { background-color: #ffffff; color-scheme: light; }
+html.dark { background-color: #030712; color-scheme: dark; } /* gray-950 */
+body { min-height: 100vh; background-color: inherit; }
+

@@ -1,0 +1,9 @@
+Contact: mailto:security@nself.org
+Contact: https://nself.org/security/report
+Expires: 2027-04-30T00:00:00Z
+Encryption: https://nself.org/.well-known/pgp-key.txt
+Acknowledgments: https://nself.org/security/hall-of-fame
+Preferred-Languages: en
+Canonical: https://nself.org/.well-known/security.txt
+Policy: https://nself.org/security/disclosure-policy
+Hiring: https://nself.org/careers
