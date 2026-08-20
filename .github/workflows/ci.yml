@@ -69,6 +69,14 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Typecheck walks into ../packages/**/src, whose imports (react,
+      # @vercel/og) resolve from that repo's OWN node_modules. It is a sibling,
+      # not an ancestor, so it cannot reach this workspace's hoisted modules.
+      - name: Install sibling packages deps (their own lockfile)
+        shell: bash
+        working-directory: '.'
+        run: pnpm install --no-frozen-lockfile --dir ../packages
+
       # Vercel runs `pnpm build`, which is vite build alone — typechecking the
       # app there would need the sibling packages' own devDependencies, which
       # are not in this repo's lockfile. So it is gated here instead.
