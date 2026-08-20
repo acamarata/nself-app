@@ -26,7 +26,9 @@ if [[ -f api/og.ts ]]; then
   pnpm exec esbuild api/og.ts \
     --bundle \
     --format=esm \
-    --platform=browser \
+    --platform=neutral \
+    --main-fields=module,main \
+    --conditions=edge-light,worker,browser,import \
     --target=es2022 \
     --external:@vercel/og \
     --outfile=api/og.bundled.mjs
