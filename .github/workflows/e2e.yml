@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo. A
+      # pnpm-workspace.yaml resolves packages/@nself/* from a clone inside the repo
       # workspace install fails without it ("error installing a direct dependency
       # of apps/mobile"), even though these tests only talk to a deployed URL
       # over HTTP and use nothing from the workspace.
@@ -51,7 +51,7 @@ jobs:
           path: _nself_packages
 
       - name: Link packages to the sibling path the workspace expects
-        run: ln -s "$GITHUB_WORKSPACE/_nself_packages" "$(dirname "$GITHUB_WORKSPACE")/packages"
+        run: ln -s "$GITHUB_WORKSPACE/_nself_packages" "$GITHUB_WORKSPACE/packages"
 
       - uses: pnpm/action-setup@v6
 

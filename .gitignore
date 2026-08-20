@@ -228,3 +228,6 @@ backend/hasura/config.yaml
 apps/mobile/android/
 apps/mobile/ios/
 apps/mobile/.expo/
+
+# Shared @nself packages are cloned in at install time, never committed.
+/packages/

@@ -15,13 +15,13 @@ const { getDefaultConfig } = require('expo/metro-config');
 const config = getDefaultConfig(__dirname);
 
 // The @nself/* shared packages are pnpm workspace members that live OUTSIDE
-// the ntask repo root (pnpm-workspace.yaml includes `../packages/@nself/*`).
+// the ntask repo root (pnpm-workspace.yaml includes `packages/@nself/*`).
 // Expo's default watchFolders only cover the ntask workspace root, so Metro's
 // file map misses those packages' own node_modules (e.g. react-i18next inside
 // @nself/i18n). Watch them explicitly and let bare imports also resolve from
 // the ntask root store.
 const workspaceRoot = path.resolve(__dirname, '../..'); // .../nself/ntask
-const sharedPackagesRoot = path.resolve(workspaceRoot, '../packages'); // .../nself/packages
+const sharedPackagesRoot = path.resolve(workspaceRoot, 'packages'); // <repo>/packages (cloned in)
 // NOTE: do NOT add sibling repos' node_modules (e.g. ../nsentry/node_modules)
 // to watchFolders — crawling a second .pnpm store breaks Metro startup.
 // Bare deps used by the shared packages (react-i18next, i18next) are instead

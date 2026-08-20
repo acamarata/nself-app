@@ -16,8 +16,8 @@ import { resolve } from 'path'
 
 // Shared packages live in the sibling nself-org/packages checkout, the same
 // path pnpm-workspace.yaml resolves them from.
-const PACKAGES_ROOT = resolve(__dirname, '../../packages/@nself')
-const WEB_PACKAGES_ROOT = resolve(__dirname, '../../packages/@nself-web')
+const PACKAGES_ROOT = resolve(__dirname, '../packages/@nself')
+const WEB_PACKAGES_ROOT = resolve(__dirname, '../packages/@nself-web')
 
 export default defineConfig({
   plugins: [
