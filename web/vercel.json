@@ -3,7 +3,7 @@
   "framework": "vite",
   "installCommand": "bash scripts/vercel-install.sh",
   "outputDirectory": "dist",
-  "buildCommand": "pnpm build",
+  "buildCommand": "bash scripts/vercel-build.sh",
   "rewrites": [
     {
       "source": "/((?!api/|assets/|@|\\.well-known/|.*\\.).*)",

@@ -40,27 +40,3 @@ echo "Installing shared packages dependencies"
 #    needs a real dist and the package.json exports.
 echo "Building shared packages"
 (cd "$PACKAGES_DIR" && pnpm -r build)
-
-# 5. Vercel's function bundler only traces files under the deployment root, and
-#    it will not follow a symlink out to /vercel/packages. api/og.ts is an Edge
-#    Function importing @nself-web/og, so that one package has to exist as real
-#    files inside web/node_modules:
-#
-#      The Edge Function "api/og" is referencing unsupported modules:
-#        - @nself-web/og
-#
-#    Only this package needs it; nothing else under api/ imports a workspace
-#    package. The app's own imports are unaffected — vite inlines them from
-#    source at build time.
-OG_SRC="$PACKAGES_DIR/@nself-web/og"
-OG_DEST="./node_modules/@nself-web/og"
-if [[ -d "$OG_SRC/dist" ]]; then
-  echo "Materialising @nself-web/og into web/node_modules"
-  rm -rf "$OG_DEST"
-  mkdir -p "$(dirname "$OG_DEST")"
-  cp -RL "$OG_SRC" "$OG_DEST"
-  rm -rf "$OG_DEST/node_modules" "$OG_DEST/src" "$OG_DEST/__tests__"
-else
-  echo "WARNING: $OG_SRC/dist missing — the og build did not produce output" >&2
-  exit 1
-fi
