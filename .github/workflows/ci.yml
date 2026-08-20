@@ -40,6 +40,50 @@ jobs:
       - name: Check version lockstep
         run: bash scripts/check-version-lockstep.sh
 
+  web-test:
+    name: Web Tests (typecheck + unit + build)
+    # Needs NSELF_PACKAGES_TOKEN for the sibling packages checkout, which
+    # dependabot-triggered runs cannot see.
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm-workspace.yaml resolves ../packages/@nself/* and
+      # ../packages/@nself-web/* from a sibling checkout.
+      - name: Checkout shared @nself packages (sibling workspace dir)
+        shell: bash
+        working-directory: '.'
+        run: |
+          rm -rf ../packages
+          git clone --depth 1 https://x-access-token:${{ secrets.NSELF_PACKAGES_TOKEN }}@github.com/nself-org/packages.git ../packages
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Vercel runs `pnpm build`, which is vite build alone — typechecking the
+      # app there would need the sibling packages' own devDependencies, which
+      # are not in this repo's lockfile. So it is gated here instead.
+      - name: Typecheck
+        working-directory: web
+        run: pnpm typecheck
+
+      - name: Unit tests
+        working-directory: web
+        run: pnpm test
+
+      - name: Production build
+        working-directory: web
+        run: pnpm build
+
   mobile-test:
     name: Mobile Tests (coverage gate ≥60%)
     # Needs NSELF_PACKAGES_TOKEN (private packages checkout) — unavailable to
