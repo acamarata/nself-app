@@ -22,28 +22,37 @@
         "./src/*"
       ],
       "@nself/i18n": [
-        "../packages/@nself/i18n/src/index.ts"
+        "../../packages/@nself/i18n/src/index.ts"
       ],
       "@nself/observability": [
-        "../packages/@nself/observability/src/index.ts"
+        "../../packages/@nself/observability/src/index.ts"
       ],
       "@nself/ntask-core": [
-        "../packages/@nself/ntask-core/src/index.ts"
+        "../../packages/@nself/ntask-core/src/index.ts"
       ],
       "@nself/offline-queue": [
-        "../packages/@nself/offline-queue/src/index.ts"
+        "../../packages/@nself/offline-queue/src/index.ts"
       ],
       "@nself/offline-queue/adapters/idb": [
-        "../packages/@nself/offline-queue/src/adapters/idb.ts"
+        "../../packages/@nself/offline-queue/src/adapters/idb.ts"
       ],
       "@nself/offline-queue/adapters/memory": [
-        "../packages/@nself/offline-queue/src/adapters/memory.ts"
+        "../../packages/@nself/offline-queue/src/adapters/memory.ts"
       ],
       "@nself/auth-core": [
-        "../packages/@nself/auth-core/src/index.ts"
+        "../../packages/@nself/auth-core/src/index.ts"
       ],
       "@nself/graphql-client": [
-        "../packages/@nself/graphql-client/src/index.ts"
+        "../../packages/@nself/graphql-client/src/index.ts"
+      ],
+      "@nself-web/ui": [
+        "../../packages/@nself-web/ui/src/index.ts"
+      ],
+      "@nself-web/og": [
+        "../../packages/@nself-web/og/src/index.ts"
+      ],
+      "@nself-web/csp": [
+        "../../packages/@nself-web/csp/src/index.ts"
       ]
     }
   },
