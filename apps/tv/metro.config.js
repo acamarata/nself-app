@@ -10,7 +10,7 @@
  *      'react-native-tvos' (which would fail to resolve — see fix history in git log).
  *      react-native-tvos ships its own platform-specific files (*.ios.js, *.android.js)
  *      so no additional platform extension changes are needed.
- *   2. The shared @nself/* workspace packages live OUTSIDE this app (../../../packages)
+ *   2. The shared @nself/* workspace packages live at <repo>/packages
  *      and author their internal imports with ESM-style `./foo.js` specifiers (valid for
  *      tsc/vite/node, but Metro resolves them literally and fails when only `foo.ts` exists —
  *      e.g. @nself/graphql-client's `export { ... } from './client.js'`). Watch those folders
@@ -25,7 +25,7 @@ const config = getDefaultConfig(__dirname);
 
 // --- Shared @nself/* workspace packages (live outside this app) ---
 const workspaceRoot = path.resolve(__dirname, '../..'); // .../nself/ntask
-const sharedPackagesRoot = path.resolve(workspaceRoot, '../packages'); // .../nself/packages
+const sharedPackagesRoot = path.resolve(workspaceRoot, 'packages'); // <repo>/packages (cloned in)
 config.watchFolders = [
   ...(config.watchFolders ?? []),
   workspaceRoot,
