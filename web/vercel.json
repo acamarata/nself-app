@@ -1,6 +1,7 @@
 {
   "ignoreCommand": "bash -c 'if [ \"$VERCEL_ENV\" = preview ]; then exit 0; fi; npx turbo-ignore'",
   "framework": "vite",
+  "installCommand": "git clone --depth 1 https://github.com/nself-org/packages.git ../../packages || true; cd .. && pnpm install --no-frozen-lockfile --config.package-import-method=copy",
   "outputDirectory": "dist",
   "buildCommand": "pnpm --filter ntask... build",
   "rewrites": [
@@ -52,6 +53,5 @@
         }
       ]
     }
-  ],
-  "installCommand": "cd .. && pnpm install --frozen-lockfile"
+  ]
 }
