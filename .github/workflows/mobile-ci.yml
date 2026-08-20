@@ -57,6 +57,12 @@ jobs:
         working-directory: '.'
         run: pnpm install --frozen-lockfile --dir packages
 
+      # Types come from dist/ via the exports map; unbuilt packages give TS2307.
+      - name: Build shared packages
+        shell: bash
+        working-directory: '.'
+        run: pnpm --dir packages -r build
+
       - name: Install dependencies
         # Run from repo root so workspace overrides (form-data, js-yaml) are applied
         working-directory: '.'

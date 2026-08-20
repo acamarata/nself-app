@@ -77,6 +77,14 @@ jobs:
         working-directory: '.'
         run: pnpm install --no-frozen-lockfile --dir packages
 
+      # The packages expose types through their exports map, which points at
+      # dist/. Without building them TypeScript cannot resolve @nself-web/ui or
+      # @nself-web/og and reports TS2307 for every import.
+      - name: Build shared packages
+        shell: bash
+        working-directory: '.'
+        run: pnpm --dir packages -r build
+
       # Vercel runs `pnpm build`, which is vite build alone — typechecking the
       # app there would need the sibling packages' own devDependencies, which
       # are not in this repo's lockfile. So it is gated here instead.
