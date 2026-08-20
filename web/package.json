@@ -38,6 +38,7 @@
     "@sentry/react": "^8",
     "@tailwindcss/postcss": "^4.2.1",
     "@tauri-apps/api": "^2",
+    "@vercel/og": "1.0.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "graphql": "^16.13.1",
