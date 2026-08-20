@@ -2,16 +2,17 @@
 # Vercel install step for the ɳTask web app.
 #
 # Runs from web/ (the project's rootDirectory). Vercel checks out one
-# repository, but pnpm-workspace.yaml resolves ../packages/@nself/* and
-# ../packages/@nself-web/* from a sibling checkout, so this has to fetch and
-# prepare that itself.
+# repository and uploads only that, so the shared packages are cloned INSIDE
+# the repo at packages/ (gitignored) rather than beside it. Anything above the
+# repository root is invisible to Vercel's function bundler, which is why
+# /api/og could not resolve @nself-web/og while they lived in a sibling.
 #
 # vercel.json's installCommand is capped at 256 characters, which is why this
 # lives in a script rather than inline.
 set -euo pipefail
 
 REPO_ROOT="$(cd .. && pwd)"
-PACKAGES_DIR="$(cd ../.. && pwd)/packages"
+PACKAGES_DIR="$REPO_ROOT/packages"
 
 # 1. Shared packages. Public since 2026-08-20, so no credential is involved.
 if [[ ! -d "$PACKAGES_DIR/.git" ]]; then

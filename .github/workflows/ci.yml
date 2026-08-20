@@ -50,14 +50,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # pnpm-workspace.yaml resolves ../packages/@nself/* and
-      # ../packages/@nself-web/* from a sibling checkout.
+      # pnpm-workspace.yaml resolves packages/@nself/* from a clone inside the repo
+      # and packages/@nself-web/* from that same clone.
       - name: Checkout shared @nself packages (sibling workspace dir)
         shell: bash
         working-directory: '.'
         run: |
-          rm -rf ../packages
-          git clone --depth 1 https://x-access-token:${{ secrets.NSELF_PACKAGES_TOKEN }}@github.com/nself-org/packages.git ../packages
+          rm -rf packages
+          git clone --depth 1 https://github.com/nself-org/packages.git packages
 
       - uses: pnpm/action-setup@v6
 
@@ -69,13 +69,13 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Typecheck walks into ../packages/**/src, whose imports (react,
+      # Typecheck walks into packages/**/src, whose imports (react,
       # @vercel/og) resolve from that repo's OWN node_modules. It is a sibling,
       # not an ancestor, so it cannot reach this workspace's hoisted modules.
       - name: Install sibling packages deps (their own lockfile)
         shell: bash
         working-directory: '.'
-        run: pnpm install --no-frozen-lockfile --dir ../packages
+        run: pnpm install --no-frozen-lockfile --dir packages
 
       # Vercel runs `pnpm build`, which is vite build alone — typechecking the
       # app there would need the sibling packages' own devDependencies, which
@@ -105,7 +105,7 @@ jobs:
       # @nself/* workspace packages live in nself-org/packages (private).
       # pnpm-workspace.yaml links them via ../packages/@nself/* — GitHub Actions
       # sandboxes checkouts under the workspace; check out into _nself_packages/
-      # then symlink to ../packages from the runner working tree.
+      # then symlink to packages/ inside the runner working tree.
       - name: Checkout @nself packages
         uses: actions/checkout@v4
         with:
@@ -115,17 +115,16 @@ jobs:
 
       - name: Symlink packages to sibling path expected by pnpm workspace
         run: |
-          PARENT_DIR="$(dirname "$GITHUB_WORKSPACE")"
-          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$PARENT_DIR/packages"
+          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$GITHUB_WORKSPACE/packages"
 
       - name: Checkout shared @nself packages (sibling workspace dir)
         shell: bash
-        # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo that
+        # pnpm-workspace.yaml resolves packages/@nself/* from a clone inside the repo
         # CI never checked out, so @nself/* workspace deps were unresolvable (TS2307).
         working-directory: '.'
         run: |
-          rm -rf ../packages
-          git clone --depth 1 https://x-access-token:${{ secrets.NSELF_PACKAGES_TOKEN }}@github.com/nself-org/packages.git ../packages
+          rm -rf packages
+          git clone --depth 1 https://github.com/nself-org/packages.git packages
 
       - uses: pnpm/action-setup@v6
         with:
@@ -137,10 +136,10 @@ jobs:
           cache-dependency-path: apps/mobile/pnpm-lock.yaml
       - name: Install sibling packages deps (their own lockfile)
         shell: bash
-        # app typecheck walks into ../packages/@nself/* source, which imports
+        # app typecheck walks into packages/@nself/* source, which imports
         # third-party deps resolved by the packages repo's OWN lockfile
         working-directory: '.'
-        run: pnpm install --frozen-lockfile --dir ../packages
+        run: pnpm install --frozen-lockfile --dir packages
 
       - name: Install mobile dependencies
         run: pnpm install --frozen-lockfile

@@ -44,12 +44,12 @@ jobs:
       # (a mismatched pin is a hard error from pnpm/action-setup v6 on).
       - name: Checkout shared @nself packages (sibling workspace dir)
         shell: bash
-        # pnpm-workspace.yaml includes ../packages/@nself/* — a sibling repo that
+        # pnpm-workspace.yaml resolves packages/@nself/* from a clone inside the repo
         # CI never checked out, so @nself/* workspace deps were unresolvable (TS2307).
         working-directory: '.'
         run: |
-          rm -rf ../packages
-          git clone --depth 1 https://x-access-token:${{ secrets.NSELF_PACKAGES_TOKEN }}@github.com/nself-org/packages.git ../packages
+          rm -rf packages
+          git clone --depth 1 https://github.com/nself-org/packages.git packages
 
       - uses: pnpm/action-setup@v6
 
@@ -84,15 +84,14 @@ jobs:
 
       - name: Symlink packages to sibling path expected by pnpm workspace
         run: |
-          PARENT_DIR="$(dirname "$GITHUB_WORKSPACE")"
-          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$PARENT_DIR/packages"
+          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$GITHUB_WORKSPACE/packages"
 
       - name: Install sibling packages deps (their own lockfile)
         shell: bash
-        # app typecheck walks into ../packages/@nself/* source, which imports
+        # app typecheck walks into packages/@nself/* source, which imports
         # third-party deps resolved by the packages repo's OWN lockfile
         working-directory: '.'
-        run: pnpm install --frozen-lockfile --dir ../packages
+        run: pnpm install --frozen-lockfile --dir packages
 
       - name: Install pnpm deps (workspace root)
         run: pnpm install --frozen-lockfile

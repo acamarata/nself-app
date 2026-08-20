@@ -5,5 +5,10 @@ packages:
   - 'apps/cli'
   - 'apps/mcp'
   - 'web'
-  - '../packages/@nself/*'
-  - '../packages/@nself-web/*'
+  # Shared packages are cloned INTO the repo (gitignored) rather than kept as a
+  # sibling checkout. Vercel only uploads the repository, so anything above the
+  # root is invisible to its function bundler and /api/og failed to resolve
+  # @nself-web/og. Keeping them inside makes the same paths work locally, in CI,
+  # and on Vercel.
+  - 'packages/@nself/*'
+  - 'packages/@nself-web/*'
