@@ -20,15 +20,18 @@ PACKAGES_DIR="$(cd ../.. && pwd)/packages"
 # app and ships wasm that must not be inlined.
 if [[ -f api/og.ts ]]; then
   echo "Pre-bundling api/og.ts (inlining @nself-web/og)"
+  # Overwrite api/og.ts in place rather than emitting a .js and deleting the
+  # .ts: Vercel enumerates api/ before this script runs, so removing the file it
+  # already catalogued fails the deploy with "File not found: .../api/og.ts".
   pnpm exec esbuild api/og.ts \
     --bundle \
     --format=esm \
     --platform=browser \
     --target=es2022 \
     --external:@vercel/og \
-    --outfile=api/og.js
-  rm api/og.ts
-  echo "  -> api/og.js ($(wc -c < api/og.js) bytes)"
+    --outfile=api/og.bundled.mjs
+  mv api/og.bundled.mjs api/og.ts
+  echo "  -> api/og.ts rewritten self-contained ($(wc -c < api/og.ts) bytes)"
 fi
 
 exec pnpm build
