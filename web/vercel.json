@@ -3,7 +3,7 @@
   "framework": "vite",
   "installCommand": "git clone --depth 1 https://github.com/nself-org/packages.git ../../packages || true; cd .. && pnpm install --no-frozen-lockfile --config.package-import-method=copy",
   "outputDirectory": "dist",
-  "buildCommand": "pnpm --filter ntask... build",
+  "buildCommand": "pnpm build",
   "rewrites": [
     {
       "source": "/((?!api/|assets/|@|\\.well-known/|.*\\.).*)",
