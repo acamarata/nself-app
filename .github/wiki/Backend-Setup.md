@@ -23,10 +23,16 @@ through the `nself` CLI — `make up`/`make down`/`make build` are aliases for
 - **nginx**: reverse proxy (dev profile); Traefik HTTPS for staging/production
 - **Mailhog**: dev email capture (UI at `http://localhost:8025`)
 
-> **Known gap:** `backend/nself.yaml` declares a Hasura Storage service, but the CLI does not
-> yet materialize it as a container in the generated stack — only MinIO (raw object storage)
-> comes up. File uploads still work via `backend/functions/storage-presign.ts` calling MinIO
-> directly. Tracked in `.claude/planning/nself-cli-gaps-from-ntask-dogfood.md` gap #8.
+> **Storage requires `MINIO_ENABLED=true`.** The generator gates the whole MinIO
+> service on that one variable, and it is **not** implied by the other `MINIO_*`
+> values. Without it `nself build` emits no object store at all, `getUploadUrl`
+> has nothing to sign against, and file attachments silently do not work. It is
+> set in `.env.example`; if you wrote your own `.env`, add it.
+>
+> **Known gap:** `backend/nself.yaml` also declares a Hasura Storage service, which
+> the CLI does not materialize as a container. That one is not needed — file uploads
+> go through `backend/functions/storage-presign.ts`, which talks to MinIO directly.
+> Tracked in `.claude/planning/nself-cli-gaps-from-ntask-dogfood.md` gap #8.
 
 ## Steps
 
@@ -62,8 +68,9 @@ make health
 ```
 
 Runs `nself deploy health` (falls back to raw curl/pg_isready checks). Postgres, Hasura, and
-Auth should report OK. Storage currently reports DOWN — see the Known Gap above; this does not
-block app functionality. `nginx`/`functions` may show unhealthy on a backend-only checkout
+Auth should report OK. The Hasura Storage *service* reports DOWN — see the Known Gap
+above; this does not block app functionality, because uploads use MinIO directly. If
+MinIO itself is missing, `MINIO_ENABLED` is unset. `nginx`/`functions` may show unhealthy on a backend-only checkout
 because the default vhost proxies to the separate `web/ntask` Vite dev server.
 
 ### 4. Apply Hasura migrations
