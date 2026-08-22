@@ -1,3 +1,16 @@
+# NSELF-FIRST EXCEPTION: d6-any-stack
+#
+# Hand-maintained override, which the nSelf-First doctrine otherwise
+# forbids. The generator is not at fault: this box's .env never sets
+# MINIO_ENABLED (MinioConfig.Enabled reads that env var, not nself.yaml),
+# and nself.yaml is not deployed to the box at all - so `nself build`
+# correctly emitted no MinIO service, and attachments had no object store.
+#
+# Durable fix: set MINIO_ENABLED=true in the box's .env and rebuild, then
+# delete the minio service block below and keep only the network
+# attachment. Not done inline because regenerating the production compose
+# touches every service and needs its own maintenance window.
+#
 # Production-only delta for task.nself.org, applied on top of the generated
 # docker-compose.yml. Lives on the box at /opt/nself-ntask/.
 #

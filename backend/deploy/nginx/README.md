@@ -38,7 +38,14 @@ ssh root@<prod> 'docker exec nself-web_nginx nginx -t && docker exec nself-web_n
 The `/storage/` route proxies to `ntask_minio:9000`. nginx can only resolve that
 name if the MinIO container is attached to the web network as well as ntask's —
 `ntask_hasura` is on both for the same reason. See
-`backend/docker-compose.override.yml`.
+`docker-compose.production.override.yml` in this directory.
+
+That override also *runs* MinIO, which is a documented nSelf-First exception. The
+generator is not at fault: `MinioConfig.Enabled` reads the `MINIO_ENABLED` env
+var, the production box's `.env` never sets it, and `nself.yaml` is not deployed
+to the box at all — so `nself build` correctly emitted no MinIO service. The
+durable fix is to set `MINIO_ENABLED=true` there and rebuild, after which the
+service block can be dropped and only the network attachment kept.
 
 Presigned URLs are signed over `/{bucket}/{key}` with only the *host* taken from
 the endpoint, so the `/storage` prefix is absent from the signature and the
