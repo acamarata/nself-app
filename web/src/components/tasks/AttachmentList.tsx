@@ -81,7 +81,7 @@ function AttachmentItem({ attachment, url, onDelete, tDelete, tDownload }: Attac
         {isImage ? (
           <img
             src={url}
-            alt={attachment.filename}
+            alt={attachment.file_name}
             className="h-full w-full object-cover"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = 'none'
@@ -97,20 +97,20 @@ function AttachmentItem({ attachment, url, onDelete, tDelete, tDownload }: Attac
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${tDownload}: ${attachment.filename}`}
+          aria-label={`${tDownload}: ${attachment.file_name}`}
           className="block text-xs font-medium text-gray-800 dark:text-gray-200 truncate hover:underline"
         >
-          {attachment.filename}
+          {attachment.file_name}
         </a>
         <span className="text-xs text-gray-400 dark:text-gray-500">
-          {formatSize(attachment.size_bytes)}
+          {formatSize(attachment.file_size_bytes)}
         </span>
       </div>
 
       <button
         type="button"
         onClick={() => onDelete(attachment.id)}
-        aria-label={`${tDelete}: ${attachment.filename}`}
+        aria-label={`${tDelete}: ${attachment.file_name}`}
         className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 rounded-md bg-white/80 dark:bg-gray-800/80 text-gray-400 hover:text-red-500 transition-all"
       >
         <TrashIcon />

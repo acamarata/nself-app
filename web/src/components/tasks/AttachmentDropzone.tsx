@@ -60,8 +60,8 @@ export function AttachmentDropzone({ todoId, onUploaded }: AttachmentDropzonePro
         }
         const result = await createAttachment({
           todo_id: todoId,
-          filename: file.name,
-          size_bytes: file.size,
+          file_name: file.name,
+          file_size_bytes: file.size,
           mime_type: file.type || 'application/octet-stream',
           storage_key: storageKey,
         })

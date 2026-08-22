@@ -13,21 +13,27 @@ import { gql } from './api.js';
 export interface NpAttachment {
   id: string;
   todo_id: string;
-  user_id: string;
-  filename: string;
-  size_bytes: number;
+  uploader_id: string;
+  file_name: string;
+  file_size_bytes: number;
   mime_type: string;
   storage_key: string;
+  bucket: string;
   created_at: string;
 }
 
 export interface CreateAttachmentInput {
   todo_id: string;
-  filename: string;
-  size_bytes: number;
+  file_name: string;
+  file_size_bytes: number;
   mime_type: string;
   storage_key: string;
 }
+
+// `uploader_id` and `bucket` are deliberately absent. Hasura presets
+// uploader_id to X-Hasura-User-Id, and `bucket` was removed from the role's
+// insertable columns because getDownloadUrl honours it — a client-chosen
+// bucket allowed cross-bucket traversal. Sending either is rejected.
 
 // ── GQL strings ────────────────────────────────────────────────────────────
 
@@ -39,11 +45,12 @@ const GET_ATTACHMENTS = `
     ) {
       id
       todo_id
-      user_id
-      filename
-      size_bytes
+      uploader_id
+      file_name
+      file_size_bytes
       mime_type
       storage_key
+      bucket
       created_at
     }
   }
@@ -54,11 +61,12 @@ const CREATE_ATTACHMENT = `
     insert_np_attachments_one(object: $input) {
       id
       todo_id
-      user_id
-      filename
-      size_bytes
+      uploader_id
+      file_name
+      file_size_bytes
       mime_type
       storage_key
+      bucket
       created_at
     }
   }
