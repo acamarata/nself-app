@@ -33,11 +33,13 @@ Minimum 3 screenshots per device class. Maximum 10.
 
 ### How to Capture
 
-Using Flutter's integration test framework:
+Flutter was eliminated (ASI Policy 2) and `app/` no longer exists; the former
+`flutter test integration_test/...` recipe cannot run. Capture from the React
+Native surface instead:
 
 ```bash
-cd app
-flutter test integration_test/screenshot_test.dart --dart-define=SCREENSHOTS=true
+cd apps/mobile
+pnpm start            # then press i (iOS) or a (Android)
 ```
 
 Or manually via the simulator:

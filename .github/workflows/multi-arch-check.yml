@@ -1,7 +1,7 @@
 name: Multi-Arch Check
 
 # Asserts multi-architecture build compatibility.
-# Repo type: Flutter mobile/desktop app (nself-org/ntask)
+# Repo type: TypeScript app surfaces + nSelf backend (nself-org/ntask)
 # Authority: S30-T05, STORM-CROSS-PLATFORM
 # Template: .claude/docs/doctrines/multi-arch-check.workflow.yml
 
@@ -23,6 +23,6 @@ jobs:
     steps:
       - name: Report repo type
         run: |
-          echo "Repo type: Flutter mobile/desktop app (nself-org/ntask)"
+          echo "Repo type: TypeScript app surfaces (RN/Expo, Vite, Tauri, rn-tvos) + nSelf backend"
           echo "No Go binaries or Docker images produced. Multi-arch check N/A. PASS."
 
