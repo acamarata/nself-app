@@ -1,0 +1,14 @@
+[
+  {
+    "name": "web app — all JS (gzip)",
+    "path": ["dist/assets/**/*.js"],
+    "gzip": true,
+    "limit": "400 kB"
+  },
+  {
+    "name": "web app — main entry chunk (gzip)",
+    "path": "dist/assets/index-*.js",
+    "gzip": true,
+    "limit": "370 kB"
+  }
+]
