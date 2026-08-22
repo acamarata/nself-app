@@ -1,5 +1,5 @@
 {
-  "ignoreCommand": "bash -c 'if [ \"$VERCEL_ENV\" = preview ]; then exit 0; fi; npx turbo-ignore'",
+  "ignoreCommand": "bash -c 'if [ \"$VERCEL_ENV\" = preview ]; then exit 0; fi; exit 1'",
   "framework": "vite",
   "installCommand": "bash scripts/vercel-install.sh",
   "outputDirectory": "dist",
