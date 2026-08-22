@@ -158,6 +158,10 @@ db-migrate: ## [no-CLI fallback] Apply postgres/init.sql + migrations via the ra
 metadata-apply: ## Apply Hasura metadata
 	cd hasura && hasura metadata apply --admin-secret $(HASURA_ADMIN_SECRET)
 
+.PHONY: metadata-diff
+metadata-diff: ## Compare committed Hasura permissions against a live env (HOST=<ssh-host> for remote)
+	bash scripts/metadata-diff.sh $(HOST)
+
 .PHONY: metadata-export
 metadata-export: ## Export current Hasura metadata
 	cd hasura && hasura metadata export --admin-secret $(HASURA_ADMIN_SECRET)
