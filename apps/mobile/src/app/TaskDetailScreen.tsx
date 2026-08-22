@@ -21,6 +21,7 @@ import { TaskStatus } from '../components/TaskStatus';
 import { AssigneeSelector } from '../components/AssigneeSelector';
 import { SubtaskList } from '../components/SubtaskList';
 import { CommentThread } from '../components/CommentThread';
+import { AttachmentList } from '../components/AttachmentList';
 import { TagPicker } from '../components/TagPicker';
 import { ErrorCard, OfflineBanner, PermissionDenied, RateLimitedCard } from '../components/seven-states';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
@@ -250,6 +251,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
 
         <SubtaskList todoId={task.id} isOffline={!isConnected} />
         <TagPicker todoId={task.id} userId={task.user_id} />
+        <AttachmentList todoId={task.id} userId={task.user_id} isOffline={!isConnected} />
         <CommentThread todoId={task.id} userId={task.user_id} isOffline={!isConnected} />
 
         <TouchableOpacity
