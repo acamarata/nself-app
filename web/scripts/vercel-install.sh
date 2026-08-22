@@ -15,11 +15,22 @@ REPO_ROOT="$(cd .. && pwd)"
 PACKAGES_DIR="$REPO_ROOT/packages"
 
 # 1. Shared packages. Public since 2026-08-20, so no credential is involved.
-if [[ ! -d "$PACKAGES_DIR/.git" ]]; then
-  echo "Cloning nself-org/packages -> $PACKAGES_DIR"
+#
+# Vercel restores a build cache that can contain packages/ WITHOUT its .git
+# directory. A plain "-d .git" guard then decides to clone and git aborts with
+#   fatal: destination path '/vercel/path0/packages' already exists
+#         and is not an empty directory
+# which fails the whole build. Treat "present but not a checkout" as stale and
+# replace it, so a cached layer can never wedge the install.
+if [[ -d "$PACKAGES_DIR/.git" ]]; then
+  echo "Shared packages already present (git checkout)"
+elif [[ -e "$PACKAGES_DIR" ]]; then
+  echo "Stale packages/ from build cache and not a git checkout — replacing"
+  rm -rf "$PACKAGES_DIR"
   git clone --depth 1 https://github.com/nself-org/packages.git "$PACKAGES_DIR"
 else
-  echo "Shared packages already present"
+  echo "Cloning nself-org/packages -> $PACKAGES_DIR"
+  git clone --depth 1 https://github.com/nself-org/packages.git "$PACKAGES_DIR"
 fi
 
 # pnpm hardlinks from its store, which lands on a different device than
