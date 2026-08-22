@@ -1,0 +1,47 @@
+# Production-only delta for task.nself.org, applied on top of the generated
+# docker-compose.yml. Lives on the box at /opt/nself-ntask/.
+#
+# Two things this exists to do:
+#   1. Run MinIO. `nself.yaml` declares `minio: {}` but the generated compose
+#      on this box does not include it, so attachments/GDPR export had no
+#      object store at all until it was added here.
+#   2. Put MinIO on the web network as well as ntask's, so nself-web_nginx
+#      can resolve `ntask_minio` for the /storage/ route on
+#      api.task.nself.org. `ntask_hasura` is dual-homed for the same reason.
+#
+# env_file rather than ${VAR}: interpolation in this stack resolves at
+# compose-parse time and does not reach the container environment.
+#
+# Ports are bound to 127.0.0.1 on purpose - MinIO is reached through nginx,
+# never directly from the internet.
+
+services:
+  minio:
+    # Pinned by digest: `latest` on a stateful store means a restart can jump
+    # versions silently. This digest is RELEASE.2025-09-07T16-13-09Z.
+    image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+    container_name: ntask_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    env_file:
+    - .env
+    environment:
+      MINIO_DEFAULT_BUCKETS: ntask
+    volumes:
+    - minio_data:/data
+    ports:
+    - 127.0.0.1:9010:9000
+    - 127.0.0.1:9011:9001
+    networks:
+    - ntask_network
+    - nself-web_network
+  functions:
+    env_file:
+    - .env
+volumes:
+  minio_data: null
+networks:
+  ntask_network:
+    external: true
+  nself-web_network:
+    external: true
