@@ -162,6 +162,10 @@ metadata-apply: ## Apply Hasura metadata
 metadata-diff: ## Compare committed Hasura permissions against a live env (HOST=<ssh-host> for remote)
 	bash scripts/metadata-diff.sh $(HOST)
 
+.PHONY: metadata-reconcile
+metadata-reconcile: ## Push repo permissions to a live env (HOST=<ssh-host>, APPLY=1 to actually write)
+	bash scripts/metadata-reconcile.sh $(HOST) $(if $(APPLY),--apply,)
+
 .PHONY: metadata-export
 metadata-export: ## Export current Hasura metadata
 	cd hasura && hasura metadata export --admin-secret $(HASURA_ADMIN_SECRET)
