@@ -53,6 +53,26 @@ if "sources" not in live:
 ltab = {t["table"]["name"]: t for s in live.get("sources", []) for t in s.get("tables", [])}
 rtab = {t["table"]["name"]: t for t in yaml.safe_load(open(os.environ["REPO_META"]))}
 
+# Hasura omits keys that hold their default value, while the repo YAML often
+# states them explicitly. Comparing raw dicts therefore reports differences that
+# do not exist (allow_aggregations: false vs absent). A drift tool that cries
+# wolf gets ignored, which is exactly how the real drift stayed invisible, so
+# both sides are normalized to the same defaults before comparing.
+DEFAULTS = {"allow_aggregations": False, "computed_fields": [], "columns": [],
+            "set": {}, "backend_only": False, "filter": {}, "check": {}}
+
+def norm(p):
+    if p is None:
+        return None
+    out = dict(p)
+    for k, v in DEFAULTS.items():
+        if out.get(k) in (None, ):
+            out[k] = v
+    out.pop("comment", None)
+    if isinstance(out.get("columns"), list):
+        out["columns"] = sorted(out["columns"])
+    return json.dumps(out, sort_keys=True)
+
 KINDS = ("insert_permissions", "select_permissions", "update_permissions", "delete_permissions")
 drift = []
 
@@ -70,16 +90,16 @@ for name in sorted(set(rtab) & set(ltab)):
         for role in sorted(set(l) - set(r)):
             drift.append(f"{name}.{kind}[{role}]: present in the environment, not in repo")
         for role in sorted(set(r) & set(l)):
-            if json.dumps(r[role], sort_keys=True) != json.dumps(l[role], sort_keys=True):
+            if norm(r[role]) != norm(l[role]):
                 rc, lc = set(r[role].get("columns", [])), set(l[role].get("columns", []))
                 detail = []
                 if rc - lc: detail.append(f"columns missing live: {sorted(rc - lc)}")
                 if lc - rc: detail.append(f"extra columns live: {sorted(lc - rc)}")
-                if json.dumps(r[role].get("check"), sort_keys=True) != json.dumps(l[role].get("check"), sort_keys=True):
+                if json.dumps(r[role].get("check") or {}, sort_keys=True) != json.dumps(l[role].get("check") or {}, sort_keys=True):
                     detail.append("row check DIFFERS")
-                if json.dumps(r[role].get("filter"), sort_keys=True) != json.dumps(l[role].get("filter"), sort_keys=True):
+                if json.dumps(r[role].get("filter") or {}, sort_keys=True) != json.dumps(l[role].get("filter") or {}, sort_keys=True):
                     detail.append("row filter DIFFERS")
-                if r[role].get("set") != l[role].get("set"):
+                if (r[role].get("set") or {}) != (l[role].get("set") or {}):
                     detail.append("column presets DIFFER")
                 drift.append(f"{name}.{kind}[{role}]: " + "; ".join(detail or ["differs"]))
 
@@ -89,7 +109,14 @@ if drift:
         print(f"  - {d}")
     print("\nA differing row check or a missing column restriction is a live")
     print("authorization gap, not a cosmetic difference. Reconcile with:")
-    print("  cd backend && make metadata-apply")
+    print("  make metadata-reconcile HOST=<box>          # dry run")
+    print("  make metadata-reconcile HOST=<box> APPLY=1  # push it")
+    print("")
+    print("Do NOT reach for `hasura metadata apply` here: it REPLACES the whole")
+    print("metadata document, and this repo does not declare the tables")
+    print("hasura-auth owns (refresh_tokens, roles, user_providers,")
+    print("user_security_keys, ...). A replace untracks them and breaks MFA,")
+    print("OAuth and role lookups.")
     sys.exit(1)
 
 print("Hasura metadata matches the repo: no permission drift.")
