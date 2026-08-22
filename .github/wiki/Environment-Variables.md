@@ -16,6 +16,29 @@ rather than embedding them.
 | `AUTH_SMTP_HOST` / `AUTH_SMTP_PORT` / `AUTH_SMTP_SECURE` / `AUTH_SMTP_AUTH_METHOD` / `AUTH_SMTP_USER` / `AUTH_SMTP_PASS` / `AUTH_SMTP_SENDER` | auth | Outbound mail for verification and password reset, sent via Postmark over SMTP (`smtp.postmarkapp.com:587`). Both `AUTH_SMTP_USER` and `AUTH_SMTP_PASS` are the same Postmark server token. Do not set `AUTH_SMTP_HOST` to the literal string `postmark` — that switches hasura-auth into API mode, which looks up server-side templates by alias and ignores `AUTH_EMAIL_TEMPLATES_PATH`. |
 | `AUTH_EMAIL_TEMPLATES_PATH` | auth | Path hasura-auth reads local email templates from (`backend/email-templates/{locale}/{template-id}/{body.html,subject.txt}`), rendered with fasttemplate syntax (`${link}`, `${email}`), not Go templates. Only takes effect in SMTP mode. |
 
+## Object storage (attachments)
+
+| Variable | Used by | Notes |
+|---|---|---|
+| `MINIO_ENABLED` | nself build | **Required for attachments.** Gates the entire MinIO service. Without it `nself build` generates no object store, `getUploadUrl` has nothing to sign against, and file attachments silently do not work. The other `MINIO_*` values below do **not** imply it, which makes it easy to miss: the env file looks fully configured for storage while producing none. |
+| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` | minio | MinIO's own credentials. |
+| `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | functions | What `lib/s3-presign.ts` signs presigned URLs with. Normally the same values as the root pair. |
+| `MINIO_BUCKET` | functions | Bucket presigned URLs are issued against (`ntask`). Clients cannot choose a bucket — see below. |
+| `MINIO_ENDPOINT` | functions | Internal address (`http://minio:9000`). Used for server-to-MinIO calls only. |
+| `MINIO_ENDPOINT_PUBLIC` | functions | Address the **browser** uses. Both upload and download URLs are signed against this. Setting it to the internal endpoint makes uploads fail, because the PUT is issued by the user's browser, which cannot resolve a Docker service name. |
+| `MINIO_REGION` | functions | SigV4 signing region (`us-east-1`). |
+
+Only the *host* of `MINIO_ENDPOINT_PUBLIC` enters the signature — `presignS3Url`
+signs the canonical URI `/{bucket}/{key}`. So a path prefix is invisible to the
+signature and must be stripped by the proxy. Our hosted deployment uses
+`https://api.task.nself.org/storage` with a trailing-slash `proxy_pass`;
+a self-hosted install uses `https://storage.<domain>` at the root. Both work.
+
+`uploader_id` and `bucket` are not client-settable: Hasura presets `uploader_id`
+to the caller, and `bucket` was removed from the role's insertable columns
+because `getDownloadUrl` honours it, so a client-chosen bucket allowed
+cross-bucket traversal.
+
 ## Action handlers
 
 | Variable | Used by | Notes |
