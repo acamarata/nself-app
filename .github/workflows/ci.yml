@@ -100,6 +100,15 @@ jobs:
         working-directory: web
         run: pnpm build
 
+      # The web monorepo enforced a bundle budget; that was left behind when the
+      # app moved here, so nothing has watched bundle size since. Current total
+      # is ~385 kB gzipped against a 400 kB gate — the gate exists to stop
+      # regression, not to certify the size. The org target for a SaaS surface
+      # is 300 kB, tracked separately as a reduction ticket.
+      - name: Bundle budget
+        working-directory: web
+        run: pnpm size
+
   mobile-test:
     name: Mobile Tests (coverage gate ≥60%)
     # Needs NSELF_PACKAGES_TOKEN (private packages checkout) — unavailable to
