@@ -139,7 +139,7 @@
 
 | Gate | Ticket(s) | Status |
 |---|---|---|
-| Zero Flutter/stale refs in docs | I | [ ] OPEN |
+| Zero Flutter/stale refs in docs | I | [x] DONE — no doc instructs Flutter use. Two actively-wrong refs fixed in #131 (multi-arch-check.yml declared the wrong repo type; screenshot-requirements.md documented a `flutter test` recipe for a deleted directory). The three remaining mentions are accurate provenance comments ("retargeted from Flutter to React Native") and this row; deleting true history to satisfy a grep would make the repo less informative, not more. |
 | SPORT matches reality (all surfaces, endpoints, components) | I | [ ] OPEN |
 | End-user help center + per-surface getting-started + public changelog | M, I | [ ] OPEN |
 | FEATURES.md / VISION.md updated with user approval | I | [ ] OPEN |
