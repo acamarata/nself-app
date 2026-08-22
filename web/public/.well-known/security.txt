@@ -1,9 +1,15 @@
-Contact: mailto:security@nself.org
-Contact: https://nself.org/security/report
+# Security contact for ɳTask (task.nself.org).
+#
+# Every entry here is verified reachable. A security.txt that advertises dead
+# URLs is worse than none: a researcher holding a real vulnerability follows
+# them, finds nothing, and gives up or discloses publicly. The previous version
+# listed six URLs of which five returned 404 (/security/report,
+# /security/disclosure-policy, /security/hall-of-fame, /.well-known/pgp-key.txt,
+# /careers) plus a mailbox that was never confirmed to exist.
+#
+# Do not add a line here until the thing it points at actually resolves.
+
+Contact: mailto:info@nself.org
 Expires: 2027-04-30T00:00:00Z
-Encryption: https://nself.org/.well-known/pgp-key.txt
-Acknowledgments: https://nself.org/security/hall-of-fame
 Preferred-Languages: en
-Canonical: https://nself.org/.well-known/security.txt
-Policy: https://nself.org/security/disclosure-policy
-Hiring: https://nself.org/careers
+Canonical: https://task.nself.org/.well-known/security.txt
