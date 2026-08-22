@@ -204,6 +204,14 @@ export function HomeScreen({ navigation }: Props) {
             <Text style={styles.headerIconText}>🗓️</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            onPress={() => navigation.navigate('SavedViews')}
+            accessibilityLabel="Saved views"
+            accessibilityRole="button"
+            style={styles.headerIcon}
+          >
+            <Text style={styles.headerIconText}>🔖</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => navigation.navigate('Settings')}
             accessibilityLabel="Settings"
             accessibilityRole="button"

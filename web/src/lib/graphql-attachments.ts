@@ -1,103 +1,27 @@
 /**
  * graphql-attachments.ts — Attachment GraphQL operations for ɳTask web
- * Purpose: Typed CRUD layer for np_attachments + Hasura presigned URL actions.
+ * Purpose: Typed CRUD layer for np_attachments + the presigned URL actions.
  * Inputs: todoId, attachment mutation inputs, fileName/mimeType for upload.
  * Outputs: NpAttachment[] / NpAttachment | null / boolean / UploadUrlResult / DownloadUrlResult.
- * Constraints: Inline GQL strings; uses same gql() HTTP client as graphql.ts.
+ * Constraints: GQL strings + types live in @nself/ntask-core (shared across
+ *              surfaces); this file wires them to the web gql() client. It used
+ *              to carry its own hand-written copies, which drifted to
+ *              filename/size_bytes/user_id against a schema that has
+ *              file_name/file_size_bytes/uploader_id — every attachment query
+ *              failed validation. Do not reintroduce local query strings.
  * SPORT: D2-S7-T1
  */
 import { gql } from './api.js';
+import {
+  GET_ATTACHMENTS,
+  CREATE_ATTACHMENT,
+  DELETE_ATTACHMENT,
+  GET_UPLOAD_URL,
+  GET_DOWNLOAD_URL,
+} from '@nself/ntask-core';
+import type { NpAttachment, CreateAttachmentInput } from '@nself/ntask-core';
 
-// ── Domain type ────────────────────────────────────────────────────────────
-
-export interface NpAttachment {
-  id: string;
-  todo_id: string;
-  uploader_id: string;
-  file_name: string;
-  file_size_bytes: number;
-  mime_type: string;
-  storage_key: string;
-  bucket: string;
-  created_at: string;
-}
-
-export interface CreateAttachmentInput {
-  todo_id: string;
-  file_name: string;
-  file_size_bytes: number;
-  mime_type: string;
-  storage_key: string;
-}
-
-// `uploader_id` and `bucket` are deliberately absent. Hasura presets
-// uploader_id to X-Hasura-User-Id, and `bucket` was removed from the role's
-// insertable columns because getDownloadUrl honours it — a client-chosen
-// bucket allowed cross-bucket traversal. Sending either is rejected.
-
-// ── GQL strings ────────────────────────────────────────────────────────────
-
-const GET_ATTACHMENTS = `
-  query GetAttachments($todoId: uuid!) {
-    np_attachments(
-      where: { todo_id: { _eq: $todoId } }
-      order_by: { created_at: asc }
-    ) {
-      id
-      todo_id
-      uploader_id
-      file_name
-      file_size_bytes
-      mime_type
-      storage_key
-      bucket
-      created_at
-    }
-  }
-`;
-
-const CREATE_ATTACHMENT = `
-  mutation CreateAttachment($input: np_attachments_insert_input!) {
-    insert_np_attachments_one(object: $input) {
-      id
-      todo_id
-      uploader_id
-      file_name
-      file_size_bytes
-      mime_type
-      storage_key
-      bucket
-      created_at
-    }
-  }
-`;
-
-const DELETE_ATTACHMENT = `
-  mutation DeleteAttachment($id: uuid!) {
-    delete_np_attachments_by_pk(id: $id) {
-      id
-    }
-  }
-`;
-
-const GET_UPLOAD_URL = `
-  mutation GetUploadUrl($fileName: String!, $mimeType: String!, $todoId: String!) {
-    getUploadUrl(fileName: $fileName, mimeType: $mimeType, todoId: $todoId) {
-      uploadUrl
-      storagePath
-      expiresAt
-    }
-  }
-`;
-
-const GET_DOWNLOAD_URL = `
-  mutation GetDownloadUrl($attachmentId: String!) {
-    getDownloadUrl(attachmentId: $attachmentId) {
-      downloadUrl
-      expiresAt
-    }
-  }
-`;
+export type { NpAttachment, CreateAttachmentInput };
 
 // ── Presigned URL types ────────────────────────────────────────────────────
 
@@ -120,8 +44,21 @@ export async function getAttachments(todoId: string): Promise<NpAttachment[]> {
   return res.data.np_attachments;
 }
 
+/**
+ * `bucket` and `uploader_id` are absent from CreateAttachmentInput on purpose:
+ * Hasura presets the uploader, and bucket is not client-insertable because
+ * getDownloadUrl honours it and signs with the storage root credentials.
+ */
 export async function createAttachment(input: CreateAttachmentInput): Promise<NpAttachment | null> {
-  const res = await gql<{ insert_np_attachments_one: NpAttachment }>(CREATE_ATTACHMENT, { input });
+  const res = await gql<{ insert_np_attachments_one: NpAttachment }>(CREATE_ATTACHMENT, {
+    todoId: input.todo_id,
+    storageKey: input.storage_key,
+    fileName: input.file_name,
+    mimeType: input.mime_type,
+    fileSizeBytes: input.file_size_bytes,
+    acl: input.acl ?? null,
+    commentId: input.comment_id ?? null,
+  });
   if (res.error || !res.data) return null;
   return res.data.insert_np_attachments_one;
 }

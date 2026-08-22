@@ -28,6 +28,14 @@ const mockTask = {
 
 jest.mock('urql', () => ({
   useQuery: () => [{ data: { np_todos_by_pk: mockTask }, fetching: false, error: undefined }, jest.fn()],
+  // The screen mounts AttachmentList, whose hook calls useMutation. Without
+  // this the whole tree throws "useMutation is not a function" and every test
+  // in this file fails for a reason unrelated to what it asserts.
+  useMutation: () => [{ fetching: false }, jest.fn().mockResolvedValue({ data: null, error: null })],
+}));
+
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn().mockResolvedValue({ canceled: true }),
 }));
 
 const mockUpdateTask = jest.fn().mockResolvedValue({});
