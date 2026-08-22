@@ -25,12 +25,7 @@
 import { Sentry } from './sentry';
 import { adminGql } from './lib/admin-gql';
 import { badRequest, unauthorized } from './lib/action-error';
-import {
-  presignS3Url,
-  minioEndpoint,
-  minioPublicEndpoint,
-  minioBucket,
-} from './lib/s3-presign';
+import { presignS3Url, minioPublicEndpoint, minioBucket } from './lib/s3-presign';
 
 // ── Env ────────────────────────────────────────────────────────────────────────
 // Endpoints/bucket/credentials all resolve through lib/s3-presign so this handler,
@@ -147,13 +142,17 @@ export async function getUploadUrl(
 
   // Verify todoId belongs to the calling user
   const data = await adminGql<{ np_todos_by_pk: { id: string; user_id: string } | null }>(
-    `query VerifyTodoOwner($todoId: uuid!, $userId: uuid!) {
+    // $userId is NOT a query variable: the ownership comparison happens in JS
+    // below. Declaring it made Hasura reject the whole request with
+    // "unexpected variables in variableValues: userId", which surfaced to the
+    // client as a bare "internal error" — the upload could never start.
+    `query VerifyTodoOwner($todoId: uuid!) {
       np_todos_by_pk(id: $todoId) {
         id
         user_id
       }
     }`,
-    { todoId, userId }
+    { todoId }
   );
 
   const todo = data?.np_todos_by_pk;
@@ -175,7 +174,11 @@ export async function getUploadUrl(
 
   const { url: uploadUrl, expiresAt } = presignS3Url({
     method: 'PUT',
-    endpoint: minioEndpoint(), // internal — client calls this from inside Docker network
+    // Public endpoint: the PUT is issued by the user's browser, not by anything
+    // inside the Docker network, so an internal hostname would be unreachable.
+    // Safe for signing because presignS3Url takes only the host from the
+    // endpoint and signs /{bucket}/{key}; any path prefix is proxy-side only.
+    endpoint: minioPublicEndpoint(),
     bucket: minioBucket(),
     objectKey: storagePath,
     ttlSeconds: UPLOAD_TTL_SECONDS,
