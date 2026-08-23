@@ -196,7 +196,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkg: [apps/cli, apps/mcp]
+        include:
+          - pkg: apps/cli
+            name: '@nself/ntask-cli'
+          - pkg: apps/mcp
+            name: '@nself/ntask-mcp'
     steps:
       - uses: actions/checkout@v4
       - name: Checkout shared @nself packages (sibling workspace dir)
@@ -212,12 +216,15 @@ jobs:
           cache: 'pnpm'
       - name: Install
         run: pnpm install --no-frozen-lockfile
+      # apps/mcp imports @nself/ntask-cli through its exports map, which points at
+      # dist/. Typechecking mcp without building the CLI first fails with TS2307
+      # on every lib/* import. `...<name>` selects the package AND its workspace
+      # dependencies, so each matrix leg builds exactly what it needs.
+      - name: Build (with workspace dependencies)
+        run: pnpm --filter "...${{ matrix.name }}" build
       - name: Typecheck
         working-directory: ${{ matrix.pkg }}
         run: pnpm typecheck
-      - name: Build
-        working-directory: ${{ matrix.pkg }}
-        run: pnpm build
       - name: Test
         working-directory: ${{ matrix.pkg }}
         # vitest exits non-zero when it finds no test files, and --passWithNoTests

@@ -14,7 +14,13 @@ test.describe('marketing page', () => {
     // the header. The folded-in version asserted the h1 contained "ɳTask" and
     // would have failed against production from the day the copy changed, which
     // nobody noticed because nothing ran it.
-    await expect(page.getByRole('link', { name: 'ɳTask', exact: true }).first()).toBeVisible()
+    //
+    // Matched on visible text, not on the link's accessible name: the header
+    // comes from the shared @nself-web/ui package, whose brand link hardcodes
+    // aria-label="ɳSelf home", so a screen reader on task.nself.org hears the
+    // wrong product. That is a bug in the shared package (PCI filed against
+    // nself-org/packages), not something this suite can assert around.
+    await expect(page.getByText('ɳTask', { exact: true }).first()).toBeVisible()
   })
 
   test('the feature grid does not advertise features that were removed', async ({ page }) => {

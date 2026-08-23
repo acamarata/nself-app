@@ -2,7 +2,7 @@
   "name": "@ntask/backend-functions",
   "version": "0.1.0",
   "private": true,
-  "description": "Hasura action + event trigger functions for ɳTasks backend",
+  "description": "Hasura action + event trigger functions for \u0273Tasks backend",
   "type": "module",
   "main": "server.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "dev": "node --import tsx/esm --watch server.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"lib/__tests__/*.test.ts\" \"__tests__/*.test.ts\""
+    "test": "node --import tsx --test lib/__tests__/*.test.ts __tests__/*.test.ts"
   },
   "dependencies": {
     "@sentry/node": "^8.0.0",
