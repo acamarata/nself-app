@@ -5,24 +5,23 @@ from a shell or script, with JSON output for AI agents and automation.
 
 ## Install
 
-From the repo root (workspace-linked; not yet published standalone):
+```bash
+npm install -g @nself/ntask-cli
+ntask --help
+```
+
+Or run it without installing:
+
+```bash
+npx @nself/ntask-cli lists --endpoint prod
+```
+
+From a checkout of this repo instead:
 
 ```bash
 pnpm install
 pnpm --filter @nself/ntask-cli build
-```
-
-Run it directly:
-
-```bash
-node cli/dist/index.js --help
-```
-
-Or link a `ntask` binary onto your PATH:
-
-```bash
-cd cli && pnpm link --global
-ntask --help
+node apps/cli/dist/index.js --help
 ```
 
 ## Quickstart

@@ -40,9 +40,14 @@ export function getActiveSession(overrides: EndpointOverrides & { profile?: stri
     );
   }
 
+  // An explicit --endpoint selects the endpoints, even when a session is stored.
+  // Previously the stored profile's URLs always won, so `ntask lists --endpoint
+  // prod` silently queried whatever host the last login used — a local stack, in
+  // the common case — and reported "fetch failed" while looking like it had
+  // talked to production.
   return {
-    apiUrl: overrides.apiUrl ?? stored.apiUrl,
-    authUrl: overrides.authUrl ?? stored.authUrl,
+    apiUrl: overrides.apiUrl ?? (overrides.endpoint ? apiUrl : stored.apiUrl),
+    authUrl: overrides.authUrl ?? (overrides.endpoint ? authUrl : stored.authUrl),
     token: stored.accessToken,
     profileName,
   };

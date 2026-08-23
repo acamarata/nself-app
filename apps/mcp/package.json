@@ -1,14 +1,15 @@
 {
   "name": "@nself/ntask-mcp",
   "version": "0.1.0",
-  "description": "ɳTask MCP server — expose task/list operations as MCP tools for AI agents (Claude, Cursor, etc.)",
-  "private": true,
+  "description": "\u0273Task MCP server \u2014 expose task/list operations as MCP tools for AI agents (Claude, Cursor, etc.)",
   "type": "module",
   "bin": {
     "ntask-mcp": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
   "scripts": {
@@ -33,5 +34,28 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "license": "MIT",
+  "author": "nSelf",
+  "homepage": "https://github.com/nself-org/ntask/tree/main/apps/mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nself-org/ntask.git",
+    "directory": "apps/mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/nself-org/ntask/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "ntask",
+    "nself",
+    "tasks",
+    "todo",
+    "mcp",
+    "model-context-protocol",
+    "ai-agent"
+  ]
 }

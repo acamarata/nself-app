@@ -7,7 +7,30 @@ directly. Built on the same client library as the [ɳTask CLI](../cli/README.md)
 
 ## Install
 
-From the repo root:
+```bash
+npm install -g @nself/ntask-mcp
+```
+
+Point an MCP client at it, for example in Claude Desktop's config:
+
+```json
+{
+  "mcpServers": {
+    "ntask": {
+      "command": "npx",
+      "args": ["-y", "@nself/ntask-mcp"],
+      "env": {
+        "NTASK_API_URL": "https://api.task.nself.org/v1/graphql",
+        "NTASK_AUTH_URL": "https://auth.task.nself.org",
+        "NTASK_EMAIL": "you@example.com",
+        "NTASK_PASSWORD": "…"
+      }
+    }
+  }
+}
+```
+
+From a checkout of this repo instead:
 
 ```bash
 pnpm install
@@ -21,7 +44,7 @@ pnpm --filter @nself/ntask-mcp build
 NTASK_TOKEN=<bearer-token> \
 NTASK_API_URL=http://localhost:8080/v1/graphql \
 NTASK_AUTH_URL=http://localhost:4000 \
-node mcp/dist/index.js
+node apps/mcp/dist/index.js
 ```
 
 The server communicates over stdio (JSON-RPC), so it's normally launched by an
