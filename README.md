@@ -18,7 +18,7 @@ Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the
 ## Quick Start
 
 > **Fastest path:** `make bootstrap` sets up the full local environment in one command.
-> Edit `backend/.env.dev` after for custom secrets. See step-by-step below for details.
+> Edit `backend/.env` after for custom secrets. See step-by-step below for details.
 
 ### 1. Prerequisites
 
@@ -32,11 +32,27 @@ Like the other Type C reference apps (`nchat`, `nclaw`, `ntv`), ɳTasks uses the
 ```bash
 git clone https://github.com/nself-org/ntask.git
 cd ntask
-cp backend/.env.example backend/.env.dev    # then edit secrets
-make build           # generates docker-compose.yml (run once)
-make up              # starts Postgres + Hasura + Auth + Storage; auto-seeds dev/staging test accounts
-make health          # verify all services are green
+cp backend/.env.example backend/.env        # then replace every CHANGE-ME value
+make build                                  # generates docker-compose.yml (run once)
+make up                                     # starts Postgres + Hasura + Auth + Storage + MinIO
+make migrate                                # creates the ɳTask schema (init.sql + migrations)
+make metadata-reconcile APPLY=1             # tracks tables, permissions, triggers, actions
+make health                                 # verify all services are green
 ```
+
+> **The file is `backend/.env`, not `.env`.** The nSelf CLI identifies a project
+> by `.env`; without it `make build` stops with "no nself project found".
+>
+> **`make migrate` and `make metadata-reconcile` are not optional on a first
+> install.** `make up` starts the containers and nothing else: without them the
+> database has no ɳTask tables and Hasura exposes no `np_*` fields at all, which
+> looks like a broken install rather than two missing commands. Both are
+> idempotent — re-running them later is a no-op. The first reconcile tracks 26
+> tables and applies several hundred permissions, so it takes a few minutes.
+>
+> Verify the result with `make metadata-diff`, which compares the repo against the
+> running environment across permissions, cron triggers, event triggers, actions
+> and the allowlist, and exits non-zero on any drift.
 
 > `make up` automatically runs `scripts/seed-dev.sh` on local/staging (guarded — never runs against prod).
 > It creates 8 test accounts (`owner@`/`admin@`/`mod@`/`dev@`/`support@`/`user@`/`demo@`/`test@nself.org`,
@@ -86,7 +102,7 @@ DEMO_SEED=1 make demo-seed      # loads example tasks and lists
 
 ```bash
 cd backend
-cp .env.example .env.dev         # fill in project secrets
+cp .env.example .env         # fill in project secrets
 nself build                       # generates docker-compose.yml, nginx config, SSL certs
 nself start                       # start the stack  (or: make up)
 make health                       # verify all services are healthy

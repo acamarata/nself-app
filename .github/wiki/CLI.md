@@ -1,6 +1,6 @@
 # CLI
 
-The `ntask` terminal CLI (`cli/`) manages tasks and lists from a shell or script, with `--json` output for automation and AI agents.
+The `ntask` terminal CLI (`apps/cli/`) manages tasks and lists from a shell or script, with `--json` output for automation and AI agents.
 
 ## Install
 

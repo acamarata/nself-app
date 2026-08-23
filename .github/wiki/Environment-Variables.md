@@ -1,7 +1,7 @@
 # Environment variables
 
 Reference for the environment variables the ɳTask backend reads. Set them in
-`backend/.env.dev` for local work (copy from `backend/.env.example`), and as real
+`backend/.env` for local work (copy from `backend/.env.example`), and as real
 secrets in staging and production. Nothing here belongs in git: `.env*` is
 gitignored, and `docker-compose.yml` reads values through `${VAR}` interpolation
 rather than embedding them.
@@ -76,7 +76,7 @@ should both have a real value set** — an empty secret means the check is off.
 
 ## Where values come from
 
-- **Local**: `backend/.env.dev`, copied from `backend/.env.example`.
+- **Local**: `backend/.env`, copied from `backend/.env.example`.
 - **Staging and production**: set on the server, read by `docker-compose.yml`
   through `${VAR}` interpolation. The generated compose file is gitignored
   because it would otherwise contain resolved secrets.

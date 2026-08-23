@@ -39,7 +39,7 @@ cd ntask
 
 ```bash
 cd backend
-cp .env.example .env.dev     # edit passwords before using this anywhere but local dev
+cp .env.example .env     # edit passwords before using this anywhere but local dev
 nself build                  # generates docker-compose.yml (first time only)
 make up                      # starts Postgres, Hasura, Auth, MinIO, functions, nginx
 make health                  # confirm everything is up
@@ -73,11 +73,11 @@ pnpm install
 pnpm start          # Expo dev server, press i for iOS sim, a for Android emulator
 ```
 
-**Web (React + Vite):** the web app lives in a separate repo, `nself-org/web`, at `web/ntask/`.
+**Web (React + Vite):** the web app lives in `web/` in this repo.
 
 ```bash
 git clone https://github.com/nself-org/web.git
-cd web/ntask
+cd web
 cp .env.example .env.local
 pnpm install
 pnpm dev            # http://localhost:5173
@@ -144,10 +144,10 @@ cd backend && make down
 | Symptom | Fix |
 |---|---|
 | `make up` hangs | `make down`, then `make up` again |
-| Port 8080/4000/8484/5432/9000 in use | Free the port, or edit `backend/.env.dev` |
+| Port 8080/4000/8484/5432/9000 in use | Free the port, or edit `backend/.env` |
 | `nself build` not found | Install the nSelf CLI: `brew install nself-org/tap/nself` |
 | Expo metro bundler error | Delete `apps/mobile/.expo/` and restart |
-| Vite dev server can't connect | Check `web/ntask/.env.local` (separate repo) has the right endpoints |
+| Vite dev server can't connect | Check `web/.env.local` has the right endpoints |
 | `make health` reports Storage: DOWN | Known gap: the CLI generates a Hasura Storage config but doesn't materialize the container yet. MinIO is up and file uploads still work through it. |
 
 More detail: [[Backend-Troubleshooting]].

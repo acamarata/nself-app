@@ -23,7 +23,7 @@ cd ntask
 
 ```bash
 cd backend
-cp .env.example .env.dev     # Edit passwords for any non-local environment
+cp .env.example .env     # Edit passwords for any non-local environment
 nself build                  # Generate docker-compose.yml (first time only)
 make up                      # Start Postgres, Hasura, Auth, Storage, MinIO, Mailpit
 make health                  # Verify all services are up
@@ -62,17 +62,17 @@ EXPO_PUBLIC_STORAGE_URL=http://localhost:8484
 
 ## 4. Run the Web SaaS (Vite)
 
-The web SaaS lives in a separate repo (`web/ntask/` in `nself-org/web`), not in `ntask`:
+The web SaaS lives in `web/` in this repo:
 
 ```bash
 git clone https://github.com/nself-org/web.git
-cd web/ntask
+cd web
 cp .env.example .env.local
 pnpm install
 pnpm dev                     # http://localhost:5173
 ```
 
-Environment variables (`web/ntask/.env.local`):
+Environment variables (`web/.env.local`):
 
 ```bash
 VITE_HASURA_URL=http://localhost:8080/v1/graphql
@@ -125,7 +125,7 @@ cd backend && make down
 | Auth token errors | Run `make down && make up` to reset auth service state |
 | GraphQL errors | Check `http://localhost:8080/console` for schema/permission issues |
 | `make health` reports Storage: DOWN | Known gap — the generated stack does not currently materialize a Hasura Storage container at `:8484`; MinIO itself (object storage backend) is up and file uploads work via `storage-presign.ts`. Tracked in `.claude/planning/nself-cli-gaps-from-ntask-dogfood.md` (gap #8). |
-| `nginx`/`functions` show unhealthy after `make up` | Expected for a backend-only checkout — the default nginx vhost proxies to the `web/ntask` Vite dev server, which lives in a separate repo and isn't started by this backend. Not a broken install. |
+| `nginx`/`functions` show unhealthy after `make up` | Expected for a backend-only checkout — the default nginx vhost proxies to the `web/` Vite dev server, which this backend does not start. Not a broken install. |
 
 ## Next Steps
 

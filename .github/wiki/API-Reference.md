@@ -8,7 +8,7 @@
 |---|---|
 | Local dev | `http://localhost:8080/v1/graphql` |
 | Staging | `https://hasura.<staging-domain>/v1/graphql` |
-| Production (web SaaS, `web/ntask`) | Configured via `VITE_HASURA_URL` / `EXPO_PUBLIC_HASURA_URL` |
+| Production (web SaaS, `web/`) | Configured via `VITE_HASURA_URL` / `EXPO_PUBLIC_HASURA_URL` |
 
 ## Authentication
 
@@ -52,7 +52,7 @@ The Hasura Console provides a live GraphQL explorer and schema browser:
 http://localhost:8080/console
 ```
 
-Requires `HASURA_GRAPHQL_ADMIN_SECRET` (from `backend/.env.dev`).
+Requires `HASURA_GRAPHQL_ADMIN_SECRET` (from `backend/.env`).
 
 ## Operations (Stub)
 
@@ -64,7 +64,7 @@ Full typed operation reference will be added post-Epic B codegen. Key operations
 
 **Subscriptions:** live list updates, presence changes, notification feed
 
-See `apps/mobile/src/lib/graphql/` (this repo) or the equivalent path in `web/ntask/` (separate repo) for current operation definitions.
+See `apps/mobile/src/lib/graphql/` or `web/src/lib/graphql/` for current operation definitions. Both live in this repo.
 
 ## Related
 

@@ -42,6 +42,8 @@ import { HomeScreen } from './HomeScreen';
 import { ListScreen } from './ListScreen';
 import { SmartViewScreen } from './SmartViewScreen';
 import { SavedViewsScreen } from './SavedViewsScreen';
+import { CalendarScreen } from './CalendarScreen';
+import { NotificationsScreen } from './NotificationsScreen';
 import { TaskDetailScreen } from './TaskDetailScreen';
 import { SettingsScreen } from './SettingsScreen';
 import { ProfileScreen } from './ProfileScreen';
@@ -168,6 +170,8 @@ function AuthenticatedApp({ serverUrl, accessToken }: { serverUrl: string; acces
           <Stack.Screen name="List" component={ListScreen} />
           <Stack.Screen name="SmartView" component={SmartViewScreen} />
           <Stack.Screen name="SavedViews" component={SavedViewsScreen} />
+          <Stack.Screen name="Calendar" component={CalendarScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />

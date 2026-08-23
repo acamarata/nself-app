@@ -10,13 +10,15 @@
     "dev": "node --import tsx/esm --watch server.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"lib/__tests__/*.test.ts\" \"__tests__/*.test.ts\""
+    "test": "node --import tsx --test lib/__tests__/*.test.ts __tests__/*.test.ts"
   },
   "dependencies": {
-    "@sentry/node": "^8.0.0"
+    "@sentry/node": "^8.0.0",
+    "nodemailer": "^9.0.5"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/nodemailer": "^8.0.1",
     "tsx": "^4.0.0",
     "typescript": "^5.9.3"
   }

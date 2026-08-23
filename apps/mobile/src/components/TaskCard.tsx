@@ -2,6 +2,11 @@
  * Purpose: Single task row with checkbox, priority indicator, due date; pending state support
  * Inputs: task Task, onToggle, onDelete, onPress callbacks; pending bool for optimistic rows
  * Outputs: Touchable row with priority dot + strikethrough when completed; faded when pending
+ *   - Selection mode (MB-5): when `selectionMode` is on, the leading control
+ *     shows whether the row is selected and a tap toggles selection instead of
+ *     opening the task. Long-press ENTERS selection when the screen supplies
+ *     onLongPressSelect; screens that do not (TaskDetail, smart views) keep the
+ *     original long-press-to-delete behaviour.
  * Constraints:
  *   - Priority colours come from the shared theme tokens (theme/colors.ts
  *     priorityLow/Medium/High/Urgent/None), which are the source of truth.
@@ -31,9 +36,20 @@ interface Props {
   onPress: () => void;
   /** True while the task is being optimistically created (pending server confirmation) */
   pending?: boolean;
+  /** Multi-select is active on the owning screen. */
+  selectionMode?: boolean;
+  /** This row is part of the current selection. */
+  selected?: boolean;
+  /** Long-press enters selection. Absent means long-press deletes, as before. */
+  onLongPressSelect?: () => void;
+  /** Tap toggles this row's selection while selectionMode is on. */
+  onSelectToggle?: () => void;
 }
 
-export function TaskCard({ task, onToggle, onDelete, onPress, pending = false }: Props) {
+export function TaskCard({
+  task, onToggle, onDelete, onPress, pending = false,
+  selectionMode = false, selected = false, onLongPressSelect, onSelectToggle,
+}: Props) {
   const { colors } = useTheme();
   const dotColor = PRIORITY_COLORS(colors)[task.priority];
   const isRtl = I18nManager.isRTL;
@@ -57,20 +73,49 @@ export function TaskCard({ task, onToggle, onDelete, onPress, pending = false }:
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
 
+  const handlePress = () => {
+    if (pending) return;
+    if (selectionMode) onSelectToggle?.();
+    else onPress();
+  };
+
+  const handleLongPress = () => {
+    if (pending) return;
+    if (onLongPressSelect) onLongPressSelect();
+    else confirmDelete();
+  };
+
   return (
     <TouchableOpacity
-      style={[styles.row, { borderBottomColor: colors.borderSubtle }, pending && styles.rowPending]}
-      onPress={pending ? undefined : onPress}
-      onLongPress={pending ? undefined : confirmDelete}
-      accessibilityRole="button"
+      style={[
+        styles.row,
+        { borderBottomColor: colors.borderSubtle },
+        pending && styles.rowPending,
+        selected && { backgroundColor: colors.surface },
+      ]}
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+      accessibilityRole={selectionMode ? 'checkbox' : 'button'}
       accessibilityLabel={task.title}
-      accessibilityState={{ busy: pending }}
+      accessibilityState={selectionMode ? { selected, checked: selected } : { busy: pending }}
     >
       <View style={styles.leading}>
         {task.priority !== 'none' && (
           <View style={[styles.dot, { backgroundColor: dotColor }]} />
         )}
-        {pending ? (
+        {selectionMode ? (
+          <View
+            testID={`task-select-${task.id}`}
+            style={[
+              styles.checkbox,
+              styles.checkboxBox,
+              { borderColor: colors.primary },
+              selected && { backgroundColor: colors.primary, borderColor: colors.primary },
+            ]}
+          >
+            {selected && <Text style={[styles.checkmark, { color: colors.textOnPrimary }]}>✓</Text>}
+          </View>
+        ) : pending ? (
           <ActivityIndicator size="small" color={colors.primary} style={styles.checkbox} />
         ) : (
           <TouchableOpacity

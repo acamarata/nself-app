@@ -1,7 +1,8 @@
 /**
  * Purpose: Task detail/edit screen — fetches task by ID, allows editing title,
- *          completion, priority, due date, notes; shows subtasks + comments + tags.
- * SPORT: P5-C-mobile — rewired to np_todos, adds subtasks/comments/tags.
+ *          completion, priority, due date (ISO or natural-language phrase),
+ *          notes; shows subtasks + comments + tags.
+ * SPORT: P5-C-mobile — rewired to np_todos, adds subtasks/comments/tags; MB-6 NL due dates.
  */
 
 import React, { useState } from 'react';
@@ -10,6 +11,7 @@ import {
   StyleSheet, Alert, ActivityIndicator, Switch, Platform,
 } from 'react-native';
 import { useQuery } from 'urql';
+import { parseNaturalDueDate } from '../lib/nl-dates';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList, Priority } from '../types';
 import { GET_TODO } from '../lib/hasura';
@@ -23,6 +25,7 @@ import { SubtaskList } from '../components/SubtaskList';
 import { CommentThread } from '../components/CommentThread';
 import { AttachmentList } from '../components/AttachmentList';
 import { ReminderList } from '../components/ReminderList';
+import { RecurrenceSelector } from '../components/RecurrenceSelector';
 import { TagPicker } from '../components/TagPicker';
 import { ErrorCard, OfflineBanner, PermissionDenied, RateLimitedCard } from '../components/seven-states';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
@@ -53,6 +56,22 @@ const PRIORITY_LABELS: Record<Priority, string> = {
 const PRIORITY_HEX: Record<Priority, string> = {
   none: '#9ca3af', low: '#3b82f6', medium: '#f59e0b', high: '#f97316', urgent: '#ef4444',
 };
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Resolve the due-date field value for saving. A plain YYYY-MM-DD passes
+ * through unchanged (pre-parser behaviour); any other text is parsed as a
+ * natural-language phrase via the shared ntask-core parser ("tomorrow 5pm").
+ * Unparseable text falls through raw so the backend rejects it exactly as it
+ * did before this parser existed, instead of silently clearing the date.
+ */
+function resolveDueDateInput(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  if (ISO_DATE_RE.test(trimmed)) return trimmed;
+  return parseNaturalDueDate(trimmed) ?? trimmed;
+}
 
 export function TaskDetailScreen({ route, navigation }: Props) {
   const { taskId, listId } = route.params;
@@ -98,7 +117,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
         notes: notes.trim(),
         completed,
         priority,
-        dueDate: dueDate || null,
+        dueDate: resolveDueDateInput(dueDate),
       };
 
       if (!isConnected) {
@@ -256,6 +275,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
         <SubtaskList todoId={task.id} isOffline={!isConnected} />
         <TagPicker todoId={task.id} userId={task.user_id} />
         <ReminderList todoId={task.id} dueDate={task.due_date} />
+        <RecurrenceSelector todoId={task.id} />
         <AttachmentList todoId={task.id} userId={task.user_id} isOffline={!isConnected} />
         <CommentThread todoId={task.id} userId={task.user_id} isOffline={!isConnected} />
 

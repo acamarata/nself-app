@@ -102,6 +102,27 @@ jobs:
       - name: List artifacts
         run: find release-artifacts/ -type f | sort
 
+      # DT-3: one ASCII artifact base name on every platform.
+      # productName is "ɳTask", and each bundler transliterates the eta
+      # differently: Windows produced nTask_1.4.0_x64-setup.exe while macOS and
+      # Linux dropped it entirely (Task_1.4.0_aarch64.dmg). Users saw two
+      # different product names in one release. The app keeps its ɳTask display
+      # name; only the downloadable file is normalised.
+      - name: Normalise installer names
+        run: |
+          shopt -s nullglob globstar
+          for f in release-artifacts/**/*.{dmg,exe,msi,AppImage,deb,rpm}; do
+            dir=$(dirname "$f"); base=$(basename "$f")
+            # Strip whatever the bundler made of "ɳTask" and put back one form.
+            newbase=$(printf '%s' "$base" | sed -E 's/^(n?Task|ɳTask)_/nTask_/')
+            if [ "$newbase" != "$base" ]; then
+              echo "rename: $base -> $newbase"
+              mv "$f" "$dir/$newbase"
+            fi
+          done
+          find release-artifacts/ -type f \( -name '*.dmg' -o -name '*.exe' \
+            -o -name '*.msi' -o -name '*.AppImage' -o -name '*.deb' \) | sort
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

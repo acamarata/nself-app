@@ -28,7 +28,11 @@ export function useOfflineSync(): void {
 
       switch (m.type) {
         case 'create_task':
-          result = await createTask(String(p['title'] ?? ''), key);
+          result = await createTask(
+            String(p['title'] ?? ''),
+            key,
+            typeof p['dueDate'] === 'string' ? p['dueDate'] : null,
+          );
           break;
         case 'update_task':
           result = await updateTask(String(p['id']), (p['fields'] as Record<string, unknown>) ?? {}, key);

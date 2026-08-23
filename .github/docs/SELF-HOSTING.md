@@ -36,7 +36,7 @@ What you need:
 git clone https://github.com/nself-org/ntask.git
 cd ntask
 make bootstrap               # copies env, builds, starts backend
-# edit backend/.env.dev to set real secrets
+# edit backend/.env to set real secrets
 make health                  # verify all services are green
 DEMO_SEED=1 make demo-seed   # optional: load example tasks
 ```
@@ -59,8 +59,8 @@ git clone https://github.com/nself-org/ntask.git
 cd ntask
 
 # 2. Configure backend secrets
-cp backend/.env.example backend/.env.dev
-# Edit backend/.env.dev — change at minimum:
+cp backend/.env.example backend/.env
+# Edit backend/.env — change at minimum:
 #   AUTH_JWT_SECRET  (openssl rand -hex 64)
 #   POSTGRES_PASSWORD
 #   HASURA_ADMIN_SECRET  (openssl rand -hex 32)
@@ -86,7 +86,7 @@ pnpm start
 
 ## Configuration
 
-All backend configuration is in `backend/.env.dev`. Key variables:
+All backend configuration is in `backend/.env`. Key variables:
 
 | Variable | Required | Description | Production value |
 |---|---|---|---|
@@ -99,7 +99,7 @@ All backend configuration is in `backend/.env.dev`. Key variables:
 | `ACME_EMAIL` | Prod only | Let's Encrypt contact email | `admin@yourdomain.com` |
 | `DEMO_SEED` | No | Set to 1 to allow `make demo-seed` | Leave 0 on real installs |
 
-Never commit `backend/.env.dev` — it is gitignored.
+Never commit `backend/.env` — it is gitignored.
 
 ---
 
@@ -140,7 +140,7 @@ SELECT name, tier, enabled FROM np_plugins WHERE enabled = true ORDER BY name;
 For a real domain with HTTPS:
 
 1. Point your domain DNS to the server IP.
-2. Set `DOMAIN` and `ACME_EMAIL` in `backend/.env.dev`.
+2. Set `DOMAIN` and `ACME_EMAIL` in `backend/.env`.
 3. Start with the production compose overlay:
 
 ```bash
@@ -225,6 +225,26 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues and fixes.
 Quick diagnostics:
 
 ```bash
+
+### First install: two commands `make up` does not run
+
+`make up` starts the containers and nothing else. Until these run, the database
+has no ɳTask tables and Hasura exposes no `np_*` fields at all, which reads as a
+broken install rather than two missing commands.
+
+```bash
+make migrate                     # postgres/init.sql + the migrations
+make metadata-reconcile APPLY=1  # track tables, permissions, cron + event triggers, actions
+make metadata-diff               # confirm the environment matches the repo
+```
+
+Both are idempotent, so re-running them on an existing install is a no-op. The
+first reconcile tracks 26 tables and applies several hundred permissions and can
+take a few minutes.
+
+Do NOT use `hasura metadata apply`. It replaces the entire metadata document, and
+this repo does not declare the eight tables hasura-auth owns, so a replace
+untracks them and breaks MFA, OAuth logins and role lookups.
 make health           # check all services
 make logs             # tail all service logs
 make logs-hasura      # Hasura logs only

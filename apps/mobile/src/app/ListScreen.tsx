@@ -27,6 +27,8 @@ import {
 } from '../components/seven-states';
 import { useTasks } from '../hooks/useTasks';
 import { useTaskMutations } from '../hooks/useTaskMutations';
+import { useBulkSelection } from '../hooks/useBulkSelection';
+import { BulkActionBar } from '../components/BulkActionBar';
 import { useNetworkState } from '../hooks/useNetworkState';
 import { enqueue, queueSize } from '../lib/offline-queue';
 import { generateIdempotencyKey } from '../lib/idempotency';
@@ -69,6 +71,11 @@ export function ListScreen({ route, navigation }: Props) {
   const { isConnected, queueLength: offlineQueueCount } = useQueueAwareNetwork(refetch);
   const isOffline = !isConnected;
 
+  // MB-5: long-press a row to enter selection, then act on the whole selection.
+  // The hook owns the state machine and reuses the SAME per-row mutations below,
+  // so bulk and single-row edits cannot drift apart.
+  const bulk = useBulkSelection({ toggleTask, deleteTask, isOffline, refetch });
+
   // Merge server tasks + optimistic pending tasks
   const displayTasks = useMemo<DisplayTask[]>(() => {
     const serverIds = new Set(tasks.map((t) => t.id));
@@ -76,7 +83,7 @@ export function ListScreen({ route, navigation }: Props) {
     return [...tasks, ...pending];
   }, [tasks, optimisticTasks]);
 
-  const handleCreate = useCallback(async (title: string) => {
+  const handleCreate = useCallback(async (title: string, dueDate: string | null) => {
     const idempotencyKey = generateIdempotencyKey('create_task', `${listId}:${title}`);
     setModalVisible(false);
 
@@ -91,12 +98,13 @@ export function ListScreen({ route, navigation }: Props) {
         list_id: listId,
         position: displayTasks.length,
         priority: 'none',
+        due_date: dueDate,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         pending: true,
       };
       setOptimisticTasks((prev) => [...prev, optimistic]);
-      void enqueue('create_task', { listId, title }, idempotencyKey);
+      void enqueue('create_task', { listId, title, dueDate }, idempotencyKey);
       return;
     }
 
@@ -110,6 +118,7 @@ export function ListScreen({ route, navigation }: Props) {
       list_id: listId,
       position: displayTasks.length,
       priority: 'none',
+      due_date: dueDate,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       pending: true,
@@ -117,7 +126,7 @@ export function ListScreen({ route, navigation }: Props) {
     setOptimisticTasks((prev) => [...prev, optimistic]);
 
     try {
-      const result = await createTask(title, idempotencyKey);
+      const result = await createTask(title, idempotencyKey, dueDate);
       if (result.error) {
         // Rollback on failure
         setOptimisticTasks((prev) => prev.filter((t) => t.id !== tempId));
@@ -140,29 +149,40 @@ export function ListScreen({ route, navigation }: Props) {
   }, [listId, isOffline, displayTasks.length, createTask, refetch]);
 
   const renderTask = useCallback(
-    ({ item }: { item: DisplayTask }) => (
-      <TaskCard
-        task={item}
-        pending={item.pending}
-        onToggle={(completed) => {
-          if (isOffline) {
-            void enqueue('toggle_task', { id: item.id, completed }, generateIdempotencyKey('toggle_task', `${item.id}:${String(completed)}`));
-            return;
-          }
-          toggleTask(item.id, completed).then(() => refetch());
-        }}
-        onDelete={() => {
-          if (isOffline) {
-            void enqueue('delete_task', { id: item.id }, generateIdempotencyKey('delete_task', item.id));
-            setOptimisticTasks((prev) => prev.filter((t) => t.id !== item.id));
-            return;
-          }
-          deleteTask(item.id).then(() => refetch());
-        }}
-        onPress={() => navigation.navigate('TaskDetail', { taskId: item.id, listId })}
-      />
-    ),
-    [isOffline, toggleTask, deleteTask, refetch, navigation, listId],
+    ({ item }: { item: DisplayTask }) => {
+      // A row the user just bulk-completed shows the intended state until the
+      // refetch lands, so the list does not visibly bounce back.
+      const override = bulk.completedOverrideFor(item.id);
+      const task = override === undefined ? item : { ...item, completed: override };
+      return (
+        <TaskCard
+          task={task}
+          pending={item.pending}
+          selectionMode={bulk.selectionMode}
+          selected={bulk.isSelected(item.id)}
+          onLongPressSelect={() => bulk.enterSelection(item.id)}
+          onSelectToggle={() => bulk.toggleSelection(item.id)}
+          onToggle={(completed) => {
+            bulk.clearOverride(item.id);
+            if (isOffline) {
+              void enqueue('toggle_task', { id: item.id, completed }, generateIdempotencyKey('toggle_task', `${item.id}:${String(completed)}`));
+              return;
+            }
+            toggleTask(item.id, completed).then(() => refetch());
+          }}
+          onDelete={() => {
+            if (isOffline) {
+              void enqueue('delete_task', { id: item.id }, generateIdempotencyKey('delete_task', item.id));
+              setOptimisticTasks((prev) => prev.filter((t) => t.id !== item.id));
+              return;
+            }
+            deleteTask(item.id).then(() => refetch());
+          }}
+          onPress={() => navigation.navigate('TaskDetail', { taskId: item.id, listId })}
+        />
+      );
+    },
+    [isOffline, toggleTask, deleteTask, refetch, navigation, listId, bulk],
   );
 
   // Determine which state to render (7 states)
@@ -233,14 +253,25 @@ export function ListScreen({ route, navigation }: Props) {
         {renderBody()}
       </View>
 
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
-        onPress={() => setModalVisible(true)}
-        accessibilityLabel="Add task"
-        accessibilityRole="button"
-      >
-        <Text style={[styles.fabText, { color: colors.textOnPrimary }]}>+</Text>
-      </TouchableOpacity>
+      {/* The add-task FAB would sit under the bulk bar and compete with it. */}
+      {!bulk.selectionMode && (
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
+          onPress={() => setModalVisible(true)}
+          accessibilityLabel="Add task"
+          accessibilityRole="button"
+        >
+          <Text style={[styles.fabText, { color: colors.textOnPrimary }]}>+</Text>
+        </TouchableOpacity>
+      )}
+
+      <BulkActionBar
+        selectedCount={bulk.selectedCount}
+        onComplete={() => { void bulk.runBulk('complete'); }}
+        onUncomplete={() => { void bulk.runBulk('uncomplete'); }}
+        onDelete={() => { void bulk.runBulk('delete'); }}
+        onExit={bulk.exitSelection}
+      />
 
       <AddTaskModal
         visible={modalVisible}

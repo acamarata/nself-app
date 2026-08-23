@@ -1,4 +1,10 @@
 {
+  "calendar": {
+    "prevWeek": "الأسبوع السابق",
+    "nextWeek": "الأسبوع التالي",
+    "today": "اليوم",
+    "emptyDay": "لا مهام مستحقة"
+  },
   "login": {
     "title": "تسجيل الدخول",
     "serverUrl": "عنوان URL للخادم",
@@ -25,7 +31,17 @@
     "noTasks": "لا توجد مهام بعد",
     "taskTitle": "عنوان المهمة",
     "saveTask": "حفظ المهمة",
-    "taskNotSaved": "لم يتم حفظ المهمة"
+    "taskNotSaved": "لم يتم حفظ المهمة",
+    "bulk": {
+      "title": "إجراءات جماعية",
+      "selectedCount": "تم تحديد {{count}}",
+      "complete": "إكمال",
+      "uncomplete": "إلغاء الإكمال",
+      "delete": "حذف",
+      "deleteTitle": "حذف المهام؟",
+      "deleteMessage": "سيتم حذف المهام المحددة نهائيًا.",
+      "exit": "إنهاء التحديد"
+    }
   },
   "taskDetail": {
     "title": "عنوان المهمة",
@@ -53,7 +69,20 @@
     "newTag": "وسم جديد",
     "createTag": "إنشاء وسم",
     "search": "البحث في المهام…",
-    "noResults": "لا نتائج"
+    "noResults": "لا نتائج",
+    "recurrence": {
+      "label": "التكرار",
+      "none": "بدون تكرار",
+      "daily": "يومياً",
+      "weekly": "أسبوعياً",
+      "monthly": "شهرياً",
+      "yearly": "سنوياً",
+      "every": "كل",
+      "interval": "كل {{n}} {{unit}}",
+      "save": "حفظ",
+      "remove": "إزالة",
+      "cancel": "إلغاء"
+    }
   },
   "settings": {
     "title": "الإعدادات",
@@ -91,7 +120,11 @@
     "markAllRead": "تحديد الكل كمقروء",
     "commentAdded": "تعليق جديد",
     "taskAssigned": "مهمة مُسندة",
-    "taskDue": "موعد مهمة"
+    "taskDue": "موعد مهمة",
+    "justNow": "الآن",
+    "minutesAgo": "منذ {{n}} د",
+    "hoursAgo": "منذ {{n}} س",
+    "daysAgo": "منذ {{n}} ي"
   },
   "members": {
     "title": "الأعضاء",

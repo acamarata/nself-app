@@ -19,16 +19,13 @@ set -euo pipefail
 : "${BACKUP_ACCESS_KEY:?BACKUP_ACCESS_KEY is required}"
 : "${BACKUP_SECRET_KEY:?BACKUP_SECRET_KEY is required}"
 
-export AWS_ACCESS_KEY_ID="$BACKUP_ACCESS_KEY"
-export AWS_SECRET_ACCESS_KEY="$BACKUP_SECRET_KEY"
-export AWS_DEFAULT_REGION="auto"
+# shellcheck source=scripts/s3-client.sh
+source "$(dirname "${BASH_SOURCE[0]}")/s3-client.sh"
 
 echo "[restore-remote] Downloading: s3://${BACKUP_S3_BUCKET}/${FILE}"
 echo "[restore-remote] Target:      ${DATABASE_URL%%@*}@<host-redacted>"
 
-aws s3 cp "s3://${BACKUP_S3_BUCKET}/${FILE}" - \
-  --endpoint-url "$BACKUP_S3_ENDPOINT" \
-  --no-progress \
+s3_get_stream "$FILE" \
 | gunzip \
 | psql "$DATABASE_URL"
 

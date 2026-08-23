@@ -12,10 +12,13 @@ name: Publish Updater Manifest (ɳTask Desktop)
 # - Downgrade protection: manifest version must be strictly newer than latest published.
 
 on:
+  # NOTE: no `branches:` filter. Desktop Release is tag-triggered (push tags v*),
+  # so its workflow_run carries head_branch = the TAG name (e.g. "v1.4.0").
+  # A `branches: ['main']` filter therefore excluded every real release and this
+  # workflow never published a manifest for any shipped version (found 2026-08-24).
   workflow_run:
     workflows: ['Desktop Release']
     types: [completed]
-    branches: ['main']
   workflow_dispatch:
     inputs:
       tag:
@@ -53,7 +56,12 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # Check out the released ref, not the default branch: on workflow_run from a
+      # tag-triggered Desktop Release, head_branch IS the tag; on dispatch it is the
+      # tag input. Checking out main would sign whatever version main happens to be at.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.event.workflow_run.head_branch || github.ref }}
 
       - name: Install minisign
         run: |
@@ -62,7 +70,20 @@ jobs:
 
       - name: Determine version + downgrade guard
         run: |
-          VERSION=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
+          # Prefer the release tag (dispatch input, else the workflow_run head_branch,
+          # which is the tag for a tag-triggered run). Fall back to tauri.conf.json.
+          TAG="${{ inputs.tag }}"
+          TAG="${TAG:-${{ github.event.workflow_run.head_branch }}}"
+          if [[ "$TAG" == v[0-9]* ]]; then
+            VERSION="${TAG#v}"
+          else
+            VERSION=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
+          fi
+          CONF_VERSION=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
+          if [[ "$VERSION" != "$CONF_VERSION" ]]; then
+            echo "ERROR: resolved version ($VERSION) != tauri.conf.json at this ref ($CONF_VERSION)"
+            exit 1
+          fi
           echo "Offered version: $VERSION"
 
           # Downgrade guard: fetch current published manifest.
@@ -79,14 +100,21 @@ jobs:
             exit 1
           fi
           if [[ "$VERSION" == "$CURRENT" ]]; then
-            echo "ERROR: same-version publish rejected"
-            exit 1
+            # Not an error any more. This workflow now has TWO triggers for the
+            # same release: the workflow_run from Desktop Release (whose branch
+            # filter used to exclude every tag, so it never fired) and Desktop
+            # Release's own explicit `gh workflow run` dispatch. One of them will
+            # always arrive second and find the manifest already published.
+            # Failing there would paint a healthy release red.
+            echo "Manifest for $VERSION is already published; nothing to do."
+            echo "ALREADY_PUBLISHED=1" >> "$GITHUB_ENV"
           fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "Downgrade guard passed: $VERSION > $CURRENT"
 
       - name: Download release artifacts
+        if: env.ALREADY_PUBLISHED != '1'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -102,6 +130,7 @@ jobs:
             || echo "Some artifact types may not exist — continuing."
 
       - name: Generate Ed25519 signatures and manifests
+        if: env.ALREADY_PUBLISHED != '1'
         env:
           TAURI_UPDATER_PRIVATE_KEY: ${{ secrets.TAURI_UPDATER_PRIVATE_KEY }}
         run: |
@@ -187,6 +216,7 @@ jobs:
           cat manifests/*.json
 
       - name: Upload manifests to R2
+        if: env.ALREADY_PUBLISHED != '1'
         env:
           CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
@@ -207,6 +237,7 @@ jobs:
           echo "Manifests published to packages.nself.org/desktop/ntask/"
 
       - name: Purge Cloudflare cache
+        if: env.ALREADY_PUBLISHED != '1'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}

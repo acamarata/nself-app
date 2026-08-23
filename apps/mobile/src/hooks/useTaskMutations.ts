@@ -31,8 +31,8 @@ export function useTaskMutations(listId?: string) {
   return {
     creating: createResult.fetching,
 
-    createTask: (title: string, idempotencyKey?: string) =>
-      execCreate({ listId, title }, idempotencyContext(idempotencyKey)),
+    createTask: (title: string, idempotencyKey?: string, dueDate?: string | null) =>
+      execCreate({ listId, title, dueDate: dueDate ?? null }, idempotencyContext(idempotencyKey)),
 
     updateTask: (id: string, fields: Record<string, unknown>, idempotencyKey?: string) =>
       execUpdate({ id, ...fields }, idempotencyContext(idempotencyKey)),

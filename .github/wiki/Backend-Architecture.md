@@ -11,7 +11,7 @@ The ɳTasks backend is a self-contained Docker Compose stack. It runs PostgreSQL
 ```
 +------------------------------------------------------------+
 | ɳTasks Client Apps (apps/mobile · apps/desktop · apps/tv ·  |
-|              web/ntask in the separate web repo)            |
+|              web/ in this repo)                             |
 |         GraphQL over HTTP/WS to Hasura endpoint             |
 +----------------------------+-------------------------------+
                              |
@@ -117,7 +117,7 @@ Each surface connects to the same Hasura endpoint, read from environment config:
 | Surface | Default endpoint | Config file |
 |---|---|---|
 | Mobile (RN) | `http://localhost:8080/v1/graphql` (dev) / host IP for simulators | `apps/mobile/.env.local` |
-| Web SaaS | `http://localhost:8080/v1/graphql` (dev) / production Hasura URL | `web/ntask/.env.local` (separate repo) |
+| Web SaaS | `http://localhost:8080/v1/graphql` (dev) / production Hasura URL | `web/.env.local` |
 | Desktop (Tauri) | Same as web SaaS | `apps/desktop/.env.local` |
 | TV (rn-tvos) | Same as mobile | `apps/tv/.env.local` |
 

@@ -22,8 +22,15 @@
 #
 # Inputs:
 #   POSTGRES_USER  (default: postgres)
-#   POSTGRES_DB    (default: nself)
-#   POSTGRES_CONTAINER (default: backend_postgres)
+#   POSTGRES_DB    (default: from .env, else ntask)
+#   POSTGRES_CONTAINER (default: <PROJECT_NAME>_postgres, from .env)
+#
+# The container name and database used to default to `backend_postgres` and
+# `nself`, neither of which anything produces: `nself build` names containers
+# `${PROJECT_NAME}_postgres` and this project's database is `ntask`. So
+# `make migrate` failed on every fresh checkout with "PostgreSQL did not become
+# ready" — a timeout message for a container that was healthy the whole time and
+# simply had a different name (found by the 2026-08-24 fork drill).
 #
 # Constraints:
 #   - Requires docker compose stack to be UP (postgres container running)
@@ -33,9 +40,43 @@
 set -euo pipefail
 
 BACKEND_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-PG_USER="${POSTGRES_USER:-postgres}"
-PG_DB="${POSTGRES_DB:-nself}"
-PG_CONTAINER="${POSTGRES_CONTAINER:-backend_postgres}"
+
+# Read the project's own configuration rather than guessing names. Only the three
+# keys this script needs are read, and they are read with grep rather than by
+# sourcing the file: .env legitimately contains values with shell metacharacters
+# (the shipped example has `https://<account-id>.r2.cloudflarestorage.com`), and
+# sourcing it turns those into redirections. Values already in the environment
+# win, so a caller can still override any of them.
+env_value() {
+  local key="$1" file
+  for file in "$BACKEND_DIR/.env" "$BACKEND_DIR/.env.dev"; do
+    [ -f "$file" ] || continue
+    local line
+    line=$(grep -m1 -E "^[[:space:]]*${key}=" "$file" 2>/dev/null) || continue
+    line="${line#*=}"
+    line="${line%\"}"; line="${line#\"}"
+    line="${line%\'}"; line="${line#\'}"
+    printf '%s' "${line%%[[:space:]]#*}"
+    return 0
+  done
+}
+
+PROJECT="${PROJECT_NAME:-$(env_value PROJECT_NAME)}"
+PROJECT="${PROJECT:-$(env_value NSELF_PROJECT_NAME)}"
+PROJECT="${PROJECT:-ntask}"
+PG_USER="${POSTGRES_USER:-$(env_value POSTGRES_USER)}"
+PG_USER="${PG_USER:-postgres}"
+PG_DB="${POSTGRES_DB:-$(env_value POSTGRES_DB)}"
+PG_DB="${PG_DB:-ntask}"
+PG_CONTAINER="${POSTGRES_CONTAINER:-${PROJECT}_postgres}"
+
+if ! docker ps --format '{{.Names}}' | grep -qx "$PG_CONTAINER"; then
+  echo "[db-migrate] [ERROR] no running container named '$PG_CONTAINER'." >&2
+  echo "[db-migrate] Running postgres containers:" >&2
+  docker ps --format '{{.Names}}' | grep postgres >&2 || echo "  (none)" >&2
+  echo "[db-migrate] Set POSTGRES_CONTAINER=<name> or PROJECT_NAME=<project> and retry." >&2
+  exit 1
+fi
 INIT_SQL="$BACKEND_DIR/postgres/init.sql"
 MIGRATIONS_DIR="$BACKEND_DIR/postgres/migrations"
 
