@@ -1,5 +1,67 @@
 # Changelog
 
+## v1.4.0 — 2026-08-23
+
+Minor release. Four features that were present in the codebase but had never
+worked now work, and the authorization gaps that surfaced while proving it are
+closed.
+
+### Added
+
+- **File attachments, on web and mobile.** Upload, open and remove files on a
+  task. Mobile gains a document picker; both surfaces issue byte-identical
+  operations from `@nself/ntask-core`.
+- **Saved views on mobile.** Views created on the web app are now usable on a
+  phone: pick one, see the tasks it matches, tap through to detail.
+- **Reminders on mobile**, backed by the same `np_reminders` table the web app
+  uses, so a reminder set on one surface is visible on the other.
+- **Reminder delivery.** Reminders were storable everywhere and delivered
+  nowhere: the cron fired every minute into a handler that only logged. Due
+  reminders now become notifications.
+- **Activity history.** Creating or completing a task records an entry, via
+  Postgres triggers so the feed is written in the same transaction as the
+  change and cannot drift from the data it describes.
+- `make metadata-diff` and `make metadata-reconcile` — detect and safely
+  reconcile Hasura permission drift between the repo and a live environment.
+
+### Fixed
+
+- **Attachments could not work at all**, for four independent reasons: no
+  object store was deployed; the presign action declared an unused GraphQL
+  variable and so was rejected outright; the upload URL was signed against an
+  internal Docker hostname the browser cannot reach; and the client queried
+  `filename`/`size_bytes`/`user_id` against a schema that has
+  `file_name`/`file_size_bytes`/`uploader_id`.
+- **Storage was disabled by default for self-hosters.** `nself build` emits no
+  MinIO service unless `MINIO_ENABLED=true`, which `.env.example` did not set —
+  so nobody self-hosting the Task Bundle had working attachments. The docs
+  claimed the opposite and are corrected.
+- **Five missing authorization checks on production**, correct in git and never
+  deployed because nothing applied the repo's Hasura metadata. One allowed a
+  user to read another user's data export by registering an attachment row
+  pointing at it. All five are applied to both environments and each was
+  verified by re-running the attack. No user data was affected: the object
+  store had been created the same day and never held a single object.
+- **Assignees on mobile were a stub** mounted with a hardcoded `null` and
+  `readonly`, modelled as a single assignee against a many-to-many table.
+- **The production API host had no rate limiting and no HSTS**, though both
+  were configured and in use on every other vhost.
+
+### Changed
+
+- `web/src/lib/graphql-attachments.ts` is now a thin wrapper over the shared
+  package rather than a private copy of the queries. That duplication is what
+  allowed the field names to drift.
+- MinIO is pinned by digest rather than tracking `:latest`.
+- The production nginx vhost and compose delta are version-controlled, and the
+  vhost moved to `conf.d/` — `nself build` deletes everything in `nginx/sites/`,
+  which would have taken the API host down with no copy anywhere.
+
+### Removed
+
+- `apps/Makefile`, which invoked `flutter` against a directory deleted in the
+  React Native migration and duplicated the root Makefile.
+
 ## v1.3.1 — 2026-08-18
 
 Patch release. Security hardening, a working account-recovery path, and the
