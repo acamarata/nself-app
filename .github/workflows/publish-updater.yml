@@ -24,6 +24,11 @@ on:
       tag:
         description: 'Release tag to publish (e.g. v1.3.1)'
         required: true
+      force:
+        description: 'Republish even if this version is already published (use to repair a bad manifest)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   # ── Pubkey safety gate ────────────────────────────────────────────────────
@@ -109,7 +114,7 @@ jobs:
             echo "ERROR: downgrade rejected — offered $VERSION <= current $CURRENT"
             exit 1
           fi
-          if [[ "$VERSION" == "$CURRENT" ]]; then
+          if [[ "$VERSION" == "$CURRENT" && "${{ inputs.force }}" != "true" ]]; then
             # Not an error any more. This workflow now has TWO triggers for the
             # same release: the workflow_run from Desktop Release (whose branch
             # filter used to exclude every tag, so it never fired) and Desktop
@@ -160,21 +165,50 @@ jobs:
             cat "${file}.minisig"
           }
 
-          # macOS arm64
-          SIG_MAC_ARM=$(sign_file "release-data/$(ls release-data/ | grep aarch64.*dmg | head -1)")
-          MAC_ARM_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep aarch64.*dmg | head -1)"
+          # Asset names do not use Tauri's target triple. The Intel dmg ships as
+          # `…_x64.dmg`, and a `grep x86_64.*dmg` matched nothing, so the first
+          # ever successful publish produced latest-darwin-x86_64.json with an
+          # EMPTY platforms object — an Intel Mac would fetch it, find no entry
+          # for its target, and silently conclude there was no update. Match both
+          # spellings, and fail loudly rather than emitting an empty manifest.
+          find_asset() {
+            local pattern="$1"
+            ls release-data/ 2>/dev/null | grep -Ei "$pattern" | head -1
+          }
 
-          # macOS x86_64
-          SIG_MAC_X64=$(sign_file "release-data/$(ls release-data/ | grep x86_64.*dmg | head -1)")
-          MAC_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep x86_64.*dmg | head -1)"
+          # macOS arm64
+          MAC_ARM_FILE=$(find_asset 'aarch64.*\.dmg$')
+          SIG_MAC_ARM=$(sign_file "release-data/${MAC_ARM_FILE}")
+          MAC_ARM_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/${MAC_ARM_FILE}"
+
+          # macOS x86_64 — named x64 by the bundler, x86_64 by the Tauri target.
+          MAC_X64_FILE=$(find_asset '(x86_64|x64)\.dmg$')
+          SIG_MAC_X64=$(sign_file "release-data/${MAC_X64_FILE}")
+          MAC_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/${MAC_X64_FILE}"
 
           # Windows
-          SIG_WIN_X64=$(sign_file "release-data/$(ls release-data/ | grep '\.msi' | head -1)")
-          WIN_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep '\.msi' | head -1)"
+          WIN_X64_FILE=$(find_asset '\.msi$')
+          SIG_WIN_X64=$(sign_file "release-data/${WIN_X64_FILE}")
+          WIN_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/${WIN_X64_FILE}"
 
           # Linux
-          SIG_LINUX_X64=$(sign_file "release-data/$(ls release-data/ | grep '\.AppImage' | head -1)")
-          LINUX_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/$(ls release-data/ | grep '\.AppImage' | head -1)"
+          LINUX_X64_FILE=$(find_asset '\.AppImage$')
+          SIG_LINUX_X64=$(sign_file "release-data/${LINUX_X64_FILE}")
+          LINUX_X64_URL="https://github.com/nself-org/ntask/releases/download/v${VERSION}/${LINUX_X64_FILE}"
+
+          # A manifest with no platform entry is worse than a missing manifest:
+          # the updater fetches it, finds nothing for its target, and reports
+          # "up to date". Refuse to publish one.
+          MISSING=""
+          for pair in "darwin-aarch64:$MAC_ARM_FILE" "darwin-x86_64:$MAC_X64_FILE" \
+                      "windows-x86_64:$WIN_X64_FILE" "linux-x86_64:$LINUX_X64_FILE"; do
+            [ -n "${pair#*:}" ] || MISSING="$MISSING ${pair%%:*}"
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::error::no release asset found for:$MISSING"
+            echo "Assets present:"; ls release-data/
+            exit 1
+          fi
 
           # Manifest helper
           write_manifest() {
