@@ -2,8 +2,9 @@
  * Purpose: Sign-in screen — collects server URL, email, password; calls useAuth.signIn
  * Inputs: user form input; navigation to Home on success
  * Outputs: Renders auth form; writes token to SecureStore on success
- * Constraints: Server URL saved across sessions; same flow as Flutter LoginScreen
- * SPORT: Port of app/lib/screens/login_screen.dart
+ * Constraints: Server URL persists across sessions so a self-host user enters it once.
+ * SPORT: P5-C-mobile — originally ported from the Flutter login screen, which no
+ *        longer exists; this file is the definition of the flow.
  */
 
 import React, { useState, useEffect } from 'react';

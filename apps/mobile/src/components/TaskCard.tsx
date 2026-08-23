@@ -3,7 +3,8 @@
  * Inputs: task Task, onToggle, onDelete, onPress callbacks; pending bool for optimistic rows
  * Outputs: Touchable row with priority dot + strikethrough when completed; faded when pending
  * Constraints:
- *   - Priority color scheme matches Flutter _TaskItem._priorityColor
+ *   - Priority colours come from the shared theme tokens (theme/colors.ts
+ *     priorityLow/Medium/High/Urgent/None), which are the source of truth.
  *   - Due dates shown in Hijri (islamic-umalqura) when the app layout is in RTL mode.
  * SPORT: T-P3-E5-W3-S1-T01-b optimistic pending state; T-P3-E6-W1-S3-T02 RTL+Hijri
  */
