@@ -17,7 +17,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "node scripts/coverage-sharded.mjs",
-    "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit",
     "size": "size-limit"

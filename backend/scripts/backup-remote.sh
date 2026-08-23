@@ -25,10 +25,10 @@ RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-30}"
 : "${BACKUP_ACCESS_KEY:?BACKUP_ACCESS_KEY is required}"
 : "${BACKUP_SECRET_KEY:?BACKUP_SECRET_KEY is required}"
 
-# Configure AWS CLI for R2 (S3-compatible)
-export AWS_ACCESS_KEY_ID="$BACKUP_ACCESS_KEY"
-export AWS_SECRET_ACCESS_KEY="$BACKUP_SECRET_KEY"
-export AWS_DEFAULT_REGION="auto"
+# S3 client: aws when present, else rclone. Neither nSelf box can install the
+# awscli deb (Ubuntu 24.04 dropped it), which is why this indirection exists.
+# shellcheck source=scripts/s3-client.sh
+source "$(dirname "${BASH_SOURCE[0]}")/s3-client.sh"
 
 # ---------------------------------------------------------------------------
 # Failure handler — send Sentry alert if DSN is configured
@@ -62,19 +62,17 @@ _on_error() {
 trap '_on_error' ERR
 
 # ---------------------------------------------------------------------------
-# Backup — stream pg_dump | gzip | aws s3 cp (never touches disk)
+# Backup — stream pg_dump | gzip | upload (never touches disk)
 # ---------------------------------------------------------------------------
 echo "[backup-remote] Starting backup at ${TIMESTAMP}"
-echo "[backup-remote] Target: s3://${BACKUP_S3_BUCKET}/${BACKUP_KEY}"
+echo "[backup-remote] Target: s3://${BACKUP_S3_BUCKET}/${BACKUP_KEY} (client: ${S3_CLIENT})"
 
 pg_dump "$DATABASE_URL" \
   --no-owner \
   --no-acl \
   --format=plain \
   | gzip \
-  | aws s3 cp - "s3://${BACKUP_S3_BUCKET}/${BACKUP_KEY}" \
-      --endpoint-url "$BACKUP_S3_ENDPOINT" \
-      --no-progress
+  | s3_put_stream "$BACKUP_KEY"
 
 echo "[backup-remote] Backup completed: ${BACKUP_KEY}"
 
@@ -83,21 +81,17 @@ echo "[backup-remote] Backup completed: ${BACKUP_KEY}"
 # ---------------------------------------------------------------------------
 echo "[backup-remote] Cleaning up backups older than ${RETENTION_DAYS} days..."
 
-# Date arithmetic: GNU date vs macOS date
-CUTOFF_DATE=$(date -u -d "-${RETENTION_DAYS} days" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
-  || date -u -v -${RETENTION_DAYS}d +%Y-%m-%dT%H:%M:%SZ)
+CUTOFF_EPOCH=$(( $(date -u +%s) - RETENTION_DAYS * 86400 ))
 
-aws s3api list-objects-v2 \
-  --bucket "$BACKUP_S3_BUCKET" \
-  --prefix "${BACKUP_S3_PREFIX:-ntask}/" \
-  --endpoint-url "$BACKUP_S3_ENDPOINT" \
-  --query "Contents[?LastModified<='${CUTOFF_DATE}'].[Key]" \
-  --output text \
-| while IFS= read -r key; do
-    if [[ -n "$key" && "$key" != "None" ]]; then
-      echo "[backup-remote] Deleting old backup: $key"
-      aws s3 rm "s3://${BACKUP_S3_BUCKET}/${key}" \
-        --endpoint-url "$BACKUP_S3_ENDPOINT"
+s3_list "${BACKUP_S3_PREFIX:-ntask}" \
+| while read -r day time _size name; do
+    [ -n "$name" ] || continue
+    # Object timestamps are UTC "YYYY-MM-DD HH:MM:SS"; compare as epoch seconds
+    # so this needs no date-parsing differences between GNU and BSD date.
+    obj_epoch=$(date -u -d "${day} ${time}" +%s 2>/dev/null || echo 0)
+    if [ "$obj_epoch" -ne 0 ] && [ "$obj_epoch" -lt "$CUTOFF_EPOCH" ]; then
+      echo "[backup-remote] Deleting old backup: $name"
+      s3_delete "${BACKUP_S3_PREFIX:-ntask}/${name}"
     fi
   done
 

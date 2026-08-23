@@ -56,7 +56,8 @@ import {
 } from './collab-ops';
 import { getUploadUrl, getDownloadUrl } from './storage-presign';
 import { dispatchReminders } from './reminder-dispatch';
-import { handleTaskActivity }            from './task-activity';
+import { handleTodoAssigned }            from './todo-assigned';
+import { runEveningDigest }              from './evening-digest';
 import { handleNotifyDispatch }          from './notify-dispatch';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ const actionRoutes: Record<
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const eventRoutes: Record<string, (payload: any) => Promise<unknown>> = {
-  '/events/task-activity':   handleTaskActivity,
+  '/events/todo-assigned':   handleTodoAssigned,
   '/events/notify-dispatch': handleNotifyDispatch,
 };
 
@@ -120,6 +121,12 @@ const cronRoutes: Record<string, () => Promise<void>> = {
     const r = await dispatchReminders();
     console.log(
       `[cron] dispatch-reminders due=${r.due} notified=${r.notified} skipped=${r.skipped} failed=${r.failed}`,
+    );
+  },
+  '/cron/evening-digest':             async () => {
+    const r = await runEveningDigest();
+    console.log(
+      `[cron] evening-digest users=${r.users} notified=${r.notified} skipped=${r.skipped} failed=${r.failed}`,
     );
   },
   '/cron/cleanup':                    async () => { console.log('[cron] cleanup fired'); },

@@ -20,9 +20,6 @@ concurrency:
 jobs:
   build:
     name: Build (${{ matrix.target }})
-    # Needs NSELF_PACKAGES_TOKEN (private packages checkout) — unavailable to
-    # dependabot-triggered runs, which only see Dependabot secrets.
-    if: github.actor != 'dependabot[bot]'
     strategy:
       fail-fast: false
       matrix:
@@ -72,19 +69,6 @@ jobs:
           key: cargo-macos-${{ matrix.target }}-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}
           restore-keys: |
             cargo-macos-${{ matrix.target }}-
-
-      # @nself/* workspace packages live in nself-org/packages (private).
-      # Must check out adjacent so pnpm workspace links resolve.
-      - name: Checkout @nself packages
-        uses: actions/checkout@v4
-        with:
-          repository: nself-org/packages
-          token: ${{ secrets.NSELF_PACKAGES_TOKEN }}
-          path: _nself_packages
-
-      - name: Symlink packages to sibling path expected by pnpm workspace
-        run: |
-          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$GITHUB_WORKSPACE/packages"
 
       - name: Install sibling packages deps (their own lockfile)
         shell: bash

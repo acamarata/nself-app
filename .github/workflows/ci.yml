@@ -42,9 +42,8 @@ jobs:
 
   web-test:
     name: Web Tests (typecheck + unit + build)
-    # Needs NSELF_PACKAGES_TOKEN for the sibling packages checkout, which
-    # dependabot-triggered runs cannot see.
-    if: github.actor != 'dependabot[bot]'
+    # Shared packages come from a public clone (see mobile-test), so this job
+    # needs no secret and runs on dependabot PRs like any other.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -111,29 +110,17 @@ jobs:
 
   mobile-test:
     name: Mobile Tests (coverage gate ≥60%)
-    # Needs NSELF_PACKAGES_TOKEN (private packages checkout) — unavailable to
-    # dependabot-triggered runs, which only see Dependabot secrets.
-    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      # @nself/* workspace packages live in nself-org/packages (private).
-      # pnpm-workspace.yaml links them via ../packages/@nself/* — GitHub Actions
-      # sandboxes checkouts under the workspace; check out into _nself_packages/
-      # then symlink to packages/ inside the runner working tree.
-      - name: Checkout @nself packages
-        uses: actions/checkout@v4
-        with:
-          repository: nself-org/packages
-          token: ${{ secrets.NSELF_PACKAGES_TOKEN }}
-          path: _nself_packages
-
-      - name: Symlink packages to sibling path expected by pnpm workspace
-        run: |
-          ln -s "$GITHUB_WORKSPACE/_nself_packages" "$GITHUB_WORKSPACE/packages"
-
+      # ONE mechanism for the shared packages, everywhere: a plain public clone.
+      # nself-org/packages is public, so the private-token checkout this job used
+      # to do first was both unnecessary and dead — the very next step deleted
+      # the symlink it created (`rm -rf packages`). That token was also the only
+      # reason this job skipped dependabot runs, so that gate is gone too and
+      # dependabot PRs now get the same coverage gate as everyone else.
       - name: Checkout shared @nself packages (sibling workspace dir)
         shell: bash
         # pnpm-workspace.yaml resolves packages/@nself/* from a clone inside the repo
@@ -166,6 +153,76 @@ jobs:
         # N-S3-T5: failing here means coverage dropped below the gate — fix coverage, not the threshold.
         run: pnpm test --coverage
         working-directory: apps/mobile
+
+  # ── CI-1: suites that existed but no workflow ever invoked ──────────────────
+  # backend/functions/__tests__, apps/cli/test and apps/mcp/test were all real,
+  # all passing locally, and all invisible to CI — the repo's own documented
+  # failure class (a green total that measured nothing). Each job below fails if
+  # its suite reports zero tests, so "the suite silently stopped running" cannot
+  # look like success a second time.
+  backend-functions-test:
+    name: Backend Functions Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+      - name: Install
+        working-directory: backend/functions
+        run: npm ci
+      - name: Typecheck
+        working-directory: backend/functions
+        run: npm run typecheck
+      - name: Test
+        working-directory: backend/functions
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee /tmp/functions-test.log
+          # node:test's spec reporter prints a coloured "ℹ pass N" summary line.
+          # Zero passing tests means the suite did not run, which must be a
+          # failure, not a green tick.
+          PASS=$(sed 's/\x1b\[[0-9;]*m//g' /tmp/functions-test.log \
+                 | grep -Eo '(^|[^a-z])pass [0-9]+' | tail -1 | grep -Eo '[0-9]+')
+          PASS="${PASS:-0}"
+          echo "backend/functions passing tests: $PASS"
+          [ "$PASS" -gt 0 ] || { echo 'ERROR: suite reported no passing tests'; exit 1; }
+
+  cli-mcp-test:
+    name: ${{ matrix.pkg }} Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [apps/cli, apps/mcp]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout shared @nself packages (sibling workspace dir)
+        run: |
+          rm -rf packages
+          git clone --depth 1 https://github.com/nself-org/packages.git packages
+      - uses: pnpm/action-setup@v6
+        with:
+          version: '10.30.1'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install
+        run: pnpm install --no-frozen-lockfile
+      - name: Typecheck
+        working-directory: ${{ matrix.pkg }}
+        run: pnpm typecheck
+      - name: Build
+        working-directory: ${{ matrix.pkg }}
+        run: pnpm build
+      - name: Test
+        working-directory: ${{ matrix.pkg }}
+        # vitest exits non-zero when it finds no test files, and --passWithNoTests
+        # is deliberately NOT used: a vanished suite must go red.
+        run: pnpm test
 
   i18n-completeness:
     name: I18n Completeness Gate (N-S3-T3)

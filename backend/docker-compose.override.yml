@@ -19,19 +19,24 @@
 # `read_only: false` escape hatch yet). Remove this file once nself build
 # supports overriding hardening defaults per-service natively.
 #
-# Second CLI gap on the same service, same generator bug class: the
-# generated healthcheck is `curl -f http://localhost:3001/healthz`, but
-# `nhost/functions:latest`'s own bundled /server.ts (the actual process that
-# binds the listening socket) hardcodes `const PORT = 3000` and ignores the
-# PORT env var entirely — it only reads PORT indirectly via our unused
-# functions/server.ts, which the image's start.sh never executes (it globs
-# the mounted dir as individual route handlers instead of running it as an
-# app). Two consequences: (a) target port must be 3000, not 3001; (b) the
-# alpine-based image has no `curl` binary (only wget/nc), so `curl -f ...`
-# always exits 127 regardless of the app's real health.
-# CLI gap filed: nself-functions-healthcheck-port-mismatch (compose generator
-# should probe the image's actual bind port + use an available binary — or
-# nself.yaml needs a `services.functions.healthcheck` override field).
+# Second CLI gap on the same service, same generator bug class, CORRECTED
+# 2026-08-24: `nhost/functions:latest`'s bundled start.sh does NOT run this
+# project's functions/server.ts. It globs the mounted directory and serves each
+# file as its own route on a hardcoded port 3000. Under that runtime NONE of the
+# routes this backend declares exist — no /api/actions/*, no /events/*, no
+# /cron/* — so every Hasura action, cron and event trigger fails at the network
+# layer. Staging ran exactly that way until 2026-08-24: 14 074 cron invocations,
+# every one "Connection refused" to functions:3001, silently, for weeks.
+# Production worked only because someone had hand-added an `entrypoint` to the
+# box's compose file, which is precisely the drift this override exists to stop.
+#
+# So the override runs the real app itself: `entrypoint` executes
+# functions/server.ts, which honours PORT and registers the whole route table.
+# The healthcheck and ACTION_HANDLER_URL then follow that same port (3001), and
+# the image has no `curl`, so the probe uses wget.
+# CLI gap filed: nself-functions-entrypoint-ignored (the compose generator emits
+# a functions service that never executes the project's entrypoint; nself.yaml
+# needs `services.functions.entrypoint`/`command` support).
 services:
   functions:
     # Fifth gap, same generator: `nself build` forwards only a fixed set of env
@@ -59,7 +64,13 @@ services:
     #     Neither arrived, so every signature was computed with an empty key and
     #     MinIO rejected it: attachment upload/download URLs, the GDPR export
     #     upload, and the account-deletion object purge were all dead.
+    # Run OUR server.ts, not the image's file-glob runtime (see header).
+    entrypoint: ["node", "--import", "tsx/esm", "/opt/project/server.ts"]
+    working_dir: /opt/project
     environment:
+      # server.ts defaults to 3001; state it so compose, healthcheck and
+      # ACTION_HANDLER_URL below cannot drift apart again.
+      PORT: "3001"
       NHOST_WEBHOOK_SECRET: ${NHOST_WEBHOOK_SECRET:-}
       AUTH_PORT: ${AUTH_PORT:-4000}
       HASURA_AUTH_URL: ${HASURA_AUTH_URL:-http://auth:${AUTH_PORT:-4000}}
@@ -74,7 +85,27 @@ services:
       # Prefer an explicit override, else fall back to the real root credentials.
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-minioadmin}}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-}}
+      # Sixth casualty of the same env-passthrough gap: this service sends its
+      # own transactional mail (list invites) over SMTP, because hasura-auth has
+      # no relay route for anyone else's messages. Without these the mailer
+      # reports NTASK-EMAIL-UNCONFIGURED and the invite says so, rather than
+      # claiming a delivery that never happened. AUTH_SMTP_* is the same
+      # configuration hasura-auth uses, so one credential set serves both.
+      AUTH_SMTP_HOST: ${AUTH_SMTP_HOST:-${SMTP_HOST:-}}
+      AUTH_SMTP_PORT: ${AUTH_SMTP_PORT:-${SMTP_PORT:-1025}}
+      AUTH_SMTP_SECURE: ${AUTH_SMTP_SECURE:-${SMTP_SECURE:-false}}
+      AUTH_SMTP_USER: ${AUTH_SMTP_USER:-${SMTP_USER:-}}
+      AUTH_SMTP_PASS: ${AUTH_SMTP_PASS:-${SMTP_PASS:-}}
+      AUTH_SMTP_SENDER: ${AUTH_SMTP_SENDER:-${SMTP_SENDER:-}}
+      SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDRESS:-${AUTH_SMTP_SENDER:-${SMTP_SENDER:-}}}
+      NTASK_APP_BASE_URL: ${NTASK_APP_BASE_URL:-https://task.nself.org}
     read_only: false
+    volumes:
+      # The generated service mounts backend/functions at /opt/project only, so
+      # backend/email-templates is invisible to it and the invite mail failed
+      # with "template unreadable" on a correctly configured stack. hasura-auth
+      # gets the same directory mounted for the same reason.
+      - ./email-templates:/opt/project/email-templates:ro
     tmpfs:
       - /tmp
       - /run
@@ -88,9 +119,9 @@ services:
     # (nginx -> functions:3000, hasura ACTION_HANDLER_URL -> functions:3000)
     # is unaffected — only the host-side published port changes.
     ports:
-      - 127.0.0.1:3011:3000
+      - 127.0.0.1:3011:3001
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -107,10 +138,10 @@ services:
   # into the hasura service automatically).
   hasura:
     environment:
-      # Internal container-to-container port is 3000 (the image's real bind
-      # port — see the functions service comment above), not 3001 (the host
-      # published port used by FUNCTIONS_PORT/.env.dev for host-side tooling).
-      ACTION_HANDLER_URL: http://functions:3000
+      # functions/server.ts binds PORT (3001, set on that service above).
+      # 3011 is only the host-side published port; container-to-container
+      # traffic uses 3001.
+      ACTION_HANDLER_URL: http://functions:3001
       # Referenced by `value_from_env` in metadata/{actions,event_triggers,
       # cron_triggers}.yaml, so it must EXIST here or metadata apply fails with
       # "Value for environment variables not found". Same value as the functions

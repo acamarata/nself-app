@@ -18,10 +18,11 @@
 import { Sentry } from './sentry';
 import { adminGql } from './lib/admin-gql';
 import { unauthorized } from './lib/action-error';
-import { authBaseUrl } from './lib/auth-service';
+import { readFile } from 'node:fs/promises';
+import { sendMail, renderTemplate } from './lib/mailer';
+import type { MailTransport, MailerConfig } from './lib/mailer';
 
 const APP_BASE_URL = process.env.NTASK_APP_BASE_URL           || 'https://task.nself.org';
-const SMTP_FROM    = process.env.SMTP_FROM_ADDRESS            || '';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -109,50 +110,92 @@ async function countOwners(listId: string): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
-// Email sender stub — external gate if SMTP not configured
+// Invite email
+//
+// Sent over SMTP by this service. The previous version POSTed to a hasura-auth
+// send-email route that does not exist (live probe answered 404
+// route-not-found) and discarded the failure, so invite mail was dead in every
+// environment while the action reported success. hasura-auth sends only its own
+// mail and exposes no relay for ours.
 // ---------------------------------------------------------------------------
 
-async function sendInviteEmail(opts: {
-  to: string;
-  inviterName: string;
-  listTitle: string;
-  inviteToken: string;
-  role: string;
-}): Promise<{ sent: boolean; gate?: string }> {
-  if (!SMTP_FROM) {
-    // EXTERNAL GATE: hasura-auth SMTP relay not configured.
-    // Set SMTP_FROM_ADDRESS + SMTP_* env vars in nself.yaml to enable.
-    console.warn('[collab-ops] SMTP not configured — invite email not sent. EXTERNAL GATE: L-S1-EMAIL-SMTP');
-    return { sent: false, gate: 'L-S1-EMAIL-SMTP: set SMTP_FROM_ADDRESS + SMTP_* in nself.yaml' };
+// The templates sit next to this service in the repo (backend/email-templates)
+// but the deployed container mounts only backend/functions at /opt/project, so
+// the repo-relative path resolves to nothing there. Rather than guess one
+// layout, try the layouts that exist and let NTASK_EMAIL_TEMPLATES_PATH override
+// both. Guessing one is how the deployed invite email reported
+// "template unreadable" while the file sat one directory up on the host.
+function templateCandidates(name: string): URL[] {
+  const configured = process.env['NTASK_EMAIL_TEMPLATES_PATH'];
+  const candidates: URL[] = [];
+  if (configured) {
+    candidates.push(new URL(`${configured.replace(/\/$/, '')}/${name}`, 'file:///'));
   }
+  // Mounted alongside the code inside the container.
+  candidates.push(new URL(`./email-templates/${name}`, import.meta.url));
+  // Repo layout: backend/functions/../email-templates.
+  candidates.push(new URL(`../email-templates/${name}`, import.meta.url));
+  return candidates;
+}
 
+let inviteTemplate: string | null = null;
+
+/** Read once. A missing template is a deployment fault, not a per-send cost. */
+async function loadInviteTemplate(): Promise<string> {
+  if (inviteTemplate !== null) return inviteTemplate;
+  const tried: string[] = [];
+  for (const url of templateCandidates('list-invite.html')) {
+    try {
+      inviteTemplate = await readFile(url, 'utf8');
+      return inviteTemplate;
+    } catch {
+      tried.push(url.pathname);
+    }
+  }
+  throw new Error(`list-invite.html not found; looked in ${tried.join(', ')}`);
+}
+
+export async function sendInviteEmail(
+  opts: {
+    to: string;
+    inviterName: string;
+    listTitle: string;
+    inviteToken: string;
+    role: string;
+  },
+  deps: { transport?: MailTransport; config?: MailerConfig | null } = {},
+): Promise<{ sent: boolean; gate?: string }> {
   const acceptUrl = `${APP_BASE_URL}/invite?token=${opts.inviteToken}`;
 
-  // Send via hasura-auth email endpoint (which uses the configured SMTP relay)
+  let html: string;
   try {
-    // Auth base URL is derived from AUTH_PORT (lib/auth-service) rather than a
-    // hardcoded :4000, which did not match the port this stack publishes.
-    const res = await fetch(`${authBaseUrl()}/api/send-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to:       opts.to,
-        from:     SMTP_FROM,
-        subject:  `${opts.inviterName} invited you to "${opts.listTitle}" on ɳTasks`,
-        template: 'list-invite',
-        templateVars: {
-          InviterName: opts.inviterName,
-          ListTitle:   opts.listTitle,
-          Role:        opts.role,
-          Link:        acceptUrl,
-        },
-      }),
+    html = renderTemplate(await loadInviteTemplate(), {
+      InviterName: opts.inviterName,
+      ListTitle:   opts.listTitle,
+      Role:        opts.role,
+      Link:        acceptUrl,
     });
-    return { sent: res.ok };
   } catch (err) {
-    Sentry.captureException(err);
-    return { sent: false };
+    Sentry.captureException(err, { tags: { function: 'collab-ops', step: 'invite-template' } });
+    return { sent: false, gate: `invite template unreadable: ${(err as Error).message}` };
   }
+
+  const result = await sendMail(
+    {
+      to: opts.to,
+      subject: `${opts.inviterName} invited you to "${opts.listTitle}" on ɳTasks`,
+      html,
+      text: `${opts.inviterName} invited you to "${opts.listTitle}" as ${opts.role}. Accept: ${acceptUrl}`,
+    },
+    deps,
+  );
+
+  if (!result.sent) {
+    // Logged as well as returned: the action result reaches the user, this
+    // reaches whoever runs the stack.
+    console.warn(`[collab-ops] invite email not sent to ${opts.to}: ${result.gate}`);
+  }
+  return result;
 }
 
 // ===========================================================================

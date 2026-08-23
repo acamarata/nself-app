@@ -51,3 +51,19 @@
     timeout_seconds: 120
     tolerance_seconds: 86400
   comment: "Weekly Sunday 04:00 UTC: delete np_activity records older than retain_days days"
+
+- name: ntask_evening_digest
+  webhook: "{{ACTION_HANDLER_URL}}/cron/evening-digest"
+  schedule: "0 20 * * *"
+  include_in_metadata: true
+  headers:
+    # Shared secret proving the caller is Hasura — functions/server.ts rejects a
+    # mismatch with 401. Set NHOST_WEBHOOK_SECRET on hasura and functions.
+    - name: x-nself-webhook-secret
+      value_from_env: NHOST_WEBHOOK_SECRET
+  payload: {}
+  retry_conf:
+    num_retries: 2
+    timeout_seconds: 60
+    tolerance_seconds: 3600
+  comment: "Daily 20:00 UTC: one in-app digest per user of tomorrow's incomplete tasks (np_notifications type evening_reminder). v1 is a single UTC schedule; per-user local time needs a timezone column on np_user_preferences plus an hourly sweep, which does not exist yet."
