@@ -39,6 +39,9 @@ interface TodoData {
     notes: string;
     due_date: string | null;
     user_id: string;
+    // GET_TODO already selects list_id; the local type just never declared it,
+    // so anything needing the task's list (assignees, sharing) could not see it.
+    list_id: string | null;
   } | null;
 }
 
@@ -236,7 +239,7 @@ export function TaskDetailScreen({ route, navigation }: Props) {
           accessibilityLabel="Due date"
         />
 
-        <AssigneeSelector assigneeId={null} readonly />
+        <AssigneeSelector todoId={task.id} listId={task.list_id} />
 
         <Text style={[styles.label, { color: colors.textSecondary }]}>Notes</Text>
         <TextInput
