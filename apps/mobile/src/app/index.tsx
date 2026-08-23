@@ -5,7 +5,8 @@
  *         EXPO_PUBLIC_SENTRY_DSN, EXPO_PUBLIC_OTEL_ENDPOINT, APP_ENV, EXPO_PUBLIC_APP_VERSION from build env.
  * Outputs: NavigationContainer with Login|Home|List|TaskDetail|Settings|Profile|Notifications screens,
  *          Sentry + OTel registered, ThemeProvider wrapping app, deep link handler registered.
- * Constraints: Shows Login if no access token; mirrors Flutter NTasksApp auth gate.
+ * Constraints: Shows Login when there is no access token — this file defines the
+ *   auth gate; the Flutter original it was ported from no longer exists.
  *   ErrorBoundary: top-level + authenticated-subtree boundaries report to Sentry.
  *   @nself/ui is web-only (Radix/shadcn); native loading spinner stays RN ActivityIndicator.
  *   @nself/observability wired at module level with @sentry/react-native SDK injection.

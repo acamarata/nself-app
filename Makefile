@@ -169,8 +169,12 @@ tag-desktop: ## Tag and push a desktop release (reads version from tauri.conf.js
 	git push origin "ntask-v$(VERSION)"
 
 # ---------------------------------------------------------------------------
-# Legacy Flutter targets (archived — app/ was removed in RN migration)
-# These are kept so forks that still have app/ do not break.
+# Legacy Flutter targets (archived — app/ was removed in the RN migration)
+#
+# These no-op and print a pointer. They are NOT a compatibility shim: a fork
+# that still has app/ gets the warning too, not a working build. They exist
+# purely so `make flutter-test` answers with the right command instead of
+# "No rule to make target", which is the whole of their value.
 # ---------------------------------------------------------------------------
 
 .PHONY: flutter-run

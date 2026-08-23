@@ -2,7 +2,8 @@
  * Purpose: nSelf backend GraphQL client factory and server URL persistence
  * Inputs: serverUrl string, accessToken string
  * Outputs: urql Client instance configured for Hasura GraphQL endpoint via @nself/graphql-client
- * Constraints: Mirrors Flutter BackendService._graphql — same endpoint, same auth header.
+ * Constraints: Talks to the Hasura GraphQL endpoint with a Bearer access token —
+ *   this file is the definition of that contract.
  *   Uses @nself/graphql-client (urql) per D-P3-REACT19 / E2 package wiring.
  *   Token injection: static Bearer token via a lightweight exchange closure (AuthExchangeFn).
  *   Auth-core NativeAuthStrategy manages SecureStore lifecycle in useAuth.ts.
