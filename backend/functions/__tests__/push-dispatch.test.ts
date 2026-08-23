@@ -298,6 +298,22 @@ describe('handleNotifyDispatch', () => {
     assert.deepEqual(r, { dispatched: 1, errors: 1, unconfigured: 0 });
   });
 
+  test('the token query filters on user only — np_device_tokens has no is_active', async () => {
+    // The previous version filtered on a column that does not exist and threw
+    // the GraphQL error away, so token resolution failed on every notification
+    // while reporting "no devices". Pin the document, not just the behaviour.
+    const { FETCH_TOKENS_FOR_TEST } = await import('../notify-dispatch.js');
+    assert.match(FETCH_TOKENS_FOR_TEST, /np_device_tokens\(where: \{ user_id: \{ _eq: \$userId \} \}\)/);
+    assert.doesNotMatch(FETCH_TOKENS_FOR_TEST, /is_active/);
+  });
+
+  test('a failed token lookup is an error, not an empty device list', async () => {
+    const r = await handleNotifyDispatch(event(), {
+      getDeviceTokens: async () => { throw new Error("field 'is_active' not found"); },
+    });
+    assert.deepEqual(r, { dispatched: 0, errors: 1, unconfigured: 0 });
+  });
+
   test('no notification row is a no-op', async () => {
     const r = await handleNotifyDispatch({ event: { data: { new: null } } });
     assert.deepEqual(r, { dispatched: 0, errors: 0, unconfigured: 0 });

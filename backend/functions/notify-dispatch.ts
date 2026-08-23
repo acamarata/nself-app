@@ -61,14 +61,25 @@ export interface NotifyDeps {
   sendIos?: (t: DeviceToken, title: string, body: string) => Promise<void>;
 }
 
+// np_device_tokens has no `is_active` column — it never has. The previous
+// version filtered on one anyway and discarded the resulting GraphQL error with
+// `data?.np_device_tokens ?? []`, so token resolution failed on every single
+// notification and reported an empty device list rather than a fault. Live proof
+// on production, 2026-08-24:
+//   field 'is_active' not found in type: 'np_device_tokens_bool_exp'
+// A stale token is retired by deleting its row (migration 017), so "registered"
+// is the only state there is.
 const FETCH_TOKENS = `
   query GetDeviceTokens($userId: uuid!) {
-    np_device_tokens(where: { user_id: { _eq: $userId }, is_active: { _eq: true } }) {
+    np_device_tokens(where: { user_id: { _eq: $userId } }) {
       token
       platform
     }
   }
 `;
+
+/** Exposed so a test can assert the document itself, not just the behaviour. */
+export const FETCH_TOKENS_FOR_TEST = FETCH_TOKENS;
 
 async function defaultGetDeviceTokens(userId: string): Promise<DeviceToken[]> {
   const data = await adminGql<{ np_device_tokens: DeviceToken[] }>(FETCH_TOKENS, { userId });
@@ -115,12 +126,16 @@ export async function handleNotifyDispatch(
           continue;
         }
         errors += 1;
+        // Logged as well as captured. A count with no reason in it is the exact
+        // shape of failure this service kept producing.
+        console.error(`[notify-dispatch] ${device.platform} send failed:`, (err as Error).message);
         Sentry.captureException(err, {
           tags: { function: 'notify-dispatch', platform: device.platform },
         });
       }
     }
   } catch (err) {
+    console.error('[notify-dispatch] could not resolve device tokens:', (err as Error).message);
     Sentry.captureException(err, { tags: { function: 'notify-dispatch' } });
     errors += 1;
   } finally {
