@@ -1,6 +1,6 @@
 # MCP Server
 
-The ɳTask MCP server (`mcp/`) exposes task and list operations as [Model Context Protocol](https://modelcontextprotocol.io) tools, so AI agents (Claude, Cursor, etc.) can manage tasks directly. It's built on the same client library as the [CLI](CLI) (`@nself/ntask-cli`), so agent and terminal behavior stay in sync.
+The ɳTask MCP server (`apps/mcp/`) exposes task and list operations as [Model Context Protocol](https://modelcontextprotocol.io) tools, so AI agents (Claude, Cursor, etc.) can manage tasks directly. It's built on the same client library as the [CLI](CLI) (`@nself/ntask-cli`), so agent and terminal behavior stay in sync.
 
 ## Install
 

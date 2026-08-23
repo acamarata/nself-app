@@ -1,4 +1,10 @@
 {
+  "calendar": {
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "today": "Today",
+    "emptyDay": "Nothing due"
+  },
   "login": {
     "title": "Sign In",
     "serverUrl": "Server URL",
@@ -25,7 +31,17 @@
     "noTasks": "No tasks yet",
     "taskTitle": "Task title",
     "saveTask": "Save task",
-    "taskNotSaved": "Task not saved"
+    "taskNotSaved": "Task not saved",
+    "bulk": {
+      "title": "Bulk actions",
+      "selectedCount": "{{count}} selected",
+      "complete": "Complete",
+      "uncomplete": "Uncomplete",
+      "delete": "Delete",
+      "deleteTitle": "Delete tasks?",
+      "deleteMessage": "The selected tasks will be permanently deleted.",
+      "exit": "Exit selection"
+    }
   },
   "taskDetail": {
     "title": "Task title",
@@ -53,7 +69,20 @@
     "newTag": "New tag",
     "createTag": "Create tag",
     "search": "Search tasks…",
-    "noResults": "No results"
+    "noResults": "No results",
+    "recurrence": {
+      "label": "Recurrence",
+      "none": "No recurrence",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "every": "Every",
+      "interval": "Every {{n}} {{unit}}",
+      "save": "Save",
+      "remove": "Remove",
+      "cancel": "Cancel"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -91,7 +120,11 @@
     "markAllRead": "Mark all as read",
     "commentAdded": "New comment",
     "taskAssigned": "Task assigned",
-    "taskDue": "Task due"
+    "taskDue": "Task due",
+    "justNow": "Just now",
+    "minutesAgo": "{{n}}m ago",
+    "hoursAgo": "{{n}}h ago",
+    "daysAgo": "{{n}}d ago"
   },
   "members": {
     "title": "Members",

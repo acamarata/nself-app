@@ -30,6 +30,8 @@ export type RootStackParamList = {
   TaskDetail: { taskId: string; listId: string };
   SmartView: undefined;
   SavedViews: undefined;
+  Calendar: undefined;
+  Notifications: undefined;
   Settings: undefined;
   Profile: undefined;
   // Epic J — account/legal screens

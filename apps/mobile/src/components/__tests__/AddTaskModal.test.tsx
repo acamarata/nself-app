@@ -13,7 +13,11 @@ jest.mock('../../lib/validation', () => ({
     if (!input.title || input.title.trim() === '') {
       return { success: false, errors: [{ field: 'title', message: 'Title is required' }], data: null };
     }
-    return { success: true, data: { title: input.title.trim(), listId: input.listId }, errors: [] };
+    return {
+      success: true,
+      data: { title: input.title.trim(), listId: input.listId, dueDate: input.dueDate ?? null },
+      errors: [],
+    };
   }),
 }));
 
@@ -76,7 +80,7 @@ describe('AddTaskModal', () => {
       fireEvent.changeText(input, 'Buy milk');
       const saveBtn = getByLabelText('Save task');
       fireEvent.press(saveBtn);
-      expect(onSave).toHaveBeenCalledWith('Buy milk');
+      expect(onSave).toHaveBeenCalledWith('Buy milk', null);
     });
 
     it('pressing Save with an empty title does not call onSave', () => {
@@ -139,6 +143,46 @@ describe('AddTaskModal', () => {
 
       const { getByLabelText: offline } = renderModal({ isOffline: true });
       expect(offline('Save task (queued for offline sync)')).toBeTruthy();
+    });
+  });
+
+  describe('natural-language due dates', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('typing "Pay rent tomorrow 5pm" saves title "Pay rent" with tomorrow 17:00 due date', () => {
+      // Fixed clock: Monday 2026-08-24 10:00 local. The parser resolves
+      // "tomorrow 5pm" against this instant, so the expected ISO is stable.
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(2026, 7, 24, 10, 0, 0));
+      const onSave = jest.fn();
+      const { getByLabelText } = renderModal({ onSave });
+      fireEvent.changeText(getByLabelText('Task title'), 'Pay rent tomorrow 5pm');
+      fireEvent.press(getByLabelText('Save task'));
+      const expected = new Date(2026, 7, 25, 17, 0, 0, 0).toISOString();
+      expect(onSave).toHaveBeenCalledWith('Pay rent', expected);
+    });
+
+    it('typing a date phrase without a title part keeps the full text as the title', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(2026, 7, 24, 10, 0, 0));
+      const onSave = jest.fn();
+      const { getByLabelText } = renderModal({ onSave });
+      fireEvent.changeText(getByLabelText('Task title'), 'tomorrow 5pm');
+      fireEvent.press(getByLabelText('Save task'));
+      const expected = new Date(2026, 7, 25, 17, 0, 0, 0).toISOString();
+      expect(onSave).toHaveBeenCalledWith('tomorrow 5pm', expected);
+    });
+
+    it('typing a plain title saves with a null due date', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(2026, 7, 24, 10, 0, 0));
+      const onSave = jest.fn();
+      const { getByLabelText } = renderModal({ onSave });
+      fireEvent.changeText(getByLabelText('Task title'), 'Buy milk');
+      fireEvent.press(getByLabelText('Save task'));
+      expect(onSave).toHaveBeenCalledWith('Buy milk', null);
     });
   });
 });

@@ -1,4 +1,10 @@
 {
+  "calendar": {
+    "prevWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "today": "Hoy",
+    "emptyDay": "Nada pendiente"
+  },
   "login": {
     "title": "Iniciar sesión",
     "serverUrl": "URL del servidor",
@@ -25,7 +31,17 @@
     "noTasks": "Sin tareas",
     "taskTitle": "Título de la tarea",
     "saveTask": "Guardar",
-    "taskNotSaved": "Tarea no guardada"
+    "taskNotSaved": "Tarea no guardada",
+    "bulk": {
+      "title": "Acciones masivas",
+      "selectedCount": "{{count}} seleccionada(s)",
+      "complete": "Completar",
+      "uncomplete": "Marcar sin completar",
+      "delete": "Eliminar",
+      "deleteTitle": "¿Eliminar tareas?",
+      "deleteMessage": "Las tareas seleccionadas se eliminarán permanentemente.",
+      "exit": "Salir de la selección"
+    }
   },
   "taskDetail": {
     "title": "Título de la tarea",
@@ -53,7 +69,20 @@
     "newTag": "Nueva etiqueta",
     "createTag": "Crear etiqueta",
     "search": "Buscar tareas…",
-    "noResults": "Sin resultados"
+    "noResults": "Sin resultados",
+    "recurrence": {
+      "label": "Recurrencia",
+      "none": "Sin recurrencia",
+      "daily": "Diario",
+      "weekly": "Semanal",
+      "monthly": "Mensual",
+      "yearly": "Anual",
+      "every": "Cada",
+      "interval": "Cada {{n}} {{unit}}",
+      "save": "Guardar",
+      "remove": "Eliminar",
+      "cancel": "Cancelar"
+    }
   },
   "settings": {
     "title": "Configuración",
@@ -91,7 +120,11 @@
     "markAllRead": "Marcar todo como leído",
     "commentAdded": "Nuevo comentario",
     "taskAssigned": "Tarea asignada",
-    "taskDue": "Tarea vencida"
+    "taskDue": "Tarea vencida",
+    "justNow": "Ahora mismo",
+    "minutesAgo": "Hace {{n}} min",
+    "hoursAgo": "Hace {{n}} h",
+    "daysAgo": "Hace {{n}} días"
   },
   "members": {
     "title": "Miembros",

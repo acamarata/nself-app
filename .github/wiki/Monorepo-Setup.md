@@ -1,6 +1,6 @@
 # Workspace Setup — ɳTasks pnpm Monorepo
 
-ɳTasks is a pnpm workspace with three app surfaces under `apps/` (mobile, desktop, TV) sharing a common backend and `@nself/*` packages. The web SaaS surface lives in a separate repo — `web/ntask/` in `nself-org/web` — not in this workspace.
+ɳTasks is a pnpm workspace with the app surfaces under `apps/` (mobile, desktop, TV, CLI, MCP) plus the web SaaS in `web/`, all sharing a common backend and the `@nself/*` packages.
 
 ---
 
@@ -21,7 +21,7 @@ ntask/
 └── Makefile       # Backend convenience targets
 ```
 
-The web SaaS (React 19 + Vite 6 SPA, `task.nself.org`) is `web/ntask/` in the separate `nself-org/web` repo.
+The web SaaS (React 19 + Vite 6 SPA, `task.nself.org`) is `web/` in this repo.
 
 All apps consume shared TypeScript packages from `packages/` (`@nself/*`) via pnpm workspace protocol.
 
@@ -67,11 +67,11 @@ pnpm android    # Android emulator
 
 See [RN-Setup](RN-Setup) for full mobile setup guide.
 
-### Web SaaS (React + Vite, separate repo)
+### Web SaaS (React + Vite)
 
 ```bash
 git clone https://github.com/nself-org/web.git
-cd web/ntask
+cd web
 pnpm dev        # Vite dev server (default: http://localhost:5173)
 pnpm build      # Production build
 ```
@@ -136,7 +136,7 @@ Each surface has its own `.env.local` (copied from `.env.example`):
 | Surface | Config file | Key vars |
 |---|---|---|
 | Mobile | `apps/mobile/.env.local` | `EXPO_PUBLIC_HASURA_URL`, `EXPO_PUBLIC_AUTH_URL` |
-| Web SaaS | `web/ntask/.env.local` (separate repo) | `VITE_HASURA_URL`, `VITE_AUTH_URL`, `VITE_SENTRY_DSN` |
+| Web SaaS | `web/.env.local` | `VITE_HASURA_URL`, `VITE_AUTH_URL`, `VITE_SENTRY_DSN` |
 | Desktop | `apps/desktop/.env.local` | Same as web SaaS |
 | TV | `apps/tv/.env.local` | Same as mobile |
 
@@ -163,7 +163,7 @@ pnpm start --reset-cache
 
 ### Tauri needs Vite first
 
-`apps/desktop` embeds the `web/ntask` Vite build as its frontend. Build `web/ntask` first, then `cd apps/desktop && pnpm tauri build` for production.
+`apps/desktop` embeds the `web/` Vite build as its frontend. Build `web/` first, then `cd apps/desktop && pnpm tauri build` for production.
 
 ---
 

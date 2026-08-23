@@ -63,6 +63,10 @@ jest.mock('../../lib/idempotency', () => ({
   generateIdempotencyKey: jest.fn(() => 'idem-key-test'),
 }));
 
+jest.mock('../../hooks/useUnreadNotificationCount', () => ({
+  useUnreadNotificationCount: jest.fn(() => ({ unreadCount: 0, refetch: jest.fn() })),
+}));
+
 // Stub seven-states components to avoid native module dependencies
 jest.mock('../../components/seven-states', () => {
   const { Text, View } = require('react-native');
@@ -79,6 +83,8 @@ jest.mock('../../components/seven-states', () => {
 
 import { useQuery } from 'urql';
 import { useNetworkState } from '../../hooks/useNetworkState';
+import { useUnreadNotificationCount } from '../../hooks/useUnreadNotificationCount';
+import { initializeI18n } from '../../i18n';
 import { HomeScreen } from '../HomeScreen';
 
 const mockNavigation = {
@@ -99,6 +105,12 @@ function renderScreen() {
 }
 
 const SAMPLE_LIST = { id: 'list-1', title: 'Work', color: '#6366F1', description: null };
+
+beforeAll(() => {
+  // HomeScreen's calendar entry uses t('nav:calendar'); init the real i18n
+  // bundles so the label resolves to English text instead of the raw key.
+  initializeI18n('en');
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -124,6 +136,12 @@ describe('HomeScreen', () => {
       expect(getByText('ɳTask')).toBeTruthy();
     });
 
+    it('renders Calendar button in header and navigates to Calendar', () => {
+      const { getByLabelText } = renderScreen();
+      fireEvent.press(getByLabelText('Calendar'));
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Calendar');
+    });
+
     it('renders Smart views button in header', () => {
       const { getByLabelText } = renderScreen();
       expect(getByLabelText('Smart views')).toBeTruthy();
@@ -137,6 +155,13 @@ describe('HomeScreen', () => {
     it('renders Profile button in header', () => {
       const { getByLabelText } = renderScreen();
       expect(getByLabelText('Profile')).toBeTruthy();
+    });
+
+    it('renders notification bell and navigates to Notifications on press', () => {
+      jest.mocked(useUnreadNotificationCount).mockReturnValue({ unreadCount: 3, refetch: jest.fn() });
+      const { getByLabelText } = renderScreen();
+      fireEvent.press(getByLabelText('Notifications'));
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Notifications');
     });
   });
 

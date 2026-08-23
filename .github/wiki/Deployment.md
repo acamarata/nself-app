@@ -42,10 +42,10 @@ For the hosted `task.nself.org` demo, the same stack runs via `web/backend` (see
 
 ## Web SaaS (React + Vite → Vercel, separate repo)
 
-The web SaaS is built and deployed from `web/ntask/` in the separate `nself-org/web` repo, not from `apps/` here. Auto-deployed: merges to `main` in that repo trigger Vercel deployment automatically (Vercel git integration, `unity-dev` team).
+The web SaaS is built and deployed from `web/` in this repo. Auto-deployed: merges to `main` trigger a Vercel deployment (Vercel git integration, `unity-dev` team).
 
 ```bash
-cd web/ntask
+cd web
 pnpm build     # must exit 0 before pushing
 ```
 
@@ -116,7 +116,7 @@ eas build --platform ios --profile production  # tvOS, not yet run
 ## Release Checklist (when version bump is authorized)
 
 1. Update `apps/mobile/package.json` version
-2. Update `web/ntask/package.json` version in the separate `web` repo (if releasing web)
+2. Update `web/package.json` version (if releasing web)
 3. Update root `package.json` version (must match mobile)
 4. Update `.claude/docs/MASTER-VERSIONS.md` (ntask entry)
 5. Update `~/Sites/nself/.opencode/phases/sport/F01-MASTER-VERSIONS.md`
@@ -137,7 +137,7 @@ cd apps/mobile
 pnpm lint && pnpm typecheck && pnpm test       # must all pass
 
 # Web SaaS gates (separate repo)
-cd web/ntask
+cd web
 pnpm build                                     # must exit 0
 ```
 

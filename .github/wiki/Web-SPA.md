@@ -1,6 +1,6 @@
 # Web SaaS Setup (ɳTasks)
 
-Setup guide for the React 19 + Vite 6 web SaaS at `task.nself.org`. The app itself lives in a separate repo — `web/ntask/` in the `nself-org/web` monorepo — not in this repo. This repo (`ntask`) ships the backend plus the mobile, desktop, and TV clients; the web client is developed and deployed alongside the rest of nself.org.
+Setup guide for the React 19 + Vite 6 web SaaS at `task.nself.org`. The app lives in `web/` in this repo, alongside the backend and the mobile, desktop and TV clients, so every surface versions together.
 
 ## Prerequisites
 
@@ -13,14 +13,14 @@ Setup guide for the React 19 + Vite 6 web SaaS at `task.nself.org`. The app itse
 
 ```bash
 git clone https://github.com/nself-org/web.git
-cd web/ntask
+cd web
 pnpm install
 ```
 
 ## Environment Config
 
 ```bash
-cd web/ntask
+cd web
 cp .env.example .env.local
 ```
 
@@ -42,14 +42,14 @@ cd backend && make up
 
 Then start Vite dev server:
 ```bash
-cd web/ntask
+cd web
 pnpm dev     # http://localhost:5173 by default
 ```
 
 ## Build
 
 ```bash
-cd web/ntask
+cd web
 pnpm build      # Production build (dist/)
 pnpm preview    # Preview production build locally
 ```
@@ -57,7 +57,7 @@ pnpm preview    # Preview production build locally
 ## Tests
 
 ```bash
-cd web/ntask
+cd web
 pnpm test               # Vitest (once)
 pnpm test -- --watch    # Watch mode
 pnpm test -- --coverage # Coverage report
@@ -66,7 +66,7 @@ pnpm test:e2e           # Playwright e2e
 
 ## Deployment
 
-The hosted `task.nself.org` is served from `web/ntask/` (the `web` monorepo) via Vercel, pointed at this repo's backend. See [Deployment](Deployment) for the staging/production deploy guide.
+The hosted `task.nself.org` is served from `web/` in this repo via Vercel, pointed at this repo's backend. See [Deployment](Deployment) for the staging/production deploy guide.
 
 ## Related
 

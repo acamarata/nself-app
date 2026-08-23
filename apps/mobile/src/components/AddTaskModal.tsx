@@ -1,17 +1,21 @@
 /**
- * Purpose: Modal for creating a new task — text input + validation + offline-aware save label.
+ * Purpose: Modal for creating a new task: text input + natural-language due-date
+ *          extraction + validation + offline-aware save label.
  * Inputs:
  *   - visible: whether the modal is shown
  *   - listId: parent list ID (for validation context)
  *   - isOffline: drives the save button label ("Save (offline)" vs "Save")
- *   - onSave: callback with (title: string) — caller handles mutation/queue
+ *   - onSave: callback with (title, dueDate); caller handles mutation/queue
  *   - onClose: dismiss the modal without saving
  * Outputs: Renders a sheet-style modal with a title input, validation error, and cancel/save actions.
  * Constraints:
  *   - Validates via taskCreateSchema before calling onSave.
+ *   - A date phrase in the title ("Pay rent tomorrow 5pm") is extracted via the
+ *     shared ntask-core parser: the phrase is stripped from the saved title and
+ *     returned as dueDate (ISO or null when no phrase was found).
  *   - accessibilityViewIsModal on the inner container.
  *   - autoFocus on input; maxLength=200.
- * SPORT: extracted from ListScreen.tsx P4-E0-W2-S07-T01
+ * SPORT: extracted from ListScreen.tsx P4-E0-W2-S07-T01; MB-6 NL due dates.
  */
 
 import React, { useState } from 'react';
@@ -23,13 +27,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { extractNaturalDueDate } from '../lib/nl-dates';
 import { taskCreateSchema } from '../lib/validation';
 
 interface AddTaskModalProps {
   visible: boolean;
   listId: string;
   isOffline: boolean;
-  onSave: (title: string) => void;
+  onSave: (title: string, dueDate: string | null) => void;
   onClose: () => void;
 }
 
@@ -48,12 +53,13 @@ export function AddTaskModal({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSave = () => {
-    const validation = taskCreateSchema({ title, listId });
+    const parsed = extractNaturalDueDate(title);
+    const validation = taskCreateSchema({ title: parsed.title, listId, dueDate: parsed.dueDate });
     if (!validation.success) {
       setValidationError(validation.errors?.[0]?.message ?? 'Invalid input');
       return;
     }
-    onSave(validation.data!.title);
+    onSave(validation.data!.title, validation.data!.dueDate ?? null);
     setTitle('');
     setValidationError(null);
   };

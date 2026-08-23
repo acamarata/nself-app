@@ -7,7 +7,7 @@
 **Status: Active.** This is the surface behind the hosted SaaS.
 
 - Framework: React 19 + Vite 6 SPA
-- Code lives in a separate repo: `web/ntask/` in `nself-org/web`, not in this repo (`ntask` ships the backend plus the mobile, desktop, and TV clients)
+- Code lives in `web/` in this repo, alongside the backend and the mobile, desktop and TV clients (the surfaces version together)
 - Deployed to `task.nself.org` via Vercel
 - Full feature set: lists, tasks, sharing, presence, smart views, MFA setup (Security tab), i18n (en/es/fr/ar)
 - No web push notifications yet; the app uses in-app and email notifications instead

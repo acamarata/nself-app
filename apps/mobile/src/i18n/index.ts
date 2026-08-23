@@ -18,7 +18,10 @@
 
 import { I18nManager } from 'react-native';
 import * as Localization from 'expo-localization';
+import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
 import { initializeI18next } from '@nself/i18n';
+import { registerMobileResources } from './resources';
 
 // ─── Supported locales ────────────────────────────────────────────────────────
 
@@ -53,10 +56,34 @@ export function getDeviceLocale(): string {
 // ─── Initialize i18n ──────────────────────────────────────────────────────────
 
 /**
+ * Initialize the i18next copy the app itself imports (hoisted root node_modules),
+ * not just the one inside the vendored @nself/i18n package.
+ *
+ * Why both: this repo installs with node-linker=hoisted, and the vendored
+ * packages/@nself/i18n keeps nested symlinked dependencies — so @nself/i18n's
+ * initializeI18next configures a different i18next instance than the one app
+ * components reach via import 'i18next' / 'react-i18next'. Screens call
+ * useTranslation() on the app copy, so that copy must be initialized too.
+ */
+function ensureAppInstance(locale: string): void {
+  if (!i18next.isInitialized) {
+    i18next.use(initReactI18next).init({
+      lng: locale,
+      fallbackLng: 'en',
+      interpolation: { escapeValue: false },
+      react: { useSuspense: false },
+    });
+  } else {
+    void i18next.changeLanguage(locale);
+  }
+}
+
+/**
  * Initialize i18n for ɳTask mobile.
  * - Detects device locale via I18nManager constants
  * - Enables RTL layout for Arabic/Hebrew/Farsi/Urdu via I18nManager.forceRTL
- * - Initializes i18next via @nself/i18n
+ * - Initializes i18next via @nself/i18n (package base catalog) and for the app
+ *   tree, then attaches this app's namespace bundles so t('nav:…') resolves.
  *
  * Must be called before rendering app root.
  * @param overrideLocale — optional override for testing or settings-driven locale
@@ -76,8 +103,9 @@ export function initializeI18n(overrideLocale?: string): void {
     I18nManager.forceRTL(isRtl);
   }
 
-  // Initialize i18next with the detected locale.
   initializeI18next(locale as 'en');
+  ensureAppInstance(locale);
+  registerMobileResources(i18next);
 }
 
 // ─── Hijri date formatting ────────────────────────────────────────────────────

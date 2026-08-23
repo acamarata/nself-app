@@ -59,7 +59,7 @@ make up            # alias for `nself start`
 make health
 ```
 
-Postgres, Hasura, and Auth should report OK. Storage will report DOWN, see the known gap above. `nginx`/`functions` may show unhealthy on a backend-only checkout because the default vhost proxies to the separate `web/ntask` Vite dev server, which a backend-only checkout doesn't start.
+Postgres, Hasura, and Auth should report OK. Storage will report DOWN, see the known gap above. `nginx`/`functions` may show unhealthy on a backend-only checkout because the default vhost proxies to the `web/` Vite dev server, which a backend-only checkout doesn't start.
 
 ### 4. Apply migrations
 

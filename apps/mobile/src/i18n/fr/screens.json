@@ -1,4 +1,10 @@
 {
+  "calendar": {
+    "prevWeek": "Semaine précédente",
+    "nextWeek": "Semaine suivante",
+    "today": "Aujourd'hui",
+    "emptyDay": "Rien de prévu"
+  },
   "login": {
     "title": "Connexion",
     "serverUrl": "URL du serveur",
@@ -25,7 +31,17 @@
     "noTasks": "Aucune tâche",
     "taskTitle": "Titre de la tâche",
     "saveTask": "Enregistrer",
-    "taskNotSaved": "Tâche non enregistrée"
+    "taskNotSaved": "Tâche non enregistrée",
+    "bulk": {
+      "title": "Actions groupées",
+      "selectedCount": "{{count}} sélectionnée(s)",
+      "complete": "Terminer",
+      "uncomplete": "Marquer non terminé",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer les tâches ?",
+      "deleteMessage": "Les tâches sélectionnées seront définitivement supprimées.",
+      "exit": "Quitter la sélection"
+    }
   },
   "taskDetail": {
     "title": "Titre de la tâche",
@@ -53,7 +69,20 @@
     "newTag": "Nouvelle étiquette",
     "createTag": "Créer une étiquette",
     "search": "Rechercher des tâches…",
-    "noResults": "Aucun résultat"
+    "noResults": "Aucun résultat",
+    "recurrence": {
+      "label": "Récurrence",
+      "none": "Pas de récurrence",
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "every": "Tous les",
+      "interval": "Tous les {{n}} {{unit}}",
+      "save": "Enregistrer",
+      "remove": "Supprimer",
+      "cancel": "Annuler"
+    }
   },
   "settings": {
     "title": "Paramètres",
@@ -91,7 +120,11 @@
     "markAllRead": "Tout marquer comme lu",
     "commentAdded": "Nouveau commentaire",
     "taskAssigned": "Tâche assignée",
-    "taskDue": "Tâche due"
+    "taskDue": "Tâche due",
+    "justNow": "À l'instant",
+    "minutesAgo": "Il y a {{n}} min",
+    "hoursAgo": "Il y a {{n}} h",
+    "daysAgo": "Il y a {{n}} j"
   },
   "members": {
     "title": "Membres",

@@ -71,7 +71,7 @@ Runs `nself deploy health` (falls back to raw curl/pg_isready checks). Postgres,
 Auth should report OK. The Hasura Storage *service* reports DOWN — see the Known Gap
 above; this does not block app functionality, because uploads use MinIO directly. If
 MinIO itself is missing, `MINIO_ENABLED` is unset. `nginx`/`functions` may show unhealthy on a backend-only checkout
-because the default vhost proxies to the separate `web/ntask` Vite dev server.
+because the default vhost proxies to the `web/` Vite dev server in this repo.
 
 ### 4. Apply Hasura migrations
 
@@ -162,7 +162,7 @@ The console gives you:
 
 ## App Connection
 
-Client apps (`apps/mobile/`, `apps/desktop/`, `apps/tv/` here, plus `web/ntask/` in the separate
+Client apps (`apps/mobile/`, `apps/desktop/`, `apps/tv/`, `web/` — all in this
 `web` repo) read their backend endpoint from environment configuration. For local dev, the
 defaults match the endpoints above. Override via the surface's `.env.local` file when running
 against staging or production.

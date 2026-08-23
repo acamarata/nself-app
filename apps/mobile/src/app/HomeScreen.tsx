@@ -16,6 +16,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useQuery } from 'urql';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList, NpList } from '../types';
 import { GET_LISTS } from '../lib/hasura';
@@ -26,22 +27,22 @@ import {
   PermissionDenied, RateLimitedCard, SkeletonList,
 } from '../components/seven-states';
 import { classifyUrqlError, taskUserMessage } from '../lib/task-error';
+import { parseColor } from '../lib/colors';
 import { projectCreateSchema } from '../lib/validation';
 import { enqueue } from '../lib/offline-queue';
 import { generateIdempotencyKey } from '../lib/idempotency';
 import { useTheme } from '../theme';
+import { NotificationBell } from '../components/NotificationBell';
+import { useUnreadNotificationCount } from '../hooks/useUnreadNotificationCount';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 interface ListsData { np_lists: NpList[] }
 
-function parseColor(hex: string): string {
-  // validate — fall back to indigo
-  return /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : '#6366f1';
-}
-
 export function HomeScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
+  const { unreadCount } = useUnreadNotificationCount();
   const [result, reexecuteQuery] = useQuery<ListsData>({
     query: GET_LISTS,
     requestPolicy: 'cache-and-network',
@@ -196,6 +197,14 @@ export function HomeScreen({ navigation }: Props) {
         <Text style={[styles.headerTitle, { color: colors.primary }]}>ɳTask</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
+            onPress={() => navigation.navigate('Calendar')}
+            accessibilityLabel={t('nav:calendar')}
+            accessibilityRole="button"
+            style={styles.headerIcon}
+          >
+            <Text style={styles.headerIconText}>📅</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => navigation.navigate('SmartView')}
             accessibilityLabel="Smart views"
             accessibilityRole="button"
@@ -211,6 +220,10 @@ export function HomeScreen({ navigation }: Props) {
           >
             <Text style={styles.headerIconText}>🔖</Text>
           </TouchableOpacity>
+          <NotificationBell
+            count={unreadCount}
+            onPress={() => navigation.navigate('Notifications')}
+          />
           <TouchableOpacity
             onPress={() => navigation.navigate('Settings')}
             accessibilityLabel="Settings"
