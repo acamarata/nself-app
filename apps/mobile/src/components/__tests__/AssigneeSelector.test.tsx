@@ -14,12 +14,21 @@ import { ThemeProvider } from '../../theme';
 const ME = 'user-me';
 const OTHER = 'user-other';
 
-const MEMBERS = [
+interface TestMember {
+  id: string;
+  user_id: string;
+  role: string;
+  // Nullable on purpose: np_member_profiles has no row for a member who never
+  // set a display name, and the component must fall back rather than crash.
+  profile: { display_name: string | null; avatar_url: string | null } | null;
+}
+
+const MEMBERS: TestMember[] = [
   { id: 'm1', user_id: ME, role: 'owner', profile: { display_name: 'Ada', avatar_url: null } },
   { id: 'm2', user_id: OTHER, role: 'editor', profile: { display_name: 'Grace', avatar_url: null } },
 ];
 
-let mockMembers: typeof MEMBERS = [];
+let mockMembers: TestMember[] = [];
 let mockAssignees: Array<{ id: string; assignee_id: string }> = [];
 const mockRefetch = jest.fn();
 
