@@ -220,8 +220,15 @@ jobs:
       # dist/. Typechecking mcp without building the CLI first fails with TS2307
       # on every lib/* import. `...<name>` selects the package AND its workspace
       # dependencies, so each matrix leg builds exactly what it needs.
-      - name: Build (with workspace dependencies)
-        run: pnpm --filter "...${{ matrix.name }}" build
+      # Build the CLI first, explicitly. apps/mcp imports @nself/ntask-cli through
+      # an exports map that points into dist/, so typechecking mcp against an
+      # unbuilt CLI fails TS2307 on every lib/* import. A recursive filtered build
+      # did not reliably order the two, so this states the order outright. For the
+      # cli leg the second command is the same package and is a no-op rebuild.
+      - name: Build @nself/ntask-cli (dependency of apps/mcp)
+        run: pnpm --filter @nself/ntask-cli build
+      - name: Build ${{ matrix.name }}
+        run: pnpm --filter ${{ matrix.name }} build
       - name: Typecheck
         working-directory: ${{ matrix.pkg }}
         run: pnpm typecheck
