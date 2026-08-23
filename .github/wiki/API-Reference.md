@@ -52,7 +52,7 @@ The Hasura Console provides a live GraphQL explorer and schema browser:
 http://localhost:8080/console
 ```
 
-Requires `HASURA_GRAPHQL_ADMIN_SECRET` (from `backend/.env.dev`).
+Requires `HASURA_GRAPHQL_ADMIN_SECRET` (from `backend/.env`).
 
 ## Operations (Stub)
 

@@ -23,7 +23,7 @@ cd ntask
 
 ```bash
 cd backend
-cp .env.example .env.dev     # Edit passwords for any non-local environment
+cp .env.example .env     # Edit passwords for any non-local environment
 nself build                  # Generate docker-compose.yml (first time only)
 make up                      # Start Postgres, Hasura, Auth, Storage, MinIO, Mailpit
 make health                  # Verify all services are up

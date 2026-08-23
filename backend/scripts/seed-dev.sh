@@ -23,7 +23,10 @@ case "$BASE_DOMAIN" in
 esac
 
 AUTH_URL="${AUTH_URL:-http://localhost:4000}"
-PG_CONTAINER="${PG_CONTAINER:-${NSELF_PROJECT_NAME:-ntask}_postgres}"
+# PROJECT_NAME is the variable nself actually reads; NSELF_PROJECT_NAME is
+# ignored by the CLI (it warns "unknown env var") and is kept only as a fallback
+# for older .env files.
+PG_CONTAINER="${PG_CONTAINER:-${PROJECT_NAME:-${NSELF_PROJECT_NAME:-ntask}}_postgres}"
 docker ps --format '{{.Names}}' | grep -qx "$PG_CONTAINER" || PG_CONTAINER="backend_postgres"
 PG_DB="${PG_DB:-ntask}"
 PW="password"

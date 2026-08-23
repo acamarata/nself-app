@@ -28,8 +28,28 @@ The backend is orchestrated by the [nSelf CLI](https://nself.org). `make up` and
 
 ```bash
 cd backend
-cp .env.example .env.dev
+cp .env.example .env
 ```
+
+### First install: two commands `make up` does not run
+
+`make up` starts the containers and nothing else. Until these run, the database
+has no ɳTask tables and Hasura exposes no `np_*` fields at all, which reads as a
+broken install rather than two missing commands.
+
+```bash
+make migrate                     # postgres/init.sql + the migrations
+make metadata-reconcile APPLY=1  # track tables, permissions, cron + event triggers, actions
+make metadata-diff               # confirm the environment matches the repo
+```
+
+Both are idempotent, so re-running them on an existing install is a no-op. The
+first reconcile tracks 26 tables and applies several hundred permissions and can
+take a few minutes.
+
+Do NOT use `hasura metadata apply`. It replaces the entire metadata document, and
+this repo does not declare the eight tables hasura-auth owns, so a replace
+untracks them and breaks MFA, OAuth logins and role lookups.
 
 At minimum, change these before using the stack for anything beyond local dev:
 
@@ -107,7 +127,7 @@ make console              # open the Hasura console (requires the Hasura CLI)
 ```bash
 make backup                          # dump Postgres to ./backups/backup-<timestamp>.sql
 make restore FILE=backups/backup-xxx.sql   # restore from a local backup file
-make backup-remote                   # stream a pg_dump to Cloudflare R2 (needs BACKUP_* env vars in .env.dev)
+make backup-remote                   # stream a pg_dump to Cloudflare R2 (needs BACKUP_* env vars in .env)
 make restore-remote FILE=ntask/backup-xxx.sql.gz   # restore from an R2 backup
 make list-backups                    # list the 20 most recent R2 backups
 make dr-test                         # non-destructive disaster-recovery drill: restores the latest backup to a scratch DB and verifies it

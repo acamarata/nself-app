@@ -103,7 +103,7 @@ See [TV](TV) for setup guide.
 
 ```bash
 cd backend
-cp .env.example .env.dev
+cp .env.example .env
 make up         # Alias for nself start
 make health     # Verify all services running
 make down       # Stop
@@ -140,7 +140,7 @@ Each surface has its own `.env.local` (copied from `.env.example`):
 | Desktop | `apps/desktop/.env.local` | Same as web SaaS |
 | TV | `apps/tv/.env.local` | Same as mobile |
 
-Backend env: `backend/.env.dev` (copied from `backend/.env.example`).
+Backend env: `backend/.env` (copied from `backend/.env.example`).
 
 ---
 

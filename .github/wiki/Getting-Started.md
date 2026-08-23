@@ -39,7 +39,7 @@ cd ntask
 
 ```bash
 cd backend
-cp .env.example .env.dev     # edit passwords before using this anywhere but local dev
+cp .env.example .env     # edit passwords before using this anywhere but local dev
 nself build                  # generates docker-compose.yml (first time only)
 make up                      # starts Postgres, Hasura, Auth, MinIO, functions, nginx
 make health                  # confirm everything is up
@@ -144,7 +144,7 @@ cd backend && make down
 | Symptom | Fix |
 |---|---|
 | `make up` hangs | `make down`, then `make up` again |
-| Port 8080/4000/8484/5432/9000 in use | Free the port, or edit `backend/.env.dev` |
+| Port 8080/4000/8484/5432/9000 in use | Free the port, or edit `backend/.env` |
 | `nself build` not found | Install the nSelf CLI: `brew install nself-org/tap/nself` |
 | Expo metro bundler error | Delete `apps/mobile/.expo/` and restart |
 | Vite dev server can't connect | Check `web/.env.local` has the right endpoints |

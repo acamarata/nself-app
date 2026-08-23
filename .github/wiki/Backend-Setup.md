@@ -40,10 +40,10 @@ through the `nself` CLI — `make up`/`make down`/`make build` are aliases for
 
 ```bash
 cd backend
-cp .env.example .env.dev
+cp .env.example .env
 ```
 
-Edit `.env.dev` and set, at minimum:
+Edit `.env` and set, at minimum:
 - `POSTGRES_PASSWORD`: strong password for Postgres
 - `HASURA_ADMIN_SECRET` (CLI-templated) / `HASURA_GRAPHQL_ADMIN_SECRET` (app-read runtime var — keep both in sync, see the naming-drift note in `.env.example`)
 - `AUTH_JWT_SECRET`: 64+ chars, `openssl rand -hex 64`

@@ -36,11 +36,22 @@ HASURA_ADMIN_SECRET ?= nself-admin-secret
 .PHONY: build
 build: ## Build the nSelf stack (generates docker-compose.yml + nginx + SSL)
 	$(NSELF) build
+	@bash scripts/ensure-tls-chain.sh
 
 .PHONY: up
 up: ## Start the backend stack (nSelf-First; wraps `nself start`) + auto-seed dev/staging
 	$(NSELF) start
+	@bash scripts/ensure-tls-chain.sh
+	@bash scripts/apply-compose-override.sh
+	@bash scripts/ensure-storage-bucket.sh
 	@bash scripts/seed-dev.sh || echo "(seed skipped — run 'make seed' once services are healthy)"
+	@echo ""
+	@echo "Stack is up. A FIRST install still needs two steps — nothing applies"
+	@echo "them automatically, and without them the database has no ɳTask schema"
+	@echo "and Hasura exposes no np_* fields at all:"
+	@echo "    make migrate                     # postgres/init.sql + migrations"
+	@echo "    make metadata-reconcile APPLY=1  # track tables, permissions, triggers, actions"
+	@echo "Both are idempotent; re-running them on an existing install is a no-op."
 
 .PHONY: down
 down: ## Stop all services (wraps `nself stop`)
@@ -155,15 +166,34 @@ db-migrate: ## [no-CLI fallback] Apply postgres/init.sql + migrations via the ra
 	@bash scripts/db-migrate.sh
 
 .PHONY: metadata-apply
-metadata-apply: ## Apply Hasura metadata
-	cd hasura && hasura metadata apply --admin-secret $(HASURA_ADMIN_SECRET)
+metadata-apply: ## REMOVED — use metadata-reconcile (see the message this prints)
+	@echo "make metadata-apply is gone on purpose."
+	@echo ""
+	@echo "It ran 'hasura metadata apply', which REPLACES the entire metadata"
+	@echo "document. This repo declares schema public plus auth.users; a running"
+	@echo "environment also tracks the eight tables hasura-auth owns"
+	@echo "(refresh_tokens, roles, providers, user_providers, user_roles,"
+	@echo "user_security_keys, provider_requests, refresh_token_types). A replace"
+	@echo "untracks all of them and breaks MFA, OAuth logins and role lookups."
+	@echo "It also read HASURA_ADMIN_SECRET from this Makefile's hardcoded"
+	@echo "default, so it authenticated as nobody on any real install."
+	@echo ""
+	@echo "Use the targeted path instead. It tracks tables, relationships,"
+	@echo "permissions, cron triggers, event triggers, actions and the allowlist,"
+	@echo "one object at a time, and never touches anything the repo does not"
+	@echo "declare:"
+	@echo "    make metadata-reconcile                 # dry run, local"
+	@echo "    make metadata-reconcile APPLY=1         # apply, local"
+	@echo "    make metadata-reconcile HOST=<box>          # dry run, remote"
+	@echo "    make metadata-reconcile HOST=<box> APPLY=1  # apply, remote"
+	@exit 1
 
 .PHONY: metadata-diff
 metadata-diff: ## Compare committed Hasura permissions against a live env (HOST=<ssh-host> for remote)
 	bash scripts/metadata-diff.sh $(HOST)
 
 .PHONY: metadata-reconcile
-metadata-reconcile: ## Push repo permissions to a live env (HOST=<ssh-host>, APPLY=1 to actually write)
+metadata-reconcile: ## Track tables + push permissions/triggers/actions to an env (HOST=<ssh-host>, APPLY=1 to write)
 	bash scripts/metadata-reconcile.sh $(HOST) $(if $(APPLY),--apply,)
 
 .PHONY: metadata-export

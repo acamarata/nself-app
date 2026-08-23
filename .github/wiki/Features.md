@@ -158,7 +158,7 @@ See [[Apps]] for a full breakdown of what's shipped, in progress, or blocked on 
 ### Backend services don't start
 
 **Symptom:** `make up` fails or services exit immediately.
-**Fix:** confirm `.env.dev` exists (`cp backend/.env.example backend/.env.dev`), free any conflicting ports (`lsof -i :8080,4000,5432,9000`), then `make up` again.
+**Fix:** confirm `.env` exists (`cp backend/.env.example backend/.env`), free any conflicting ports (`lsof -i :8080,4000,5432,9000`), then `make up` again.
 
 ### App can't reach the backend
 
