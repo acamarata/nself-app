@@ -55,6 +55,7 @@ import {
   handleRemovePresence,
 } from './collab-ops';
 import { getUploadUrl, getDownloadUrl } from './storage-presign';
+import { dispatchReminders } from './reminder-dispatch';
 import { handleTaskActivity }            from './task-activity';
 import { handleNotifyDispatch }          from './notify-dispatch';
 
@@ -113,7 +114,14 @@ const cronRoutes: Record<string, () => Promise<void>> = {
   // defined in functions triggered via Hasura's own cron engine
   // (the DB-backed cron_triggers.yaml). For now these stubs log and succeed.
   '/cron/create-recurring-instances': async () => { console.log('[cron] create-recurring-instances fired'); },
-  '/cron/dispatch-reminders':         async () => { console.log('[cron] dispatch-reminders fired'); },
+  '/cron/dispatch-reminders':         async () => {
+    // Was a stub that only logged, so reminders were storable on every surface
+    // and delivered on none: rows accumulated and nothing ever read them.
+    const r = await dispatchReminders();
+    console.log(
+      `[cron] dispatch-reminders due=${r.due} notified=${r.notified} skipped=${r.skipped} failed=${r.failed}`,
+    );
+  },
   '/cron/cleanup':                    async () => { console.log('[cron] cleanup fired'); },
 };
 
