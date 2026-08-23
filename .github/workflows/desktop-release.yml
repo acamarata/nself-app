@@ -78,6 +78,12 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
+      # Required by the "Trigger updater manifest publish" step, which calls
+      # `gh workflow run publish-updater.yml`. Without it the dispatch fails
+      # with HTTP 403 "Resource not accessible by integration" and the whole
+      # job goes red even though every build succeeded and every asset uploaded
+      # — which is exactly what happened on v1.4.0.
+      actions: write
 
     steps:
       - uses: actions/checkout@v4
@@ -120,7 +126,24 @@ jobs:
           # `gh release upload` tries to POST each path and dies with
           #   read release-artifacts/dmg: is a directory
           # so the upload branch has to enumerate files explicitly.
-          mapfile -t ARTIFACTS < <(find release-artifacts -type f | sort)
+          # Only real distributable installers, and only for THIS version.
+          #
+          # `find release-artifacts -type f` uploaded every file in the tree. On
+          # v1.4.0 that attached 19 assets: the six real installers plus macOS
+          # .app bundle internals (CodeResources, Info.plist, icon.icns, the
+          # tray-*.png icons, the raw ntask-desktop binary) AND stale
+          # nTask_1.3.0/1.3.1 installers left in the artifact directory. Anyone
+          # opening the release saw three versions mixed with build debris.
+          #
+          # Extension allow-list + version match, so a stale artifact from a
+          # restored cache cannot ride along again.
+          mapfile -t ARTIFACTS < <(
+            find release-artifacts -type f \
+              \( -name "*.dmg" -o -name "*.exe" -o -name "*.msi" \
+                 -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
+                 -o -name "*.app.tar.gz" -o -name "*.sig" \) \
+              | grep -F "$VERSION" | sort
+          )
           if [ "${#ARTIFACTS[@]}" -eq 0 ]; then
             echo "::error::no files found under release-artifacts/"
             exit 1
