@@ -15,12 +15,18 @@ test.describe('marketing page', () => {
     // would have failed against production from the day the copy changed, which
     // nobody noticed because nothing ran it.
     //
-    // Matched on visible text, not on the link's accessible name: the header
-    // comes from the shared @nself-web/ui package, whose brand link hardcodes
-    // aria-label="ɳSelf home", so a screen reader on task.nself.org hears the
-    // wrong product. That is a bug in the shared package (PCI filed against
-    // nself-org/packages), not something this suite can assert around.
+    // Asserted on the ACCESSIBLE NAME, not just visible text. The header comes
+    // from the shared @nself-web/ui package, whose brand link used to hardcode
+    // aria-label="ɳSelf home" -- so a screen reader on task.nself.org announced
+    // the wrong product while the visible text read correctly. The shared
+    // component now takes a brandLabel prop (nself-org/packages#12) and
+    // AppShell passes "ɳTask home".
+    //
+    // Checking visible text alone is what let that ship: it passed the whole
+    // time the accessible name was wrong. This assertion fails if either half
+    // regresses.
     await expect(page.getByText('ɳTask', { exact: true }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: /ɳTask/ }).first()).toBeVisible()
   })
 
   test('the feature grid does not advertise features that were removed', async ({ page }) => {
