@@ -177,6 +177,11 @@ export function AppShell() {
         <Header
           logo={<Logo className="h-8 w-auto" product="Task" />}
           logoHref="/"
+          // The Logo SVG is aria-hidden, so the brand link's accessible name
+          // comes entirely from this label. Without it the shared component
+          // defaults to "ɳSelf home" and a screen reader on task.nself.org
+          // announces the wrong product.
+          brandLabel="ɳTask home"
           githubUrl="https://github.com/nself-org/ntask"
           chatUrl={null}
           navItems={[
@@ -202,7 +207,11 @@ export function AppShell() {
         <main id="main-content" className="flex-1" tabIndex={-1}>
           <Outlet />
         </main>
-        <Footer copyrightText="© {year} ɳTask · part of the ɳSelf ecosystem · MIT licensed" logoHref="/" />
+        <Footer
+          copyrightText="© {year} ɳTask · part of the ɳSelf ecosystem · MIT licensed"
+          logoHref="/"
+          brandLabel="ɳTask home"
+        />
         <CookieBanner />
       </>
     )
