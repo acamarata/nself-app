@@ -43,6 +43,12 @@ import { ResetConfirmPage } from '@/pages/app/ResetConfirmPage'
 import { VerifyEmailPage } from '@/pages/app/VerifyEmailPage'
 import { SentryTestPage } from '@/pages/SentryTestPage'
 import { SharedListPage } from '@/pages/shared/SharedListPage'
+import { HelpPage } from '@/pages/support/HelpPage'
+import { ContactPage } from '@/pages/support/ContactPage'
+import { AccessibilityPage } from '@/pages/support/AccessibilityPage'
+import { SecurityPage } from '@/pages/support/SecurityPage'
+import { AupPage } from '@/pages/legal/AupPage'
+import { CookiesPage } from '@/pages/legal/CookiesPage'
 import { PrivacyPage } from '@/pages/legal/PrivacyPage'
 import { TermsPage } from '@/pages/legal/TermsPage'
 
@@ -169,7 +175,13 @@ export function App() {
         {/* Public shared-list view — no auth required */}
         <Route path="/shared/:token" element={<SharedListPage />} />
 
-        {/* Legal pages */}
+        {/* Support + legal pages (folded in from retired web/ntask-marketing, ADR-P6-04) */}
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/accessibility" element={<AccessibilityPage />} />
+        <Route path="/security" element={<SecurityPage />} />
+        <Route path="/legal/aup" element={<AupPage />} />
+        <Route path="/legal/cookies" element={<CookiesPage />} />
         <Route path="/legal/privacy" element={<PrivacyPage />} />
         <Route path="/legal/terms" element={<TermsPage />} />
 
