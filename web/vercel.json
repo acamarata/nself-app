@@ -53,5 +53,122 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/aup",
+      "destination": "/legal/aup",
+      "permanent": true
+    },
+    {
+      "source": "/cookies",
+      "destination": "/legal/cookies",
+      "permanent": true
+    },
+    {
+      "source": "/help/faq",
+      "destination": "/help#faq",
+      "permanent": true
+    },
+    {
+      "source": "/help/create-task",
+      "destination": "/help#create-task",
+      "permanent": true
+    },
+    {
+      "source": "/help/lists",
+      "destination": "/help#lists",
+      "permanent": true
+    },
+    {
+      "source": "/help/offline-mode",
+      "destination": "/help#offline-mode",
+      "permanent": true
+    },
+    {
+      "source": "/help/troubleshooting-sync",
+      "destination": "/help#troubleshooting-sync",
+      "permanent": true
+    },
+    {
+      "source": "/help/getting-started-web",
+      "destination": "/help#getting-started-web",
+      "permanent": true
+    },
+    {
+      "source": "/help/getting-started-ios",
+      "destination": "/help#getting-started-ios",
+      "permanent": true
+    },
+    {
+      "source": "/help/getting-started-self-host",
+      "destination": "/help#getting-started-self-host",
+      "permanent": true
+    },
+    {
+      "source": "/help/docker-quickstart",
+      "destination": "/help#getting-started-self-host",
+      "permanent": true
+    },
+    {
+      "source": "/open-source",
+      "destination": "https://github.com/nself-org/ntask",
+      "permanent": true
+    },
+    {
+      "source": "/pricing",
+      "destination": "https://nself.org/task",
+      "permanent": true
+    },
+    {
+      "source": "/download",
+      "destination": "https://github.com/nself-org/ntask/releases",
+      "permanent": true
+    },
+    {
+      "source": "/download/:path*",
+      "destination": "https://github.com/nself-org/ntask/releases",
+      "permanent": true
+    },
+    {
+      "source": "/changelog",
+      "destination": "https://github.com/nself-org/ntask/releases",
+      "permanent": true
+    },
+    {
+      "source": "/changelog/:path*",
+      "destination": "https://github.com/nself-org/ntask/releases",
+      "permanent": true
+    },
+    {
+      "source": "/compare",
+      "destination": "https://nself.org/task",
+      "permanent": true
+    },
+    {
+      "source": "/compare/:path*",
+      "destination": "https://nself.org/task",
+      "permanent": true
+    },
+    {
+      "source": "/features",
+      "destination": "https://nself.org/task",
+      "permanent": true
+    },
+    {
+      "source": "/features/:path*",
+      "destination": "https://nself.org/task",
+      "permanent": true
+    },
+    {
+      "source": "/self-host",
+      "destination": "https://nself.org/docs/guides/ntask-self-hosting",
+      "permanent": true
+    },
+    {
+      "source": "/self-host/:path*",
+      "destination": "https://nself.org/docs/guides/ntask-self-hosting",
+      "permanent": true
+    }
   ]
 }
