@@ -4,7 +4,7 @@
   "version": "1.4.0",
   "license": "MIT",
   "packageManager": "pnpm@10.30.1",
-  "description": "\u0273Task monorepo workspace root",
+  "description": "ɳTask monorepo workspace root",
   "pnpm": {
     "overrides": {
       "ntask-tv>react-native": "npm:react-native-tvos@^0.79.2-0",
