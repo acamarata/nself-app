@@ -2,14 +2,21 @@
 # Format: provisional (PCI filed: nself-yaml-bundle-format)
 # This file documents plugin/service intent for the ntask reference app.
 #
-# TRUTHFUL-ALIGNMENT NOTE (2026-07-03): `nself build` does NOT read this file.
-# Confirmed by source inspection (nself-org/cli internal/build/plugins.go,
-# internal/config/types.go) — the CLI's entire Config struct is populated only
-# from the .env cascade (`env:"..."` struct tags); no YAML parser exists for
-# this manifest anywhere in the cli codebase. The `plugins:` block below is
-# aspirational until the CLI implements a reader for it (see the "plugins"
-# subsection for what's actually active vs. native vs. unwired).
-# Tracked: PCI nself/plugin-injection-dropped, PCI nself-yaml-bundle-format.
+# PARSING NOTE (corrected 2026-08-31, ticket P6-E2-W2-S3-T8): `nself build`
+# DOES read this file. internal/build/manifest.go's LoadProjectManifest +
+# ResolveDeclaredPlugins parse both this file's flat and tiered
+# (plugins.free/plugins.pro) shapes, and orchestrator.go wires the result into
+# the real build at "Step 7.05: Resolve declared plugins (nself.yaml)" —
+# auto-installing declared plugins where possible and loudly reporting any
+# that fail to wire (BuildResult.MissingPlugins + a build warning naming the
+# fix command), never a silent drop. Verified live against this exact file
+# 2026-08-31: `nself build --verbose` in this directory resolves both
+# currently-declared plugins (auth, storage) with no missing-plugin warning.
+# The `plugins:` block below is therefore live, not aspirational. The 7
+# plugins listed as "not wired" further down remain undeclared by deliberate
+# ntask product choice, not a CLI limitation — declaring them would wire them
+# the same way. Originally tracked: PCI nself/plugin-injection-dropped (fixed),
+# PCI nself-yaml-bundle-format (format itself still provisional).
 #
 # Plugin names must match directory names under plugins/free/.
 # All plugins listed here are free tier — no license key required.
@@ -58,9 +65,10 @@ plugins:
     # - notify      → functions/notify-dispatch.ts
     # - invitations → functions/collab-ops.ts + migrations/021_add_list_invites.sql
     #
-    # AVAILABLE IN plugins/free/ BUT NOT WIRED — no docker-compose.plugin.yml
-    # installed under ~/.nself/plugins/ for this stack. Enable when nself's
-    # plugin-manifest injection ships (see note at top of this file):
+    # AVAILABLE IN plugins/free/ BUT NOT DECLARED — nself's plugin-manifest
+    # injection (see note at top of this file) is live and would wire any of
+    # these the moment they are added to the plugins.free list above; they
+    # are simply not part of ntask's current product scope:
     #   notifications  — push notification delivery: FCM/APNs device push
     #   jobs           — background job queue: async processing and retries
     #   search         — full-text task search: Postgres tsvector index
