@@ -4,6 +4,7 @@ name: Desktop Windows Build
 # EV signing is conditional: only runs if SSL_COM_USERNAME secret is set.
 # Without EV cert, MSI ships unsigned — SmartScreen warns until reputation builds.
 # Reference: E-desktop-tauri.md PROC-2 for EV cert procurement details.
+# Gate: EXTERNAL-GATES.md row "Windows EV/OV code-signing cert (~$300)" (currently OPEN)
 
 on:
   # Called by desktop-release.yml for tagged releases. Without workflow_call the
