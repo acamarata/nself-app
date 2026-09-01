@@ -42,7 +42,8 @@
       "path-to-regexp@>=6.0.0 <6.3.0": "^6.3.0",
       "smol-toml@>=1.0.0 <1.6.1": "^1.6.1",
       "@tootallnate/once@>=2.0.0 <2.0.1": "^2.0.1",
-      "decode-uri-component@<0.5.0": "^0.5.0"
+      "decode-uri-component@<0.5.0": "^0.5.0",
+      "browserslist@<4.28.7": "^4.28.7"
     },
     "patchedDependencies": {
       "@expo/plist@0.2.2": "patches/@expo__plist@0.2.2.patch",
