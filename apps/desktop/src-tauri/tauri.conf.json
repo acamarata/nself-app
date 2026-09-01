@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "\u0273Task",
+  "productName": "ɳTask",
   "identifier": "org.nself.ntask",
   "version": "1.4.0",
   "build": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "\u0273Task",
+        "title": "ɳTask",
         "url": "https://task.nself.org/welcome?app=desktop",
         "width": 1100,
         "height": 760,

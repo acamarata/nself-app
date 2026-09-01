@@ -1,7 +1,7 @@
 {
   "name": "@nself/ntask-mcp",
   "version": "0.1.0",
-  "description": "\u0273Task MCP server \u2014 expose task/list operations as MCP tools for AI agents (Claude, Cursor, etc.)",
+  "description": "ɳTask MCP server \u2014 expose task/list operations as MCP tools for AI agents (Claude, Cursor, etc.)",
   "type": "module",
   "bin": {
     "ntask-mcp": "./dist/index.js"

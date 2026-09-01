@@ -1,7 +1,7 @@
 {
   "name": "@nself/ntask-cli",
   "version": "0.1.0",
-  "description": "\u0273Task CLI \u2014 manage tasks and lists from the terminal or an AI agent",
+  "description": "ɳTask CLI \u2014 manage tasks and lists from the terminal or an AI agent",
   "type": "module",
   "bin": {
     "ntask": "./dist/index.js"

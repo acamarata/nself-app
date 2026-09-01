@@ -2,7 +2,7 @@
   "name": "@ntask/backend-functions",
   "version": "0.1.0",
   "private": true,
-  "description": "Hasura action + event trigger functions for \u0273Tasks backend",
+  "description": "Hasura action + event trigger functions for ɳTasks backend",
   "type": "module",
   "main": "server.ts",
   "scripts": {
