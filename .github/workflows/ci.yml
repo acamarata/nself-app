@@ -91,6 +91,15 @@ jobs:
         working-directory: web
         run: pnpm typecheck
 
+      # web/package.json's "name" field is "ntask" (not @ntask/web), so this
+      # is the correct --filter target. Blocking, not continue-on-error: the
+      # lint config and script have been fully working locally with zero
+      # errors since ntask/web/eslint.config.mjs and web/package.json's
+      # "lint": "eslint ." script were added — it was simply never invoked in
+      # CI (P6-E11-W2-S4-T25).
+      - name: Lint
+        run: pnpm --filter ntask lint
+
       - name: Unit tests
         working-directory: web
         run: pnpm test
