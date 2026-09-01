@@ -5,12 +5,13 @@
  *   which carries approval authority and member management the invitee was
  *   never granted (incident 2026-08-31).
  *
- * Invite vocabulary:  owner | editor | viewer  (np_list_invites CHECK)
- * Member vocabulary:  owner | admin  | member  (np_list_members CHECK)
+ * Invite vocabulary:  owner | editor | viewer          (np_list_invites CHECK)
+ * Member vocabulary:  owner | admin | editor | member  (np_list_members CHECK,
+ *   widened in migration 032_np_list_members_add_editor_role.sql)
  *
  * Expected mapping after the fix:
  *   owner  -> owner   (honest 1:1 match; np_list_members allows multiple owners)
- *   editor -> member  (no honest target exists yet; must NOT become admin)
+ *   editor -> editor  (dedicated role added in migration 032; must NOT become admin)
  *   viewer -> member  (unchanged)
  *
  * global.fetch is stubbed for the whole module because adminGql() is called
@@ -109,7 +110,7 @@ describe('handleAcceptListInvite: invite role -> member role mapping', () => {
     assert.equal(acceptCalls[0]!['memberRole'], 'owner');
   });
 
-  test("'editor' invite becomes a 'member' — must NOT become admin", async () => {
+  test("'editor' invite becomes an 'editor' member — must NOT become admin or member", async () => {
     const { fetchImpl, acceptCalls } = stubHasura('editor');
     globalThis.fetch = fetchImpl;
 
@@ -117,8 +118,9 @@ describe('handleAcceptListInvite: invite role -> member role mapping', () => {
 
     assert.equal(result.success, true);
     assert.equal(acceptCalls.length, 1);
-    assert.equal(acceptCalls[0]!['memberRole'], 'member');
+    assert.equal(acceptCalls[0]!['memberRole'], 'editor');
     assert.notEqual(acceptCalls[0]!['memberRole'], 'admin');
+    assert.notEqual(acceptCalls[0]!['memberRole'], 'member');
   });
 
   test("'viewer' invite becomes a 'member'", async () => {
