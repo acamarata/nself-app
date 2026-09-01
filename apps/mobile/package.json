@@ -1,7 +1,7 @@
 {
   "name": "ntask-mobile",
   "version": "1.4.0",
-  "description": "\u0273Task \u2014 self-hosted task management app powered by nSelf",
+  "description": "ɳTask \u2014 self-hosted task management app powered by nSelf",
   "private": true,
   "main": "index.js",
   "scripts": {
