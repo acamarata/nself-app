@@ -40,7 +40,8 @@
       "minimatch@>=10.0.0 <10.2.3": "^10.2.3",
       "path-to-regexp@>=6.0.0 <6.3.0": "^6.3.0",
       "smol-toml@>=1.0.0 <1.6.1": "^1.6.1",
-      "@tootallnate/once@>=2.0.0 <2.0.1": "^2.0.1"
+      "@tootallnate/once@>=2.0.0 <2.0.1": "^2.0.1",
+      "decode-uri-component@<0.5.0": "^0.5.0"
     },
     "patchedDependencies": {
       "@expo/plist@0.2.2": "patches/@expo__plist@0.2.2.patch",
