@@ -330,23 +330,27 @@ export async function handleAcceptListInvite(payload: HasuraActionPayload): Prom
   // Map invite role to member role.
   //
   // Invite vocabulary: owner | editor | viewer (np_list_invites CHECK constraint).
-  // Member vocabulary:  owner | admin  | member (np_list_members CHECK constraint).
+  // Member vocabulary:  owner | admin | editor | member (np_list_members CHECK
+  // constraint, widened in migration 032_np_list_members_add_editor_role.sql).
   //
   // 'owner' is the only 1:1 match — np_list_members supports multiple owners
   // (see the ownerCount <= 1 guards below; there is no single-owner uniqueness
   // constraint), so an owner invite honestly becomes an owner member.
   //
-  // 'editor' has NO honest target in the member vocabulary. It used to map to
-  // 'admin', which silently granted approval authority and member management
-  // (invite/remove/change-role) that was never offered to the invitee — a
-  // privilege-escalation bug (incident 2026-08-31, chained with the np_todos
-  // "Members can update todos" RLS policy checking membership only, not role).
-  // There is no partial "can edit, cannot manage members" role to map to
-  // without inventing one and getting rejected by the CHECK constraint, so
-  // 'editor' safely collapses to 'member' — same as 'viewer' — until a real
-  // editor-equivalent member role ships (tracked: ADR-P9-01 Wave 2). This is a
-  // known product gap, not a fix: editors currently get no more than viewers.
-  const memberRole = invite.role === 'owner' ? 'owner' : 'member';
+  // 'editor' now maps to the dedicated 'editor' member role. It used to
+  // collapse to 'member' (previously it mapped to 'admin', which was the
+  // original privilege-escalation bug: incident 2026-08-31, chained with the
+  // np_todos "Members can update todos" RLS policy checking membership only,
+  // not role). An editor member can edit any todo in the list — granted by
+  // 031_np_todos_role_gated_update.sql's `m.role <> 'member'` predicate — but
+  // has none of 'admin's approval authority or member management
+  // (invite/remove/change-role) rights. Deploying this mapping REQUIRES
+  // migration 032 to already have widened the CHECK constraint; without it,
+  // every editor-invite acceptance fails on insert.
+  //
+  // 'viewer' maps to plain 'member' — read-only, no edit rights on todos it
+  // doesn't own or isn't assigned to.
+  const memberRole = invite.role === 'owner' ? 'owner' : invite.role === 'editor' ? 'editor' : 'member';
 
   // Atomically: mark accepted, add member, link share record
   await adminGql(
