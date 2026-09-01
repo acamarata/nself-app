@@ -211,6 +211,16 @@ docker-compose.dev.yml
 docker-compose.override.yml
 backend/docker-compose.yml
 
+# Output of `nself build`, regenerated in lockstep with backend/docker-compose.yml
+# (which is ignored just above). Tracking these meant the committed copies drifted
+# from what the generator emits: a stale backend/nginx/sites/task-app.conf showed
+# up as a spurious deletion in every working tree, and the plugin seed baked one
+# developer's locally-installed plugin set into a public reference app.
+backend/nginx/nginx.conf
+backend/nginx/conf.d/default.conf
+backend/nginx/includes/rate-limits.conf
+backend/nginx/sites/
+backend/postgres/init/05-np-plugins-seed.sql
 # Exception: backend/docker-compose.override.yml IS committed. Unlike a
 # personal/machine-specific override, it carries durable fixes for real
 # `nself build` generator gaps (functions service read_only/port/healthcheck
