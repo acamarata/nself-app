@@ -9,6 +9,10 @@ on:
       - '.github/workflows/wiki-sync.yml'
   workflow_dispatch:
 
+concurrency:
+  group: wiki-sync-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sync-wiki:
     runs-on: ubuntu-latest
