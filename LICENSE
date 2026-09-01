@@ -1,43 +1,16 @@
-ɳApp - ɳSelf Boilerplate License
+MIT License
 
 Copyright (c) 2025 nself (https://nself.org)
 
-## License Terms
-
-### Personal Use License
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to use
-the Software for personal, non-commercial purposes, including without limitation
-the rights to use, copy, modify, merge, publish, and distribute copies of the
-Software, subject to the following conditions:
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-1. The above copyright notice and this permission notice shall be included in all
-   copies or substantial portions of the Software.
-
-2. The Software may not be used for commercial purposes without obtaining a
-   commercial license (see below).
-
-3. Attribution must be maintained in all copies and derivative works.
-
-### Commercial Use
-
-For commercial use of this Software, including but not limited to:
-- Use in production environments for commercial projects
-- Integration into commercial products or services
-- Use by businesses, organizations, or for-profit entities
-- Providing services based on this Software
-
-You must obtain a commercial license by contacting:
-- Email: license@nself.org
-- Website: https://nself.org/commercial
-
-### Open Source Projects
-
-Open source projects may use this Software freely, provided they maintain
-attribution and this license notice.
-
-### THE SOFTWARE IS PROVIDED "AS IS"
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -49,4 +22,37 @@ SOFTWARE.
 
 ---
 
-For questions about licensing, please contact: license@nself.org
+## Third-party components
+
+The MIT grant above covers this repository's own source. Some dependencies are
+distributed under other licenses and are not covered by it.
+
+### Mozilla Public License 2.0
+
+MPL-2.0 is file-level copyleft. Section 3.3 permits distributing a Larger Work
+under a different license provided the MPL-covered files themselves remain under
+MPL-2.0. These dependencies are used unmodified, so their license applies to them
+and not to this repository's source.
+
+Reachable at runtime, via @nself-web/og and the edge function that renders Open
+Graph images:
+
+  satori 0.0.46                  MPL-2.0
+  @resvg/resvg-wasm 2.0.0-alpha.4  MPL-2.0
+  @vercel/og 1.0.0               MPL-2.0
+
+Build and development only, not shipped and not executing at request time:
+
+  lightningcss                   MPL-2.0  (@tailwindcss/postcss, Expo/Metro)
+  axe-core                       MPL-2.0  (jest-axe, @storybook/addon-a11y)
+  @edge-runtime/*, edge-runtime  MPL-2.0  (@vercel/node, devDependency)
+
+### Everything else
+
+A scan of 1,628 packages across all six workspace apps, the Cargo manifests for
+the Tauri desktop app, and all sixteen internal @nself/* and @nself-web/*
+packages found only MIT, Apache-2.0, BSD and ISC. No GPL, AGPL, LGPL, SSPL,
+CC-BY-SA, BUSL, Elastic or proprietary licenses appear in any dependency path.
+
+Re-run a dependency license scan before changing the license of this repository.
+A permissive license claim is only valid if the dependency graph supports it.
