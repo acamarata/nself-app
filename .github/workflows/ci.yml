@@ -146,7 +146,8 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: apps/mobile/pnpm-lock.yaml
+          # apps/mobile is a workspace member: the ROOT lockfile governs its install
+          cache-dependency-path: pnpm-lock.yaml
       - name: Install sibling packages deps (their own lockfile)
         shell: bash
         # app typecheck walks into packages/@nself/* source, which imports
