@@ -14,6 +14,7 @@ overrides:
   vitest@<3.2.6: ^3.2.6
   '@opentelemetry/core@<2.8.0': ^2.8.0
   '@xmldom/xmldom@>=0.9.0 <1': '>=0.9.12'
+  '@xmldom/xmldom@>=0.7.0 <0.9.0': '>=0.8.15'
   fast-xml-parser: ^5.7.0
   joi: ^17.13.4
   send: ^0.19.0
@@ -4176,15 +4177,6 @@ packages:
   '@whatwg-node/promise-helpers@1.3.2':
     resolution: {integrity: sha512-Nst5JdK47VIl9UcGwtv2Rcgyn5lWtZ0/mhRQ4G8NN2isxpq2TO30iqHzmwoJycjWuyUfg3GFXqP/gFHXeV57IA==}
     engines: {node: '>=16.0.0'}
-
-  '@xmldom/xmldom@0.7.13':
-    resolution: {integrity: sha512-lm2GW5PkosIzccsaZIz7tp8cPADSIlIHWDFTR1N0SzfinhhYgeIQjFMz4rYzanCScr3DqQLeomUDArp6MWKm+g==}
-    engines: {node: '>=10.0.0'}
-    deprecated: this version has critical issues, please update to the latest version
-
-  '@xmldom/xmldom@0.8.15':
-    resolution: {integrity: sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==}
-    engines: {node: '>=10.0.0'}
 
   '@xmldom/xmldom@0.9.12':
     resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
@@ -10469,13 +10461,13 @@ snapshots:
 
   '@expo/plist@0.2.2(patch_hash=468264243a2bbb049c36e4297dc52f04039dc9a7051958fa5e4b6481711b402f)':
     dependencies:
-      '@xmldom/xmldom': 0.7.13
+      '@xmldom/xmldom': 0.9.12
       base64-js: 1.5.1
       xmlbuilder: 14.0.0
 
   '@expo/plist@0.3.5(patch_hash=db1a1af84cf4198c368b703089aa4ca8c603875badc1babe236c6abd4fa8e8ba)':
     dependencies:
-      '@xmldom/xmldom': 0.8.15
+      '@xmldom/xmldom': 0.9.12
       base64-js: 1.5.1
       xmlbuilder: 15.1.1
 
@@ -13177,10 +13169,6 @@ snapshots:
   '@whatwg-node/promise-helpers@1.3.2':
     dependencies:
       tslib: 2.8.1
-
-  '@xmldom/xmldom@0.7.13': {}
-
-  '@xmldom/xmldom@0.8.15': {}
 
   '@xmldom/xmldom@0.9.12': {}
 
